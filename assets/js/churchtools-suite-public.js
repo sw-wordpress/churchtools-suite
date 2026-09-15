@@ -486,11 +486,16 @@
 		
 		// Event-Delegation für dynamisch geladene Events
 		$(document).on('click', '.cts-event-clickable', function(e) {
-		// WICHTIG: Nur verarbeiten wenn NICHT auch page-link (verhindert Konflikt)
-		if ($(this).hasClass('cts-event-page-link')) {
-			console.log('[ChurchTools Suite] Skipping - has page-link class');
-			return; // Lass den page-link handler übernehmen
-		}
+			// WICHTIG: Nur verarbeiten wenn NICHT auch page-link (verhindert Konflikt)
+			if ($(this).hasClass('cts-event-page-link')) {
+				console.log('[ChurchTools Suite] Skipping - has page-link class');
+				return; // Lass den page-link handler übernehmen
+			}
+
+			// Prevent links/buttons inside a modal-triggering event from executing their
+			// native action (for example, href="#" scrolling to the page top).
+			e.preventDefault();
+			e.stopPropagation();
 		
 			const eventId = $(this).data('event-id');
 			console.log('[ChurchTools Suite] Event clicked, ID:', eventId, 'Element:', this);
@@ -697,8 +702,7 @@
 	function loadEventData(eventId, $overlay, $container) {
 		// Show modal
 		$overlay.addClass('active');
-		$('body').css('overflow', 'hidden');
-		
+
 		// Show loading
 		$('#cts-modal-loading').show();
 		$('#cts-modal-content').hide();
@@ -930,7 +934,6 @@
 	 */
 	function closeModal() {
 		$('#cts-modal-overlay').removeClass('active');
-		$('body').css('overflow', '');
 	}
 
 	/**

@@ -187,6 +187,7 @@ if (! $cts_mwi_styles_printed) :
 		display: grid;
 		grid-template-columns: repeat(2, minmax(0, 1fr));
 		gap: 40px 30px;
+		padding:4px;
 	}
 
 	@media (max-width: 768px) {
