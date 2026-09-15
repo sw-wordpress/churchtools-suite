@@ -182,6 +182,12 @@ if (! $cts_mwi_styles_printed) :
 		height: 100%;
 		object-fit: cover;
 	}
+	
+	.cts-list--modern-images-items {
+		display: grid;
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+		gap: 40px 30px;
+	}
 
 	@media (max-width: 768px) {
 		.cts-list--modern-images__image {
@@ -210,20 +216,25 @@ if (! $cts_mwi_styles_printed) :
 
 <div class="churchtools-suite-wrapper" data-style-mode="<?php echo esc_attr($style_mode); ?>"<?php echo $custom_styles ? ' style="' . esc_attr($custom_styles) . '"' : ''; ?>>
 	<div class="cts-list cts-list--modern-images" data-view="list-modern-images">
-
+		<?php $opened_month_container = false; ?>
 		<?php foreach ($events as $event) : ?>
 
 			<?php
 			$event_month = get_date_from_gmt($event['start_datetime'], 'Y-m');
 			if ($show_month_separator && ($current_month === null || $current_month !== $event_month)) :
 				$current_month = $event_month;
+
 			?>
+				<?php if ( $opened_month_container ): ?></div><?php endif; ?>
 				<div class="cts-list--modern-images__month-separator">
 					<time datetime="<?php echo esc_attr($event_month); ?>">
 						<?php echo esc_html(date_i18n('F Y', strtotime(get_date_from_gmt($event['start_datetime'])))); ?>
 					</time>
 				</div>
-			<?php endif; ?>
+				<div class="cts-list--modern-images-items">
+			<?php 
+				$opened_month_container = true; 
+			endif; ?>
 
 			<?php
 			// Click / navigation behaviour
@@ -364,6 +375,6 @@ if (! $cts_mwi_styles_printed) :
 			</article>
 
 		<?php endforeach; ?>
-
+		<?php if ( $opened_month_container ): ?></div><?php endif; ?>
 	</div>
 </div>
