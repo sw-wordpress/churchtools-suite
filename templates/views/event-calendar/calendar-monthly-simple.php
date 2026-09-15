@@ -227,11 +227,15 @@ for ( $i = 0; $i < 7; $i++ ) {
 							// v0.9.9.17: Only set calendar color if use_calendar_colors is enabled
 							$event_style = '';
 							if ( $use_calendar_colors ) {
+								$text_color = ChurchTools_Suite_Styles::contrast_color($calendar_color);
+
 								$event_style = sprintf(
-									'style="--calendar-color: %s; --cts-primary-color: %s;"',
+									'style="--calendar-color: %s; --cts-primary-color: %s; --event-text-color: %s"',
 									esc_attr( $calendar_color ),
-									esc_attr( $calendar_color )
+									esc_attr( $calendar_color ),
+									esc_attr( $text_color )
 								);
+
 							}
 							?>
 							<div class="<?php echo esc_attr( $event_classes ); ?>" 

@@ -630,7 +630,6 @@
 		
 		// v0.9.9.84: Get click_action from options (passed from Block)
 		var clickAction = options.click_action || 'modal';
-		
 		// v0.9.9.84: AJAX request with click_action and template
 		$.ajax({
 			url: churchtoolsSuitePublic.ajaxUrl,
@@ -1022,27 +1021,28 @@
 	 * v0.9.3.1: Support for event_action modes (modal/page/none)
 	 * v0.9.9.80: Always pass currentView for template selection
 	 */
-	$(document).on('click', '.cts-event-clickable', function(e) {
-		// Modal action - open modal
-		e.preventDefault();
-		
-		const eventId = $(this).data('event-id');
-		if (eventId) {
-			const $container = $(this).closest('[data-show-description]');
+
+	// $(document).on('click', '.cts-event-clickable', function(e) {
+	// 	// Modal action - open modal
+	// 	e.preventDefault();
+
+	// 	const eventId = $(this).data('event-id');
+	// 	if (eventId) {
+	// 		const $container = $(this).closest('[data-show-description]');
 			
-			// v0.9.9.80: Detect current view type
-			let currentView = null;
-			if ($container.length > 0) {
-				const classes = $container.attr('class') || '';
-				if (classes.includes('cts-grid-')) currentView = 'grid';
-				else if (classes.includes('cts-list')) currentView = 'list';
-				else if (classes.includes('cts-calendar')) currentView = 'calendar';
-				else if (classes.includes('cts-single')) currentView = 'single';
-			}
+	// 		// v0.9.9.80: Detect current view type
+	// 		let currentView = null;
+	// 		if ($container.length > 0) {
+	// 			const classes = $container.attr('class') || '';
+	// 			if (classes.includes('cts-grid-')) currentView = 'grid';
+	// 			else if (classes.includes('cts-list')) currentView = 'list';
+	// 			else if (classes.includes('cts-calendar')) currentView = 'calendar';
+	// 			else if (classes.includes('cts-single')) currentView = 'single';
+	// 		}
 			
-			showEventModal(eventId, $container, currentView);
-		}
-	});
+	// 		showEventModal(eventId, $container, currentView);
+	// 	}
+	// });
 	
 	/**
 	 * Page link click handler
