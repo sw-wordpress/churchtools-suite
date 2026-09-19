@@ -465,6 +465,19 @@ class ChurchTools_Suite_CT_Client {
                 $error_message .= ': ' . $decoded['message'];
             }
             
+			if (!empty($decoded["errors"])) {
+				$errors = [];
+				foreach($decoded["errors"] as $error) {
+					$error_message .= ":" . $error["message"];
+					
+					if(!empty($error["args"])) {
+						$error_message .= " " . json_encode($error_args);
+					}
+						
+					$errors[] = $error_message;
+				}
+			}
+			
             // Log error
             ChurchTools_Suite_Logger::log(
                 sprintf('API Error: %s %s => HTTP %d', strtoupper($method), $endpoint, $status_code),
