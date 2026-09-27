@@ -339,14 +339,33 @@ class ChurchTools_Suite_Posts_Sync_Frontend {
 			'orderby' => 'date',
 			'order' => 'DESC',
 			'ignore_sticky_posts' => true,
+			'meta_query' => [
+				'relation' => 'AND',
+				[
+					'relation' => 'OR',
+					[
+						'key' => self::EXPIRATION_DATE_META_KEY,
+						'compare' => 'NOT EXISTS',
+					],
+					[
+						'key' => self::EXPIRATION_DATE_META_KEY,
+						'value' => '',
+						'compare' => '=',
+					],
+					[
+						'key' => self::EXPIRATION_DATE_META_KEY,
+						'value' => current_time( 'mysql' ),
+						'compare' => '>',
+						'type' => 'DATETIME',
+					],
+				],
+			],
 		];
 
 		if ( $only_synced ) {
-			$query_args['meta_query'] = [
-				[
-					'key' => self::SYNCED_POST_META_KEY,
-					'compare' => 'EXISTS',
-				],
+			$query_args['meta_query'][] = [
+				'key' => self::SYNCED_POST_META_KEY,
+				'compare' => 'EXISTS',
 			];
 		}
 
