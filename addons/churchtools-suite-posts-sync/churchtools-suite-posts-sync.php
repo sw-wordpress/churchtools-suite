@@ -22,7 +22,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 // Define constants
-define( 'CTS_POSTS_SYNC_VERSION', '0.1.7' );
+define( 'CTS_POSTS_SYNC_VERSION', '0.1.8' );
 define( 'CTS_POSTS_SYNC_PATH', plugin_dir_path( __FILE__ ) );
 define( 'CTS_POSTS_SYNC_URL', plugin_dir_url( __FILE__ ) );
 define( 'CTS_POSTS_SYNC_BASENAME', plugin_basename( __FILE__ ) );
@@ -323,6 +323,8 @@ class ChurchTools_Suite_Posts_Sync {
 			$result['ct_posts_created'] = $post_sync_result['posts_created'] ?? 0;
 			$result['ct_posts_updated'] = $post_sync_result['posts_updated'] ?? 0;
 			$result['ct_posts_skipped'] = $post_sync_result['posts_skipped'] ?? 0;
+			$result['ct_posts_missing_checked'] = $post_sync_result['posts_missing_checked'] ?? 0;
+			$result['ct_posts_privated'] = $post_sync_result['posts_privated'] ?? 0;
 			$result['ct_posts_errors'] = $post_sync_result['errors'] ?? 0;
 		}
 	}

@@ -335,7 +335,7 @@ class ChurchTools_Suite_Posts_Sync_Admin {
 		echo '</select></td></tr>';
 
 		echo '<tr><th scope="row"><label for="ct_posts_sync_limit">' . esc_html__( 'Sync-Limit', 'churchtools-suite-posts-sync' ) . '</label></th><td>';
-		echo '<input type="number" min="1" max="1000" id="ct_posts_sync_limit" name="ct_posts_sync_limit" value="' . esc_attr( (string) $sync_limit ) . '" class="cts-form-input cts-posts-sync-field cts-posts-sync-field-small" max="200" ' . disabled( ! $is_local_environment || ! $enabled, true, false ) . ' />';
+		echo '<input type="number" min="1" max="200" id="ct_posts_sync_limit" name="ct_posts_sync_limit" value="' . esc_attr( (string) $sync_limit ) . '" class="cts-form-input cts-posts-sync-field cts-posts-sync-field-small" max="200" ' . disabled( ! $is_local_environment || ! $enabled, true, false ) . ' />';
 		echo '<span class="cts-form-description">' . esc_html__( 'Maximale Anzahl ChurchTools-Posts pro Sync-Lauf (1-200).', 'churchtools-suite-posts-sync' ) . '</span></td></tr>';
 
 		echo '<tr class="cts-posts-sync-section-row"><th colspan="2">' . esc_html__( 'Filter', 'churchtools-suite-posts-sync' ) . '</th></tr>';

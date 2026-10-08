@@ -1,5 +1,5 @@
 .cts-posts-sync-list {
-	/* display: grid; */
+	display: grid;
 	gap: 16px;
 	margin: 12px 0;
 }

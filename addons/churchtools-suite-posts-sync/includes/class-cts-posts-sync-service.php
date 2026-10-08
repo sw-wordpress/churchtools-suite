@@ -83,14 +83,21 @@ class ChurchTools_Suite_Posts_Sync_Service {
 			'posts_created' => 0,
 			'posts_updated' => 0,
 			'posts_skipped' => 0,
+			'posts_missing_checked' => 0,
+			'posts_privated' => 0,
 			'errors' => 0,
 			'target_type' => $target_type,
 			'target_status' => $target_status,
 			'query' => $query_params,
 		];
+		$response_post_ids = [];
 
 		foreach ( $items as $item ) {
 			$normalized = $this->normalize_ct_post( $item );
+			if ( ! empty( $normalized['ct_id'] ) ) {
+				$response_post_ids[] = (string) $normalized['ct_id'];
+			}
+
 			if ( empty( $normalized['ct_id'] ) || empty( $normalized['title'] ) ) {
 				$stats['errors']++;
 				continue;
@@ -164,6 +171,9 @@ class ChurchTools_Suite_Posts_Sync_Service {
 			$stats['posts_created']++;
 		}
 
+		$response_post_ids = array_values( array_unique( $response_post_ids ) );
+		$this->privatize_missing_ct_posts( $response_post_ids, $target_type, $stats );
+
 		update_option(
 			'churchtools_suite_posts_sync_last_result',
 			[
@@ -174,6 +184,89 @@ class ChurchTools_Suite_Posts_Sync_Service {
 		);
 
 		return $stats;
+	}
+
+	/**
+	 * Verify published synced entries of the configured target post type.
+	 *
+	 * A post is made private only when the detail endpoint confirms that the
+	 * ChurchTools post no longer exists (HTTP 404) or returns no usable data.
+	 * Other API errors are counted but do not change the WordPress post status.
+	 *
+	 * @param array<int, string>  $response_post_ids ChurchTools IDs from the list response.
+	 * @param string              $target_type       Configured WordPress target post type.
+	 * @param array<string, mixed> $stats             Sync statistics, updated by reference.
+	 */
+	private function privatize_missing_ct_posts( array $response_post_ids, string $target_type, array &$stats ): void {
+		$published_posts = get_posts(
+			[
+				'post_type' => $target_type,
+				'post_status' => 'publish',
+				'numberposts' => -1,
+				'fields' => 'ids',
+				'meta_query' => [
+					[
+						'key' => self::META_CT_POST_ID,
+						'compare' => 'EXISTS',
+					],
+				],
+				'suppress_filters' => true,
+			]
+		);
+
+		foreach ( $published_posts as $post_id ) {
+			$ct_post_id = trim( (string) get_post_meta( (int) $post_id, self::META_CT_POST_ID, true ) );
+			if ( $ct_post_id === '' || in_array( $ct_post_id, $response_post_ids, true ) ) {
+				continue;
+			}
+
+			$stats['posts_missing_checked']++;
+			$detail_response = $this->client->api_request( 'posts/' . rawurlencode( $ct_post_id ), 'GET' );
+
+			if ( ! $this->is_missing_ct_post_response( $detail_response ) ) {
+				if ( is_wp_error( $detail_response ) ) {
+					$stats['errors']++;
+				}
+				continue;
+			}
+
+			$update_result = wp_update_post(
+				[
+					'ID' => (int) $post_id,
+					'post_status' => 'private',
+				],
+				true
+			);
+
+			if ( is_wp_error( $update_result ) ) {
+				$stats['errors']++;
+				continue;
+			}
+
+			$stats['posts_privated']++;
+		}
+	}
+
+	/**
+	 * Determine whether a detail response means that a ChurchTools post is gone.
+	 *
+	 * @param array<string, mixed>|WP_Error $response Detail endpoint response.
+	 */
+	private function is_missing_ct_post_response( $response ): bool {
+		if ( is_wp_error( $response ) ) {
+			if ( 'empty_response' === $response->get_error_code() ) {
+				return true;
+			}
+
+			$error_data = $response->get_error_data();
+			return is_array( $error_data ) && 404 === (int) ( $error_data['status'] ?? 0 );
+		}
+
+		if ( empty( $response ) ) {
+			return true;
+		}
+
+		return array_key_exists( 'data', $response ) && empty( $response['data'] );
 	}
 
 	private function extract_posts_from_response( array $response ): array {
