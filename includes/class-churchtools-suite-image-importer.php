@@ -51,7 +51,10 @@ class ChurchTools_Suite_Image_Importer {
         $filename_candidate = !empty($title_filename) ? $title_filename : (!empty($url_filename) ? $url_filename : $fallback_base);
         
         // Versuche, das Bild herunterzuladen (1) Original URL, (2) Fallback ohne Query
-        $tmp_file = download_url($image_url, 300); // 5 Minuten Timeout
+        $tmp_file = self::download_authenticated($image_url);
+        if (is_wp_error($tmp_file)) {
+            $tmp_file = download_url($image_url, 300); // 5 Minuten Timeout
+        }
 
         if (is_wp_error($tmp_file) && $clean_url !== $image_url) {
             error_log(sprintf(
@@ -177,6 +180,57 @@ class ChurchTools_Suite_Image_Importer {
         return $attachment_id;
     }
     
+    /**
+     * Download a file using the stored ChurchTools session cookies.
+     *
+     * ChurchTools fileUrl links (?q=public/filedownload...) require authentication,
+     * so a plain download_url() returns a login page / 403 instead of the image.
+     *
+     * @param string $url Image URL
+     * @return string|WP_Error Temp file path or error
+     */
+    private static function download_authenticated(string $url) {
+        $cookie_data = get_option('churchtools_suite_ct_cookies', []);
+        $base_url = (string) get_option('churchtools_suite_ct_url', '');
+        $host = parse_url($url, PHP_URL_HOST);
+        $base_host = $base_url ? parse_url($base_url, PHP_URL_HOST) : '';
+
+        // Only send the session to the configured ChurchTools host
+        if (empty($cookie_data) || !is_array($cookie_data) || !$host || ($base_host && strcasecmp($host, $base_host) !== 0)) {
+            return new WP_Error('no_auth', 'No session cookies for host');
+        }
+
+        $cookies = [];
+        foreach ($cookie_data as $cookie) {
+            $cookies[] = new WP_Http_Cookie([
+                'name' => $cookie['name'],
+                'value' => $cookie['value'],
+                'expires' => $cookie['expires'] ?? null,
+                'path' => $cookie['path'] ?? '/',
+                'domain' => $cookie['domain'] ?? '',
+            ]);
+        }
+
+        $tmp_file = wp_tempnam($url);
+        if (!$tmp_file) {
+            return new WP_Error('tmp_failed', 'Could not create temp file');
+        }
+
+        $response = wp_remote_get($url, [
+            'timeout' => 300,
+            'stream' => true,
+            'filename' => $tmp_file,
+            'cookies' => $cookies,
+        ]);
+
+        if (is_wp_error($response) || (int) wp_remote_retrieve_response_code($response) !== 200) {
+            @unlink($tmp_file);
+            return is_wp_error($response) ? $response : new WP_Error('http_error', 'HTTP ' . wp_remote_retrieve_response_code($response));
+        }
+
+        return $tmp_file;
+    }
+
     /**
      * Get image URL from attachment ID
      *
