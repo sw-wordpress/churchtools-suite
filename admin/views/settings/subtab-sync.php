@@ -158,18 +158,13 @@ if ( ! empty( $registered_modules ) && class_exists( 'ChurchTools_Suite_Sync_Mod
 		<table class="cts-form-table">
 			<tr>
 				<th scope="row">
-<<<<<<< HEAD
 					<label for="delete_expired_events"><?php esc_html_e( 'Alte Termine löschen', 'churchtools-suite' ); ?></label>
-=======
-					<label for="delete_expired_events"><?php esc_html_e( 'Alte Termine loeschen', 'churchtools-suite' ); ?></label>
->>>>>>> 928d2659cb1c824fe480b770deb6247dea99e4e9
 				</th>
 				<td>
 					<label class="cts-toggle">
 						<input type="checkbox" id="delete_expired_events" name="delete_expired_events" value="1" <?php checked( $delete_expired_events, 1 ); ?>>
 						<span class="cts-toggle-slider"></span>
 					</label>
-<<<<<<< HEAD
 					<span class="cts-form-description"><?php esc_html_e( 'Löscht Termine außerhalb des eingestellten Zeitraums. Zugehörige, vom Plugin importierte Bilder werden ebenfalls gelöscht.', 'churchtools-suite' ); ?></span>
 				</td>
 			</tr>
@@ -183,36 +178,6 @@ if ( ! empty( $registered_modules ) && class_exists( 'ChurchTools_Suite_Sync_Mod
 				</td>
 			</tr>
 		</table>
-
-		<table class="cts-form-table">
-			<tr>
-				<th scope="row"><label for="delete_expired_events"><?php esc_html_e( 'Alte Termine loeschen', 'churchtools-suite' ); ?></label></th>
-				<td>
-					<label class="cts-toggle"><input type="checkbox" id="delete_expired_events" name="delete_expired_events" value="1" <?php checked( $delete_expired_events, 1 ); ?>><span class="cts-toggle-slider"></span></label>
-=======
->>>>>>> 928d2659cb1c824fe480b770deb6247dea99e4e9
-					<span class="cts-form-description"><?php esc_html_e( 'Loescht Termine nach dem eingestellten Aufbewahrungszeitraum.', 'churchtools-suite' ); ?></span>
-				</td>
-			</tr>
-			<tr>
-<<<<<<< HEAD
-				<th scope="row"><label for="expired_events_after_days"><?php esc_html_e( 'Loeschalter', 'churchtools-suite' ); ?></label></th>
-=======
-				<th scope="row">
-					<label for="expired_events_after_days"><?php esc_html_e( 'Loeschalter', 'churchtools-suite' ); ?></label>
-				</th>
->>>>>>> 928d2659cb1c824fe480b770deb6247dea99e4e9
-				<td>
-					<input type="number" id="expired_events_after_days" name="expired_events_after_days" value="<?php echo esc_attr( $expired_events_after_days ); ?>" class="cts-form-input" min="1" max="3650" style="max-width: 120px;" <?php disabled( ! $delete_expired_events ); ?>>
-					<span class="cts-form-description"><?php esc_html_e( 'Termine werden geloescht, wenn ihr Ende laenger als diese Anzahl Tage zurueckliegt.', 'churchtools-suite' ); ?></span>
-				</td>
-			</tr>
-		</table>
-<<<<<<< HEAD
-
-=======
-		
->>>>>>> 928d2659cb1c824fe480b770deb6247dea99e4e9
 		<?php
 		$from_date = date_i18n( get_option( 'date_format' ), current_time( 'timestamp' ) - absint( $sync_days_past ) * DAY_IN_SECONDS );
 		$to_date = date_i18n( get_option( 'date_format' ), current_time( 'timestamp' ) + absint( $sync_days_future ) * DAY_IN_SECONDS );
@@ -233,7 +198,6 @@ if ( ! empty( $registered_modules ) && class_exists( 'ChurchTools_Suite_Sync_Mod
 			</p>
 			<?php if ( (int) $delete_expired_events === 1 ) : ?>
 				<p style="margin: 8px 0 0 0; font-size: 12px; color: #b32d2e;">
-<<<<<<< HEAD
 					<?php
 					echo esc_html(
 						sprintf(
@@ -242,9 +206,6 @@ if ( ! empty( $registered_modules ) && class_exists( 'ChurchTools_Suite_Sync_Mod
 						)
 					);
 					?>
-=======
-					<?php echo esc_html( sprintf( __( 'Termine bis einschliesslich %s werden geloescht.', 'churchtools-suite' ), $delete_before_date ) ); ?>
->>>>>>> 928d2659cb1c824fe480b770deb6247dea99e4e9
 				</p>
 			<?php endif; ?>
 		</div>
