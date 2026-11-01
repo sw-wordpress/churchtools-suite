@@ -2327,7 +2327,7 @@
 /* Weekday Header */
 .cts-calendar-weekdays {
 	display: grid;
-	grid-template-columns: repeat(7, 1fr);
+	grid-template-columns: repeat(7, minmax(0, 1fr));
 	background: #f1f5f9;
 	border-bottom: 1px solid #e5e7eb;
 }
@@ -2354,6 +2354,7 @@
 /* Day Cell */
 .cts-calendar-day-cell {
 	min-height: 80px;
+	min-width: 0;
 	border: 1px solid #e5e7eb;
 	padding: 6px;
 	position: relative;
@@ -2440,6 +2441,8 @@
 }
 
 .cts-event-title-short {
+	min-width: 0;
+	flex: 1 1 auto;
 	overflow: hidden;
 	text-overflow: ellipsis;
 	white-space: nowrap;
@@ -2467,6 +2470,10 @@
 	display: block;
 }
 
+.cts-event-marker:focus .cts-event-tooltip {
+	display: block;
+}
+
 /* Tooltip Arrow */
 .cts-event-tooltip::before {
 	content: '';
@@ -2483,6 +2490,7 @@
 	font-weight: 600;
 	margin-bottom: 8px;
 	line-height: 1.3;
+	overflow-wrap: anywhere;
 }
 
 .cts-tooltip-time,
@@ -2516,6 +2524,9 @@
 	font-size: 10px;
 	color: var(--cts-primary-color, #2563eb);
 	font-weight: 600;
+	font-family: inherit;
+	background: transparent;
+	border: 0;
 	padding: 4px 6px;
 	text-align: center;
 	cursor: pointer;
@@ -2525,6 +2536,14 @@
 
 .cts-more-events:hover {
 	background: rgba(37, 99, 235, 0.1);
+}
+
+.cts-event-marker-hidden {
+	display: none;
+}
+
+.cts-event-dot-hidden {
+	display: none;
 }
 
 /* Responsive - Calendar */

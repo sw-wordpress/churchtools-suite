@@ -141,6 +141,11 @@ class ChurchTools_Suite_Shortcodes {
 			}
 			
 			$atts['_preset_base_view'] = $base_view;
+
+			// v1.3.0: Pass custom_css from preset into atts
+			if ( ! empty( $preset['custom_css'] ) ) {
+				$atts['_preset_custom_css'] = $preset['custom_css'];
+			}
 			
 			// Preset config has ALWAYS priority over shortcode parameters
 			foreach ( $preset['configuration'] as $key => $value ) {
@@ -409,6 +414,7 @@ class ChurchTools_Suite_Shortcodes {
 			'custom_font_size' => 14,
 			'custom_padding' => 12,
 			'custom_spacing' => 8,
+			'_custom_css' => '', // v1.3.0: Custom CSS (Block/Elementor)
 			// Legacy (deprecated in v1.0.0)
 			'show_description' => null,
 			// Filter parameters
@@ -515,7 +521,8 @@ class ChurchTools_Suite_Shortcodes {
 			'custom_spacing' => 16,
 
 			// Use existing search value
-			'link_search' => true,			
+			'link_search' => true,
+			'_custom_css' => '', // v1.3.0: Custom CSS (Block/Elementor)
 		], $atts, 'cts_grid' );
 		
 		// Backward-Compatibility: Normalisiere View-ID (alte Namen → neue deutsche IDs)
@@ -576,6 +583,7 @@ class ChurchTools_Suite_Shortcodes {
 			'view' => 'monthly-simple',
 			'calendar' => '',
 			'calendars' => '',
+			'calendar_ids' => '',
 			'tags' => '',
 			'limit' => 100, // Higher limit for calendar views
 			'from' => '',
@@ -595,13 +603,16 @@ class ChurchTools_Suite_Shortcodes {
 			'custom_spacing' => 0,
 
 			// Use existing search value
-			'link_search' => true,			
+			'link_search' => true,
+			'_custom_css' => '', // v1.3.0: Custom CSS (Block/Elementor)
 		], $atts, 'cts_calendar' );
 		
-		// v0.9.8.6: Debug - Check what view value we received
-		if ( WP_DEBUG ) {
-			error_log( 'Calendar Shortcode - Received view: ' . var_export( $atts['view'], true ) );
-			error_log( 'Calendar Shortcode - All atts: ' . var_export( $atts, true ) );
+		// Optional deep debug for shortcode diagnostics.
+		if ( class_exists( 'ChurchTools_Suite_Logger' ) && ChurchTools_Suite_Logger::is_deep_debug_enabled() ) {
+			ChurchTools_Suite_Logger::debug( 'shortcode_calendar', 'Input attributes received', [
+				'view' => $atts['view'],
+				'has_custom_css' => ! empty( $atts['_custom_css'] ),
+			] );
 		}
 		
 
@@ -682,6 +693,7 @@ class ChurchTools_Suite_Shortcodes {
 			'custom_font_size' => 16,
 			'custom_padding' => 24,
 			'custom_spacing' => 16,
+			'_custom_css' => '', // v1.3.0: Custom CSS (Block/Elementor)
 		], $atts, 'cts_countdown' );
 		
 		// v1.1.3.0: Fix für Block-Editor - wenn 'view' leer oder 'classic', setze countdown-klassisch
@@ -790,7 +802,8 @@ class ChurchTools_Suite_Shortcodes {
 			'custom_spacing' => 16,
 
 			// Use existing search value
-			'link_search' => true,			
+			'link_search' => true,
+			'_custom_css' => '', // v1.3.0: Custom CSS (Block/Elementor)
 		], $atts, 'cts_carousel' );
 		
 		// Backward-Compatibility: Normalisiere View-ID
@@ -1010,7 +1023,9 @@ class ChurchTools_Suite_Shortcodes {
 		}
 		
 		// Parse filters - support both 'calendar' (old) and 'calendars' (new)
-		$calendar_param = ! empty( $atts['calendars'] ) ? $atts['calendars'] : ( $atts['calendar'] ?? '' );
+		$calendar_param = ! empty( $atts['calendar_ids'] )
+			? $atts['calendar_ids']
+			: ( ! empty( $atts['calendars'] ) ? $atts['calendars'] : ( $atts['calendar'] ?? '' ) );
 		$filters = [
 			'calendar_ids' => self::parse_calendar_ids( $calendar_param ),
 			'limit' => absint( $atts['limit'] ?? 20 ),
@@ -1034,9 +1049,11 @@ class ChurchTools_Suite_Shortcodes {
 			$filters['filter_tags'] = self::parse_tag_filter( $tags_param );
 		}
 		
-		// Debug output (only when WP_DEBUG is enabled)
-		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-			error_log( 'ChurchTools Suite Shortcode: Getting events with filters: ' . print_r( $filters, true ) );
+		// Optional deep debug for query filters.
+		if ( class_exists( 'ChurchTools_Suite_Logger' ) && ChurchTools_Suite_Logger::is_deep_debug_enabled() ) {
+			ChurchTools_Suite_Logger::debug( 'shortcode_events', 'Getting events with filters', [
+				'filters' => $filters,
+			] );
 		}
 		
 		$events = self::$data_provider->get_events( $filters );
@@ -1046,9 +1063,10 @@ class ChurchTools_Suite_Shortcodes {
 			$events = array_reverse( $events );
 		}
 		
-		// Debug output
-		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-			error_log( 'ChurchTools Suite Shortcode: Found ' . count( $events ) . ' events' );
+		if ( class_exists( 'ChurchTools_Suite_Logger' ) && ChurchTools_Suite_Logger::is_deep_debug_enabled() ) {
+			ChurchTools_Suite_Logger::debug( 'shortcode_events', 'Events found', [
+				'count' => count( $events ),
+			] );
 		}
 		
 		return $events;
@@ -1200,8 +1218,91 @@ class ChurchTools_Suite_Shortcodes {
 				$output
 			);
 		}
-		
+
+		// v1.3.0: Inject scoped custom CSS from preset or block
+		$custom_css = ! empty( $args['_custom_css'] ) ? $args['_custom_css'] : $args['_preset_custom_css'] ?? '';
+		if ( ! empty( $custom_css ) ) {
+			$instance_id = 'cts-instance-' . substr( md5( $custom_css . $template_name ), 0, 8 );
+			$scoped_css  = self::scope_css( $custom_css, '#' . $instance_id );
+			$output = sprintf(
+				'<div id="%s"><style>%s</style>%s</div>',
+				esc_attr( $instance_id ),
+				$scoped_css,
+				$output
+			);
+		}
+
 		return $output;
+	}
+
+	/**
+	 * Scope CSS rules to a parent selector.
+	 *
+	 * Each rule in the provided CSS is prefixed with $scope so that styles
+	 * only affect the specific shortcode instance.
+	 *
+	 * @param string $css   Raw CSS string.
+	 * @param string $scope Parent selector, e.g. "#cts-instance-abc12345".
+	 * @return string Scoped CSS string.
+	 */
+	private static function scope_css( string $css, string $scope ): string {
+		// Strip <style> tags if someone accidentally included them
+		$css = preg_replace( '#</?style[^>]*>#i', '', $css );
+
+		// Split into individual rules (very simple tokeniser – handles most real-world CSS)
+		$rules  = [];
+		$buffer = '';
+		$depth  = 0;
+		$len    = strlen( $css );
+
+		for ( $i = 0; $i < $len; $i++ ) {
+			$char = $css[ $i ];
+			if ( $char === '{' ) {
+				$depth++;
+			} elseif ( $char === '}' ) {
+				$depth--;
+				if ( $depth === 0 ) {
+					$rules[] = trim( $buffer ) . '}';
+					$buffer  = '';
+					continue;
+				}
+			}
+			$buffer .= $char;
+		}
+
+		$scoped = '';
+		foreach ( $rules as $rule ) {
+			if ( preg_match( '/^\s*@/', $rule ) ) {
+				// Pass @media / @keyframes through unchanged
+				$scoped .= $rule . '\n';
+				continue;
+			}
+			// Extract selector and declaration block
+			$brace_pos  = strpos( $rule, '{' );
+			if ( $brace_pos === false ) {
+				continue;
+			}
+			$selector   = trim( substr( $rule, 0, $brace_pos ) );
+			$declaration = substr( $rule, $brace_pos );
+			// Scope each comma-separated selector
+			$selectors   = array_map(
+				function( $s ) use ( $scope ) {
+					$s = trim( $s );
+					if ( $s === '' ) {
+						return '';
+					}
+					// Allow :root override
+					if ( str_starts_with( $s, ':root' ) ) {
+						return $s;
+					}
+					return $scope . ' ' . $s;
+				},
+				explode( ',', $selector )
+			);
+			$scoped .= implode( ', ', array_filter( $selectors ) ) . ' ' . $declaration . '\n';
+		}
+
+		return $scoped;
 	}
 
 	/**
@@ -1518,16 +1619,18 @@ class ChurchTools_Suite_Shortcodes {
 				}
 				
 				echo '<div class="cts-day-events">';
-				foreach ( array_slice( $events_by_date[ $date ], 0, 3 ) as $event ) {
+				foreach ( $events_by_date[ $date ] as $event_index => $event ) {
 					$color = $event['calendar_color'] ?? '#667eea';
 					$title = $event['start_day'] . '. ' . $event['start_month'] . ' ' . $event['start_year'] . ' - ' . $event['title'];
-					echo '<div class="cts-event-dot" style="background-color: ' . esc_attr( $color ) . '" title="' . esc_attr( $title ) . '">';
+					$hidden_class = $event_index >= 3 ? ' cts-event-dot-hidden' : '';
+					echo '<div class="cts-event-dot' . esc_attr( $hidden_class ) . '" style="background-color: ' . esc_attr( $color ) . '" title="' . esc_attr( $title ) . '">';
 					echo '<span class="cts-event-time">' . esc_html( $event['start_time'] ) . '</span>';
 					echo '<span class="cts-event-title-small">' . esc_html( wp_trim_words( $event['title'], 3 ) ) . '</span>';
 					echo '</div>';
 				}
 				if ( count( $events_by_date[ $date ] ) > 3 ) {
-					echo '<div class="cts-more-events">+' . ( count( $events_by_date[ $date ] ) - 3 ) . '</div>';
+					$remaining = count( $events_by_date[ $date ] ) - 3;
+					echo '<button type="button" class="cts-more-events" aria-expanded="false"><span class="cts-more-events-show">+' . esc_html( $remaining ) . ' mehr</span><span class="cts-more-events-hide" hidden>Weniger anzeigen</span></button>';
 				}
 				echo '</div>';
 			}
@@ -1549,3 +1652,4 @@ class ChurchTools_Suite_Shortcodes {
 		] );
 	}
 }
+

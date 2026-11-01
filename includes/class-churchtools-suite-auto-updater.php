@@ -18,8 +18,9 @@ class ChurchTools_Suite_Auto_Updater {
     const GITHUB_UPDATES_ENABLED = false;
 
     const CRON_HOOK = 'churchtools_suite_check_updates';
-    const GITHUB_API_RELEASES = 'https://api.github.com/repos/FEGAschaffenburg/churchtools-suite/releases?per_page=30';
-    const GITHUB_API_RELEASES_LATEST = 'https://api.github.com/repos/FEGAschaffenburg/churchtools-suite/releases/latest';
+    const GITHUB_API_RELEASES = 'https://api.github.com/repos/feg-aschaffenburg/churchtools-suite/releases?per_page=30';
+    const GITHUB_API_RELEASES_LATEST = 'https://api.github.com/repos/feg-aschaffenburg/churchtools-suite/releases/latest';
+    const FALLBACK_DOWNLOAD_BASE = 'https://plugin.feg-aschaffenburg.de/download';
 
     public static function init(): void {
         if ( ! self::GITHUB_UPDATES_ENABLED ) {
@@ -226,6 +227,21 @@ class ChurchTools_Suite_Auto_Updater {
             return new WP_Error( 'github_updates_disabled', 'GitHub updates are disabled for this fork.' );
         }
 
+        $cached = get_transient( 'churchtools_suite_github_release' );
+        if ( ! empty( $cached['tag_name'] ) ) {
+            $latest_tag = ltrim( (string) $cached['tag_name'], 'vV' );
+            $current = ltrim( CHURCHTOOLS_SUITE_VERSION, 'vV' );
+            $cached['latest_version'] = $latest_tag;
+            $cached['is_update'] = version_compare( $latest_tag, $current, '>' );
+            if ( empty( $cached['zip_url'] ) ) {
+                $cached['zip_url'] = self::select_main_plugin_zip_url( $cached['assets'] ?? [] );
+            }
+            if ( empty( $cached['zip_url'] ) ) {
+                $cached['zip_url'] = self::build_main_plugin_fallback_url( $cached['tag_name'] );
+            }
+            return $cached;
+        }
+
         $headers = [
             'User-Agent' => 'ChurchTools-Suite-Updater',
             'Accept' => 'application/vnd.github.v3+json',
@@ -236,8 +252,11 @@ class ChurchTools_Suite_Auto_Updater {
         }
 
         $last_http_error = null;
+        $data = [];
 
-        // Prefer full releases list and pick highest stable version (more reliable than /latest for this repo)
+        // Prefer full releases list and pick highest stable version (more reliable than /latest for this repo).
+        // If GitHub blocks unauthenticated requests with 429, we fall back to the cached release info and
+        // do not hard-fail the update check.
         $response = wp_remote_get( self::GITHUB_API_RELEASES, [ 'headers' => $headers, 'timeout' => 20 ] );
         if ( is_wp_error( $response ) ) {
             $last_http_error = $response;
@@ -248,14 +267,22 @@ class ChurchTools_Suite_Auto_Updater {
                 $releases = json_decode( $body, true );
                 $selected = self::select_highest_stable_release( $releases );
                 if ( ! empty( $selected['tag_name'] ) ) {
+                    $selected['zip_url'] = self::select_main_plugin_zip_url( $selected['assets'] ?? [] );
+                    if ( empty( $selected['zip_url'] ) ) {
+                        $selected['zip_url'] = self::build_main_plugin_fallback_url( $selected['tag_name'] );
+                    }
                     $data = $selected;
                 }
+            } elseif ( in_array( $releases_code, [ 403, 429 ], true ) ) {
+                $last_http_error = new WP_Error( 'github_rate_limited', 'GitHub rate limit reached for unauthenticated requests.' );
             } else {
                 $last_http_error = self::build_github_http_error( $response, 'releases' );
             }
         }
 
-        // Fallback to GitHub /latest endpoint
+        // Fallback to GitHub /latest endpoint.
+        // For unauthenticated requests GitHub may block this endpoint with 429; in that case we keep the
+        // update check soft and rely on the cached transient instead of failing hard.
         if ( empty( $data ) || ! is_array( $data ) || empty( $data['tag_name'] ) ) {
             $response = wp_remote_get( self::GITHUB_API_RELEASES_LATEST, [ 'headers' => $headers, 'timeout' => 20 ] );
             if ( is_wp_error( $response ) ) {
@@ -265,24 +292,37 @@ class ChurchTools_Suite_Auto_Updater {
                 if ( $latest_code === 200 ) {
                     $body = wp_remote_retrieve_body( $response );
                     $data = json_decode( $body, true );
+                } elseif ( in_array( $latest_code, [ 403, 429 ], true ) ) {
+                    $last_http_error = new WP_Error( 'github_rate_limited', 'GitHub rate limit reached for unauthenticated requests.' );
                 } else {
                     $last_http_error = self::build_github_http_error( $response, 'latest' );
                 }
             }
         }
 
-        // If the Releases API didn't return a valid release, attempt to fall back to the tags API
+        // If the Releases API didn't return a valid release, attempt to fall back to the tags API.
+        // If GitHub still rate-limits unauthenticated requests, return the cached transient instead of failing.
         if ( ! is_array( $data ) || empty( $data['tag_name'] ) ) {
-            // Try tags endpoint (may exist when a tag was pushed but no GitHub Release created)
-            $tags_url = 'https://api.github.com/repos/FEGAschaffenburg/churchtools-suite/tags';
+            $cached_release = get_transient( 'churchtools_suite_github_release' );
+            if ( is_array( $cached_release ) && ! empty( $cached_release['tag_name'] ) ) {
+                return $cached_release;
+            }
+
+            $tags_url = 'https://api.github.com/repos/feg-aschaffenburg/churchtools-suite/tags';
             $tags_resp = wp_remote_get( $tags_url, [ 'headers' => $headers, 'timeout' => 20 ] );
             if ( is_wp_error( $tags_resp ) ) {
-                return $last_http_error instanceof WP_Error ? $last_http_error : $tags_resp;
+                if ( $last_http_error instanceof WP_Error ) {
+                    return $last_http_error;
+                }
+                return $tags_resp;
             }
             $tags_code = (int) wp_remote_retrieve_response_code( $tags_resp );
             if ( $tags_code !== 200 ) {
+                if ( $last_http_error instanceof WP_Error ) {
+                    return $last_http_error;
+                }
                 $tags_error = self::build_github_http_error( $tags_resp, 'tags' );
-                return $last_http_error instanceof WP_Error ? $last_http_error : $tags_error;
+                return $tags_error;
             }
             $tags_body = wp_remote_retrieve_body( $tags_resp );
             $tags = json_decode( $tags_body, true );
@@ -292,11 +332,10 @@ class ChurchTools_Suite_Auto_Updater {
                 $current = ltrim( CHURCHTOOLS_SUITE_VERSION, 'v' );
                 $is_update = version_compare( $latest_tag, $current, '>' );
 
-                // Construct zip URL for the tag (GitHub provides archive by tag)
-                $zip_url = sprintf( 'https://github.com/FEGAschaffenburg/churchtools-suite/archive/refs/tags/%s.zip', rawurlencode( $tag_name ) );
-                $html_url = sprintf( 'https://github.com/FEGAschaffenburg/churchtools-suite/releases/tag/%s', rawurlencode( $tag_name ) );
+                return new WP_Error( 'missing_release_asset', 'Kein WordPress-Release-ZIP für das aktuelle GitHub-Release gefunden.' );
+                $html_url = sprintf( 'https://github.com/feg-aschaffenburg/churchtools-suite/releases/tag/%s', rawurlencode( $tag_name ) );
 
-                return [
+                $release_data = [
                     'tag_name' => $tag_name,
                     'latest_version' => $latest_tag,
                     'is_update' => $is_update,
@@ -304,6 +343,8 @@ class ChurchTools_Suite_Auto_Updater {
                     'html_url' => $html_url,
                     'assets' => [],
                 ];
+                set_transient( 'churchtools_suite_github_release', $release_data, 30 * MINUTE_IN_SECONDS );
+                return $release_data;
             }
 
             if ( $last_http_error instanceof WP_Error ) {
@@ -320,11 +361,11 @@ class ChurchTools_Suite_Auto_Updater {
         // Determine zip URL (prefer main plugin ZIP in monorepo releases)
         $zip_url = self::select_main_plugin_zip_url( $data['assets'] ?? [] );
 
-        if ( empty( $zip_url ) && ! empty( $data['zipball_url'] ) ) {
-            $zip_url = $data['zipball_url'];
+        if ( empty( $zip_url ) ) {
+            $zip_url = self::build_main_plugin_fallback_url( $data['tag_name'] ?? $latest_tag );
         }
 
-        return [
+        $release_data = [
             'tag_name' => $data['tag_name'],
             'latest_version' => $latest_tag,
             'is_update' => $is_update,
@@ -332,6 +373,10 @@ class ChurchTools_Suite_Auto_Updater {
             'html_url' => $data['html_url'] ?? '',
             'assets' => $data['assets'] ?? [],
         ];
+
+        set_transient( 'churchtools_suite_github_release', $release_data, 30 * MINUTE_IN_SECONDS );
+
+        return $release_data;
     }
 
     /**
@@ -370,6 +415,36 @@ class ChurchTools_Suite_Auto_Updater {
     }
 
     /**
+     * Build a download URL under the public plugin.feg-aschaffenburg.de download area.
+     *
+     * @param string $filename
+     * @return string
+     */
+    private static function build_fallback_download_url( string $filename ): string {
+        $filename = trim( (string) $filename );
+        if ( $filename === '' ) {
+            return rtrim( self::FALLBACK_DOWNLOAD_BASE, '/' ) . '/churchtools-suite.zip';
+        }
+
+        return rtrim( self::FALLBACK_DOWNLOAD_BASE, '/' ) . '/' . ltrim( $filename, '/' );
+    }
+
+    /**
+     * Build the main plugin fallback ZIP URL from a tag or version.
+     *
+     * @param string $tag_or_version
+     * @return string
+     */
+    private static function build_main_plugin_fallback_url( string $tag_or_version ): string {
+        $version = ltrim( trim( (string) $tag_or_version ), 'vV' );
+        if ( $version === '' ) {
+            return self::build_fallback_download_url( 'churchtools-suite.zip' );
+        }
+
+        return self::build_fallback_download_url( sprintf( 'churchtools-suite-%s.zip', $version ) );
+    }
+
+    /**
      * Select the main plugin ZIP from release assets.
      *
      * @param array $assets
@@ -387,13 +462,6 @@ class ChurchTools_Suite_Auto_Updater {
 
             $name = (string) $asset['name'];
             if ( preg_match( '/^churchtools-suite-\d+(?:\.\d+)+\.zip$/i', $name ) ) {
-                return (string) $asset['browser_download_url'];
-            }
-        }
-
-        // Fallback: first ZIP asset
-        foreach ( $assets as $asset ) {
-            if ( ! empty( $asset['name'] ) && ! empty( $asset['browser_download_url'] ) && preg_match( '/\.zip$/i', (string) $asset['name'] ) ) {
                 return (string) $asset['browser_download_url'];
             }
         }
@@ -469,9 +537,9 @@ class ChurchTools_Suite_Auto_Updater {
         $zip->extractTo( $tmp_dir );
         $zip->close();
 
-        // Find extracted folder (first child)
+        // Find and validate the WordPress plugin root before copying.
         $children = array_values( array_filter( scandir( $tmp_dir ), function( $n ) { return $n !== '.' && $n !== '..'; } ) );
-        if ( empty( $children ) ) {
+        if ( count( $children ) !== 1 || $children[0] !== 'churchtools-suite' ) {
             ChurchTools_Suite_Logger::error( 'updater', 'No files in extracted ZIP' );
             self::rrmdir( $tmp_dir );
             @unlink( $tmp_zip );
@@ -479,6 +547,12 @@ class ChurchTools_Suite_Auto_Updater {
         }
 
         $extracted_root = $tmp_dir . '/' . $children[0];
+        if ( ! is_file( $extracted_root . '/churchtools-suite.php' ) ) {
+            ChurchTools_Suite_Logger::error( 'updater', 'Invalid plugin ZIP: main plugin file missing' );
+            self::rrmdir( $tmp_dir );
+            @unlink( $tmp_zip );
+            return;
+        }
 
         // Copy files into plugin path
         $dest = rtrim( CHURCHTOOLS_SUITE_PATH, '/\\' );
@@ -497,97 +571,6 @@ class ChurchTools_Suite_Auto_Updater {
         if ( class_exists( 'ChurchTools_Suite_Logger' ) ) {
             ChurchTools_Suite_Logger::info( 'updater', sprintf( 'Plugin updated to %s', $tag ) );
         }
-            if ( class_exists( 'ChurchTools_Suite_Logger' ) ) {
-                ChurchTools_Suite_Logger::info( 'updater', sprintf( 'Updating to %s from %s (WP Upgrader)', $tag, $zip_url ) );
-            }
-
-            $tmp_zip = sys_get_temp_dir() . '/cts_update_' . md5( $tag . time() ) . '.zip';
-
-            // Download package
-            $download_headers = [ 'User-Agent' => 'ChurchTools-Suite-Updater' ];
-            $token = self::get_github_token();
-            if ( ! empty( $token ) ) {
-                $download_headers['Authorization'] = 'token ' . $token;
-            }
-            $resp = wp_remote_get( $zip_url, [ 'timeout' => 120, 'headers' => $download_headers ] );
-            if ( is_wp_error( $resp ) ) {
-                ChurchTools_Suite_Logger::error( 'updater', 'Download failed', [ 'error' => $resp->get_error_message() ] );
-                return;
-            }
-
-            $body = wp_remote_retrieve_body( $resp );
-            if ( empty( $body ) ) {
-                ChurchTools_Suite_Logger::error( 'updater', 'Empty ZIP body' );
-                return;
-            }
-
-            file_put_contents( $tmp_zip, $body );
-
-            // Prepare WP Filesystem and Upgrader
-            require_once ABSPATH . 'wp-admin/includes/file.php';
-            require_once ABSPATH . 'wp-admin/includes/class-wp-upgrader.php';
-            require_once ABSPATH . 'wp-admin/includes/plugin-install.php';
-
-            // Create backup of existing plugin directory
-            $backup_zip = sys_get_temp_dir() . '/cts_backup_' . md5( CHURCHTOOLS_SUITE_VERSION . time() ) . '.zip';
-            $plugin_dir = rtrim( CHURCHTOOLS_SUITE_PATH, '/\\' );
-            $backup_ok = false;
-            if ( class_exists( 'ZipArchive' ) ) {
-                $zip = new ZipArchive();
-                if ( $zip->open( $backup_zip, ZipArchive::CREATE ) === true ) {
-                    $files = new RecursiveIteratorIterator( new RecursiveDirectoryIterator( $plugin_dir ) );
-                    foreach ( $files as $file ) {
-                        if ( $file->isDir() ) {
-                            continue;
-                        }
-                        $filePath = $file->getRealPath();
-                        $relativePath = substr( $filePath, strlen( dirname( $plugin_dir ) ) + 1 );
-                        $zip->addFile( $filePath, $relativePath );
-                    }
-                    $zip->close();
-                    $backup_ok = true;
-                }
-            }
-
-            // Use Plugin_Upgrader with a non-interactive skin
-            $skin = new Automatic_Upgrader_Skin();
-            $upgrader = new Plugin_Upgrader( $skin );
-
-            $result = $upgrader->install( $tmp_zip );
-
-            // Clean temp package
-            @unlink( $tmp_zip );
-
-            if ( is_wp_error( $result ) || $result === false ) {
-                ChurchTools_Suite_Logger::error( 'updater', 'WP Upgrader failed', [ 'result' => $result ] );
-
-                // Attempt rollback from backup
-                if ( $backup_ok && file_exists( $backup_zip ) && class_exists( 'ZipArchive' ) ) {
-                    $zip = new ZipArchive();
-                    if ( $zip->open( $backup_zip ) === true ) {
-                        // Remove current plugin dir
-                        self::rrmdir( $plugin_dir );
-                        mkdir( $plugin_dir );
-                        $zip->extractTo( dirname( $plugin_dir ) );
-                        $zip->close();
-                        ChurchTools_Suite_Logger::info( 'updater', 'Rollback: restored backup after failed update' );
-                    }
-                }
-                if ( isset( $skin ) && method_exists( $skin, 'get_errors' ) ) {
-                    $errs = $skin->get_errors();
-                    ChurchTools_Suite_Logger::error( 'updater', 'Upgrader skin errors', [ 'errors' => $errs ] );
-                }
-                // Cleanup backup
-                @unlink( $backup_zip );
-                return;
-            }
-
-            // Success - remove backup
-            if ( isset( $backup_zip ) && file_exists( $backup_zip ) ) {
-                @unlink( $backup_zip );
-            }
-
-            ChurchTools_Suite_Logger::info( 'updater', sprintf( 'Plugin updated to %s via WP Upgrader', $tag ) );
     }
 
     /**

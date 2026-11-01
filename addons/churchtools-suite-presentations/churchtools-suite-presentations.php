@@ -3,7 +3,7 @@
  * Plugin Name: ChurchTools Suite - Presentations
  * Plugin URI: https://github.com/FEGAschaffenburg/churchtools-suite/tree/main/addons/churchtools-suite-presentations
  * Description: Erstellt lokale Präsentations-Seiten mit Slider auf Basis der vorhandenen ChurchTools Suite Views.
- * Version: 0.1.0
+ * Version: 0.1.1
  * Requires at least: 6.0
  * Requires PHP: 8.0
  * Requires Plugins: churchtools-suite

@@ -349,6 +349,7 @@ class ChurchTools_Suite_Event_Sync_Service {
      * @return array|WP_Error Statistics
      */
     private function process_calendar_events(array $events, string $calendar_id, array $args, bool $is_incremental = false) {
+        $deep_debug = class_exists('ChurchTools_Suite_Logger') && ChurchTools_Suite_Logger::is_deep_debug_enabled();
         $stats = [
             'events_found' => count($events),
             'appointments_found' => 0,
@@ -370,15 +371,17 @@ class ChurchTools_Suite_Event_Sync_Service {
         // Phase 1: Process events
         foreach ($events as $index => $event) {
             // v0.7.2.6: Debug log each event
-            ChurchTools_Suite_Logger::debug(
-                'event_sync',
-                sprintf('Processing event %d/%d: ID=%s', $index + 1, count($events), $event['id'] ?? 'unknown'),
-                [
-                    'event_id' => $event['id'] ?? null,
-                    'title' => $event['name'] ?? $event['designation'] ?? 'unknown',
-                    'has_appointment' => isset($event['appointmentId'])
-                ]
-            );
+            if ($deep_debug) {
+                ChurchTools_Suite_Logger::debug(
+                    'event_sync',
+                    sprintf('Processing event %d/%d: ID=%s', $index + 1, count($events), $event['id'] ?? 'unknown'),
+                    [
+                        'event_id' => $event['id'] ?? null,
+                        'title' => $event['name'] ?? $event['designation'] ?? 'unknown',
+                        'has_appointment' => isset($event['appointmentId'])
+                    ]
+                );
+            }
             
             // Collect appointment IDs for Phase 2
             // API structure: event.appointmentId (direct), or nested event.appointment.base.id/event.appointment.id
@@ -833,6 +836,25 @@ class ChurchTools_Suite_Event_Sync_Service {
                 'available_keys' => array_keys($event)
             ]
         );
+
+        // Issue #12: Debug logging for image URLs
+        $image_keys = ['image', 'imageUrl', 'picture', 'file', 'attachment', 'banner', 'photo', 'avatar'];
+        $found_image_keys = [];
+        foreach ($image_keys as $key) {
+            if (isset($event[$key])) {
+                $found_image_keys[$key] = $event[$key];
+            }
+        }
+        if (!empty($found_image_keys)) {
+            ChurchTools_Suite_Logger::debug(
+                'event_sync',
+                'Event contains image-related fields',
+                [
+                    'event_id' => $event['id'] ?? null,
+                    'image_fields' => $found_image_keys
+                ]
+            );
+        }
         
         if (!isset($event['id'])) {
             ChurchTools_Suite_Logger::error(
@@ -1020,6 +1042,31 @@ class ChurchTools_Suite_Event_Sync_Service {
                 'appointment_data_keys' => array_keys($appointment_data),
             ]
         );
+
+        // Issue #12: Debug logging for image URLs in appointment data
+        $image_keys = ['image', 'imageUrl', 'picture', 'file', 'attachment', 'banner', 'photo', 'avatar'];
+        $found_image_keys = [];
+        foreach ($image_keys as $key) {
+            if (isset($appointment_data[$key])) {
+                $found_image_keys[$key] = $appointment_data[$key];
+            }
+        }
+        // Also check nested appointment structure
+        foreach ($image_keys as $key) {
+            if (isset($appointment[$key])) {
+                $found_image_keys['appointment.' . $key] = $appointment[$key];
+            }
+        }
+        if (!empty($found_image_keys)) {
+            ChurchTools_Suite_Logger::debug(
+                'event_sync',
+                'Appointment contains image-related fields',
+                [
+                    'appointment_id' => $appointment_id,
+                    'image_fields' => $found_image_keys
+                ]
+            );
+        }
         
         // Extract all available fields from base (v0.9.2.7: Support both nested and flat structure)
         // Newer API: appointment.base (nested)
