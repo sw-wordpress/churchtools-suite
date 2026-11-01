@@ -83,9 +83,18 @@ class ChurchTools_Suite_Events_Repository extends ChurchTools_Suite_Repository_B
         );
         
         if ($existing_id) {
-            // Selective Update: Nur appointment-spezifische Felder überschreiben
-            // v0.10.4.2: description wird ebenfalls aktualisiert (für saubere Appointment-Descriptions)
+            // Comprehensive Update: Alle relevanten Felder aktualisieren
+            // v1.2.2.0: CRITICAL FIX - Update title, end_datetime, last_modified für korrekte Sync
             $appointment_fields = [
+                'title', // v1.2.2.0: CRITICAL - Terminname MUSS aktualisiert werden!
+                'event_id', // v1.2.2.0: Event ID kann sich ändern
+                'end_datetime', // v1.2.2.0: CRITICAL - Endzeit MUSS aktualisiert werden!
+                'is_all_day', // v1.2.2.0: Ganztägig-Status kann sich ändern
+                'location_name', // v1.2.2.0: Ort-String MUSS aktualisiert werden!
+                'event_description', // v1.2.2.0: Event-Beschreibung MUSS aktualisiert werden!
+                'last_modified', // v1.2.2.0: CRITICAL - Für Incremental Sync erforderlich!
+                
+                // Existing fields
                 'description', // v0.10.4.2: Kombinierte description bei Appointments aktualisieren
                 'appointment_description',
                 'address_name',
@@ -112,8 +121,10 @@ class ChurchTools_Suite_Events_Repository extends ChurchTools_Suite_Repository_B
             }
             $update_data['updated_at'] = $this->now();
 
+            $deep_debug = class_exists('ChurchTools_Suite_Logger') && ChurchTools_Suite_Logger::is_deep_debug_enabled();
+
             // Debug Logging
-            if (class_exists('ChurchTools_Suite_Logger')) {
+            if ($deep_debug) {
                 ChurchTools_Suite_Logger::debug(
                     'repository',
                     sprintf('SELECTIVE UPDATE event ID %d (appointment_id: %s)', $existing_id, $data['appointment_id']),
@@ -324,9 +335,10 @@ class ChurchTools_Suite_Events_Repository extends ChurchTools_Suite_Repository_B
     public function get_events_in_range(string $start_date, string $end_date, array $calendar_ids = [], ?int $limit = null, string $orderby = 'start_datetime', string $order = 'ASC'): array {
         $order = strtoupper($order) === 'DESC' ? 'DESC' : 'ASC';
         $orderby = sanitize_key($orderby);
+        $deep_debug = class_exists('ChurchTools_Suite_Logger') && ChurchTools_Suite_Logger::is_deep_debug_enabled();
         
         // Debug Logging
-        if (class_exists('ChurchTools_Suite_Logger')) {
+        if ($deep_debug) {
             ChurchTools_Suite_Logger::debug('repository', 'get_events_in_range called', [
                 'start_date' => $start_date,
                 'end_date' => $end_date,
@@ -354,7 +366,7 @@ class ChurchTools_Suite_Events_Repository extends ChurchTools_Suite_Repository_B
         }
         
         // Debug Logging
-        if (class_exists('ChurchTools_Suite_Logger')) {
+        if ($deep_debug) {
             ChurchTools_Suite_Logger::debug('repository', 'Executing SQL query', [
                 'sql' => $sql,
                 'params' => $params,
@@ -364,7 +376,7 @@ class ChurchTools_Suite_Events_Repository extends ChurchTools_Suite_Repository_B
         $prepared = $this->db->prepare($sql, ...$params);
         
         // Debug Logging
-        if (class_exists('ChurchTools_Suite_Logger')) {
+        if ($deep_debug) {
             ChurchTools_Suite_Logger::debug('repository', 'Prepared SQL', [
                 'query' => $prepared,
             ]);
@@ -381,7 +393,7 @@ class ChurchTools_Suite_Events_Repository extends ChurchTools_Suite_Repository_B
         }
         
         // Debug Logging
-        if (class_exists('ChurchTools_Suite_Logger')) {
+        if ($deep_debug) {
             ChurchTools_Suite_Logger::debug('repository', 'Query results', [
                 'count' => is_array($results) ? count($results) : 0,
                 'is_array' => is_array($results),

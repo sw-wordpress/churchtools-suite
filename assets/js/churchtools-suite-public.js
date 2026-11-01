@@ -171,6 +171,17 @@
 	 * Initialize Calendar Views
 	 */
 	function initCalendarViews() {
+		$(document).off('click.ctsMoreEvents', '.cts-more-events').on('click.ctsMoreEvents', '.cts-more-events', function() {
+			const $button = $(this);
+			const $container = $button.closest('.cts-event-markers, .cts-day-events');
+			const $markers = $container.find('.cts-event-marker-hidden, .cts-event-dot-hidden');
+			const expanded = $button.attr('aria-expanded') === 'true';
+			$markers.toggleClass('cts-event-marker-hidden', expanded);
+			$button.attr('aria-expanded', expanded ? 'false' : 'true');
+			$button.find('.cts-more-events-show').prop('hidden', !expanded);
+			$button.find('.cts-more-events-hide').prop('hidden', expanded);
+		});
+
 		// Initialize monthly modern calendar (only NEW calendars, not already initialized)
 		$('.cts-calendar-monthly').each(function() {
 			const $calendar = $(this);

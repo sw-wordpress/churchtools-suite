@@ -29,11 +29,14 @@ class ChurchTools_Suite_Blocks {
 		
 		// Register block editor script FIRST (v0.9.9.5)
 		// CSS wird zentral via admin_enqueue_scripts geladen (v1.0.6.0)
+		$block_script_path = CHURCHTOOLS_SUITE_PATH . 'assets/js/churchtools-suite-blocks.js';
+		$block_script_version = file_exists( $block_script_path ) ? (string) filemtime( $block_script_path ) : CHURCHTOOLS_SUITE_VERSION;
+
 		wp_register_script(
 			'churchtools-suite-blocks',
 			CHURCHTOOLS_SUITE_URL . 'assets/js/churchtools-suite-blocks.js',
 			[ 'wp-blocks', 'wp-element', 'wp-block-editor', 'wp-components', 'wp-i18n', 'wp-server-side-render' ],
-			CHURCHTOOLS_SUITE_VERSION,
+			$block_script_version,
 			false // Load in header, not footer
 		);
 		
@@ -89,6 +92,7 @@ class ChurchTools_Suite_Blocks {
 				'custom_font_size' => [ 'type' => 'number', 'default' => 14 ],
 				'custom_padding' => [ 'type' => 'number', 'default' => 12 ],
 				'custom_spacing' => [ 'type' => 'number', 'default' => 8 ],
+				'custom_css' => [ 'type' => 'string', 'default' => '' ], // v1.3.0: Custom CSS per block instance
 			],
 			'render_callback' => [ __CLASS__, 'render_events_block' ],
 			'editor_script' => 'churchtools-suite-blocks', // v0.9.9.5: Explizite Verknüpfung mit JS
@@ -122,6 +126,17 @@ class ChurchTools_Suite_Blocks {
 		// Ensure services toggle is interpreted robustly across editor/runtime variants.
 		$attributes['show_services'] = self::normalize_bool_attribute( $attributes, 'show_services', 'showServices', false );
 		$attributes['show_filter'] = self::normalize_bool_attribute( $attributes, 'show_filter', 'showFilter', false );
+		
+		// v1.3.0: Pass custom_css to shortcode (will be handled by _custom_css scoping)
+		if ( ! empty( $attributes['custom_css'] ) ) {
+			$attributes['_custom_css'] = wp_strip_all_tags( wp_unslash( $attributes['custom_css'] ) );
+		}
+
+		// Support Gutenberg core "Additional CSS" field (stored as attributes.style.css).
+		// Use it only when plugin-specific custom_css is empty.
+		if ( empty( $attributes['_custom_css'] ) && ! empty( $attributes['style']['css'] ) && is_string( $attributes['style']['css'] ) ) {
+			$attributes['_custom_css'] = wp_strip_all_tags( wp_unslash( $attributes['style']['css'] ) );
+		}
 		
 		// v1.1.2.0: Convert Block attributes (camelCase) to Shortcode params (snake_case)
 		// Route to appropriate shortcode handler

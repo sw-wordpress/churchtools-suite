@@ -2,7 +2,7 @@
 /**
  * Addons Overview Page
  * 
- * Displays all installed ChurchTools Suite addon plugins.
+ * Displays all installed addon plugins.
  * 
  * @package ChurchTools_Suite
  * @since   1.0.9.0
@@ -34,8 +34,8 @@ function cts_resolve_addon_meta( $plugin_slug, $plugin_uri = '', $plugin_file = 
 		|| strpos( $plugin_file, '/churchtools-suite-elementor.php' ) !== false
 	) {
 		return [
-			'github_repo' => 'FEGAschaffenburg/churchtools-suite',
-			'details_url' => 'https://github.com/FEGAschaffenburg/churchtools-suite/tree/main/addons/churchtools-suite-elementor',
+					'github_repo' => 'feg-aschaffenburg/churchtools-suite-elementor',
+					'details_url' => 'https://github.com/feg-aschaffenburg/churchtools-suite-elementor',
 		];
 	}
 
@@ -44,8 +44,8 @@ function cts_resolve_addon_meta( $plugin_slug, $plugin_uri = '', $plugin_file = 
 		|| strpos( $plugin_file, '/churchtools-suite-posts-sync.php' ) !== false
 	) {
 		return [
-			'github_repo' => 'FEGAschaffenburg/churchtools-suite',
-			'details_url' => 'https://github.com/FEGAschaffenburg/churchtools-suite/tree/main/addons/churchtools-suite-posts-sync',
+					'github_repo' => 'feg-aschaffenburg/churchtools-suite-posts-sync',
+					'details_url' => 'https://github.com/feg-aschaffenburg/churchtools-suite-posts-sync',
 		];
 	}
 
@@ -54,23 +54,23 @@ function cts_resolve_addon_meta( $plugin_slug, $plugin_uri = '', $plugin_file = 
 		|| strpos( $plugin_file, '/churchtools-suite-presentations.php' ) !== false
 	) {
 		return [
-			'github_repo' => 'FEGAschaffenburg/churchtools-suite',
-			'details_url' => 'https://github.com/FEGAschaffenburg/churchtools-suite/tree/main/addons/churchtools-suite-presentations',
+					'github_repo' => 'feg-aschaffenburg/churchtools-suite-presentations',
+					'details_url' => 'https://github.com/feg-aschaffenburg/churchtools-suite-presentations',
 		];
 	}
 
 	$known_addons = [
 		'churchtools-suite-elementor' => [
-			'github_repo' => 'FEGAschaffenburg/churchtools-suite',
-			'details_url' => 'https://github.com/FEGAschaffenburg/churchtools-suite/tree/main/addons/churchtools-suite-elementor',
+					'github_repo' => 'feg-aschaffenburg/churchtools-suite-elementor',
+					'details_url' => 'https://github.com/feg-aschaffenburg/churchtools-suite-elementor',
 		],
 		'churchtools-suite-posts-sync' => [
-			'github_repo' => 'FEGAschaffenburg/churchtools-suite',
-			'details_url' => 'https://github.com/FEGAschaffenburg/churchtools-suite/tree/main/addons/churchtools-suite-posts-sync',
+					'github_repo' => 'feg-aschaffenburg/churchtools-suite-posts-sync',
+					'details_url' => 'https://github.com/feg-aschaffenburg/churchtools-suite-posts-sync',
 		],
 		'churchtools-suite-presentations' => [
-			'github_repo' => 'FEGAschaffenburg/churchtools-suite',
-			'details_url' => 'https://github.com/FEGAschaffenburg/churchtools-suite/tree/main/addons/churchtools-suite-presentations',
+					'github_repo' => 'feg-aschaffenburg/churchtools-suite-presentations',
+					'details_url' => 'https://github.com/feg-aschaffenburg/churchtools-suite-presentations',
 		],
 	];
 
@@ -190,7 +190,7 @@ function cts_check_addon_update( $github_repo, $current_version, $plugin_slug = 
 }
 
 /**
- * Get all ChurchTools Suite addon plugins
+ * Get all addon plugins
  * 
  * Detects addons by:
  * - Plugin slug starts with 'churchtools-suite-'
@@ -208,17 +208,17 @@ function cts_get_addon_plugins() {
 	foreach ( $all_plugins as $plugin_file => $plugin_data ) {
 		$plugin_slug = dirname( $plugin_file );
 
-		// Skip source-only addon plugins located inside the main plugin directory
-		if ( strpos( (string) $plugin_file, 'churchtools-suite/addons/' ) === 0 ) {
-			continue;
-		}
-		
 		// Skip main plugin itself
 		if ( $plugin_slug === 'churchtools-suite' || $plugin_file === 'churchtools-suite/churchtools-suite.php' ) {
 			continue;
 		}
+
+		// Rollback copies are not addons, even when they were accidentally left in wp-content/plugins.
+		if ( preg_match( '/^churchtools-suite(?:-before-v|-backup-|\.backup-)/', $plugin_slug ) ) {
+			continue;
+		}
 		
-		// Check if plugin is a ChurchTools Suite addon
+		// Check if plugin is an addon for the integration suite
 		$is_addon = false;
 		
 		// Method 1: Plugin slug starts with 'churchtools-suite-'
@@ -232,9 +232,9 @@ function cts_get_addon_plugins() {
 			$is_addon = true;
 		}
 		
-		// Method 3: Plugin description mentions ChurchTools Suite
+		// Method 3: Plugin description mentions the integration suite
 		if ( ! empty( $plugin_data['Description'] ) && 
-		     ( stripos( $plugin_data['Description'], 'ChurchTools Suite' ) !== false ||
+		     ( stripos( $plugin_data['Description'], 'Integration Suite' ) !== false ||
 		       stripos( $plugin_data['Description'], 'churchtools-suite' ) !== false ) ) {
 			$is_addon = true;
 		}
@@ -265,19 +265,19 @@ function cts_get_addon_plugins() {
 function cts_ensure_known_addons_in_table( array $addons ): array {
 	$known = [
 		'churchtools-suite-elementor' => [
-			'name' => 'ChurchTools Suite - Elementor Integration',
-			'description' => 'Elementor Page Builder Widget für ChurchTools Suite Events.',
-			'details_url' => 'https://github.com/FEGAschaffenburg/churchtools-suite/tree/main/addons/churchtools-suite-elementor',
+			'name' => 'Elementor Integration',
+			'description' => 'Elementor Page Builder Widget für Events aus dem integrierten System.',
+			'details_url' => 'https://github.com/feg-aschaffenburg/churchtools-suite-elementor',
 		],
 		'churchtools-suite-posts-sync' => [
-			'name' => 'ChurchTools Suite - Posts Sync Addon',
-			'description' => 'Synchronisiert ChurchTools-Posts in WordPress-Posts/Seiten.',
-			'details_url' => 'https://github.com/FEGAschaffenburg/churchtools-suite/tree/main/addons/churchtools-suite-posts-sync',
+			'name' => 'Posts Sync Addon',
+			'description' => 'Synchronisiert Berichte in WordPress-Posts/Seiten.',
+			'details_url' => 'https://github.com/feg-aschaffenburg/churchtools-suite-posts-sync',
 		],
 		'churchtools-suite-presentations' => [
-			'name' => 'ChurchTools Suite - Präsentation Addon',
-			'description' => 'Präsentationsseiten für ChurchTools Termine und Informationen.',
-			'details_url' => 'https://github.com/FEGAschaffenburg/churchtools-suite/tree/main/addons/churchtools-suite-presentations',
+			'name' => 'Präsentation Addon',
+			'description' => 'Präsentationsseiten für Termine und Informationen.',
+			'details_url' => 'https://github.com/feg-aschaffenburg/churchtools-suite-presentations',
 		],
 	];
 
@@ -301,7 +301,7 @@ function cts_ensure_known_addons_in_table( array $addons ): array {
 			'plugin_slug' => $slug,
 			'is_active' => false,
 			'is_network_active' => false,
-			'github_repo' => 'FEGAschaffenburg/churchtools-suite',
+			'github_repo' => 'feg-aschaffenburg/churchtools-suite-' . $slug,
 			'details_url' => $meta['details_url'],
 			'is_virtual' => true,
 		];
@@ -344,18 +344,18 @@ $posts_sync_installed = isset( $all_plugins[ $posts_sync_plugin_file ] );
 			<span>🧩</span>
 			<?php esc_html_e( 'Addons', 'churchtools-suite' ); ?>
 		</h1>
-		<p class="cts-subtitle"><?php esc_html_e( 'Erweitere ChurchTools Suite mit zusätzlichen Plugins', 'churchtools-suite' ); ?></p>
+		<p class="cts-subtitle"><?php esc_html_e( 'Erweitere die Integration Suite mit zusätzlichen Plugins', 'churchtools-suite' ); ?></p>
 	</div>
 	
 	<?php if ( $elementor_active && ! $elementor_subplugin_active ) : ?>
 		<div class="notice notice-info" style="margin: 20px 0;">
 			<p>
-				<strong><?php esc_html_e( 'ChurchTools Suite - Elementor Integration', 'churchtools-suite' ); ?></strong><br>
+				<strong><?php esc_html_e( 'Elementor Integration', 'churchtools-suite' ); ?></strong><br>
 				<?php 
 				if ( $elementor_subplugin_installed ) {
-					esc_html_e( 'Das ChurchTools Suite - Elementor Integration Plugin ist installiert aber nicht aktiv.', 'churchtools-suite' );
+					esc_html_e( 'Das Elementor-Integrations-Plugin ist installiert, aber nicht aktiv.', 'churchtools-suite' );
 				} else {
-					esc_html_e( 'Elementor wurde erkannt! Installiere das ChurchTools Suite - Elementor Integration Plugin für erweiterte Funktionen.', 'churchtools-suite' );
+					esc_html_e( 'Elementor wurde erkannt! Installiere das Elementor-Integrations-Plugin für erweiterte Funktionen.', 'churchtools-suite' );
 				}
 				?>
 			</p>
@@ -369,7 +369,7 @@ $posts_sync_installed = isset( $all_plugins[ $posts_sync_plugin_file ] );
 						<?php esc_html_e( '⚡ Jetzt installieren', 'churchtools-suite' ); ?>
 					</button>
 				<?php endif; ?>
-				<a href="https://github.com/FEGAschaffenburg/churchtools-suite/releases" class="button" target="_blank" rel="noopener noreferrer">
+				<a href="https://github.com/feg-aschaffenburg/churchtools-suite/releases" class="button" target="_blank" rel="noopener noreferrer">
 					<?php esc_html_e( 'Auf GitHub ansehen', 'churchtools-suite' ); ?>
 				</a>
 			</p>
@@ -382,8 +382,8 @@ $posts_sync_installed = isset( $all_plugins[ $posts_sync_plugin_file ] );
 	<?php if ( ! $posts_sync_installed ) : ?>
 		<div class="notice notice-info" style="margin: 20px 0;">
 			<p>
-				<strong><?php esc_html_e( 'ChurchTools Suite – Posts Sync Addon', 'churchtools-suite' ); ?></strong><br>
-				<?php esc_html_e( 'Synchronisiere ChurchTools-Posts (Berichte) automatisch nach WordPress. Das Addon muss separat installiert werden.', 'churchtools-suite' ); ?>
+				<strong><?php esc_html_e( 'Posts Sync Addon', 'churchtools-suite' ); ?></strong><br>
+				<?php esc_html_e( 'Synchronisiere Berichte automatisch nach WordPress. Das Addon muss separat installiert werden.', 'churchtools-suite' ); ?>
 			</p>
 			<p>
 				<button type="button" class="button button-primary cts-install-addon" data-addon-slug="churchtools-suite-posts-sync">
@@ -398,7 +398,7 @@ $posts_sync_installed = isset( $all_plugins[ $posts_sync_plugin_file ] );
 		<div class="notice notice-info inline">
 			<p>
 				<strong><?php esc_html_e( 'Keine Addons installiert', 'churchtools-suite' ); ?></strong><br>
-				<?php esc_html_e( 'Es sind derzeit keine Erweiterungen für ChurchTools Suite installiert.', 'churchtools-suite' ); ?>
+				<?php esc_html_e( 'Es sind derzeit keine Erweiterungen für die Integration Suite installiert.', 'churchtools-suite' ); ?>
 			</p>
 		</div>
 		

@@ -2,12 +2,13 @@ param(
     [Parameter(Mandatory = $true)]
     [string]$Version,
     [Parameter(Mandatory = $false)]
-    [ValidateSet('main', 'elementor', 'posts-sync')]
+    [ValidateSet('main', 'elementor', 'posts-sync', 'presentations')]
     [string]$Plugin = 'main'
 )
 
 $ScriptDir = Split-Path -Path $MyInvocation.MyCommand.Definition -Parent
 $RepoRoot = Resolve-Path (Join-Path $ScriptDir "..") | Select-Object -ExpandProperty Path
+$WorkspaceRoot = Resolve-Path (Join-Path $RepoRoot "..") | Select-Object -ExpandProperty Path
 $ArchiveDir = "C:\privat\archiv"
 
 switch ($Plugin) {
@@ -15,8 +16,8 @@ switch ($Plugin) {
         $PluginSlug = 'churchtools-suite'
         $SourceRoot = $RepoRoot
         $ExcludeItems = @(
-            '.git', '.github', '.gitignore', '.editorconfig', '.gitattributes',
-            'scripts', 'tests', 'node_modules', 'addons',
+            '.git', '.github', '.gitignore', '.editorconfig', '.gitattributes', '.wp-env.json',
+            '.backup', '.links', 'release-dist', 'scripts', 'tests', 'node_modules', 'addons',
             '*.zip', '*.log', '.vscode', '.idea',
             'phpunit.xml', 'phpcs.xml', '.phpcs.xml.dist',
             'composer.json', 'composer.lock', 'package.json', 'package-lock.json',
@@ -26,7 +27,7 @@ switch ($Plugin) {
     }
     'elementor' {
         $PluginSlug = 'churchtools-suite-elementor'
-        $SourceRoot = Join-Path $RepoRoot 'addons\churchtools-suite-elementor'
+        $SourceRoot = Join-Path $WorkspaceRoot 'churchtools-suite-elementor'
         $ExcludeItems = @(
             '.git', '.github', '.gitignore', '.editorconfig', '.gitattributes',
             'scripts', 'tests', 'node_modules', '*.zip', '*.log', '.vscode', '.idea',
@@ -35,7 +36,16 @@ switch ($Plugin) {
     }
     'posts-sync' {
         $PluginSlug = 'churchtools-suite-posts-sync'
-        $SourceRoot = Join-Path $RepoRoot 'addons\churchtools-suite-posts-sync'
+        $SourceRoot = Join-Path $WorkspaceRoot 'churchtools-suite-posts-sync'
+        $ExcludeItems = @(
+            '.git', '.github', '.gitignore', '.editorconfig', '.gitattributes',
+            'scripts', 'tests', 'node_modules', '*.zip', '*.log', '.vscode', '.idea',
+            'composer.json', 'composer.lock', 'package.json', 'package-lock.json'
+        )
+    }
+    'presentations' {
+        $PluginSlug = 'churchtools-suite-presentations'
+        $SourceRoot = Join-Path $WorkspaceRoot 'churchtools-suite-presentations'
         $ExcludeItems = @(
             '.git', '.github', '.gitignore', '.editorconfig', '.gitattributes',
             'scripts', 'tests', 'node_modules', '*.zip', '*.log', '.vscode', '.idea',

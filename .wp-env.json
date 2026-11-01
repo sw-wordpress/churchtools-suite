@@ -1,0 +1,19 @@
+{
+  "port": 8887,
+  "config": {
+    "WP_HOME": "http://localhost:8887",
+    "WP_SITEURL": "http://localhost:8887"
+  },
+  "core": "WordPress/WordPress",
+  "plugins": [
+    ".",
+    "../churchtools-suite-demo",
+    "../churchtools-suite-posts-sync",
+    "../churchtools-suite-presentations",
+    "../churchtools-suite-elementor"
+  ],
+  "themes": [
+    "../../themes/cts-demo-theme"
+  ],
+  "testsEnvironment": false
+}

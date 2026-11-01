@@ -92,6 +92,7 @@
 			custom_font_size: { type: 'number', default: 14 },
 			custom_padding: { type: 'number', default: 12 },
 			custom_spacing: { type: 'number', default: 8 },
+			custom_css: { type: 'string', default: '' }, // v1.3.0: Custom CSS per block
 			
 			// Features
 			event_action: { type: 'string', default: 'modal' }
@@ -705,6 +706,59 @@
 											)
 										]
 									)
+								]
+							),
+
+							el(
+								PanelBody,
+								{
+									title: __('Erweitertes CSS (Experten)', 'churchtools-suite'),
+									initialOpen: false
+								},
+								[
+									el('p', { style: { margin: '0 0 10px 0', fontSize: '11px', color: '#444' } }, __('Für einfache Anpassungen bitte Farbschema verwenden.', 'churchtools-suite')),
+									el('p', { style: { margin: '0 0 12px 0', fontSize: '11px', color: '#666' } }, __('Nicht mit WordPress "Erweitert > Zusätzliches CSS" verwechseln. Nur dieses Feld wirkt auf den ChurchTools-Block.', 'churchtools-suite')),
+									el('textarea', {
+										value: attributes.custom_css,
+										onChange: function(e) { setAttributes({ custom_css: e.target.value }); },
+										placeholder: '.cts-event-classic { border-left: 4px solid red; }',
+										style: {
+											width: '100%',
+											padding: '8px',
+											border: '1px solid #ddd',
+											borderRadius: '4px',
+											fontFamily: 'monospace',
+											fontSize: '11px',
+											backgroundColor: '#f5f5f5',
+											minHeight: '120px',
+											lineHeight: '1.4'
+										}
+									}),
+									el('details', { style: { marginTop: '8px' } }, [
+										el('summary', { style: { fontSize: '11px', cursor: 'pointer', color: '#2271b1', userSelect: 'none' } }, __('Verfügbare CSS-Klassen anzeigen', 'churchtools-suite')),
+										el('div', { style: { marginTop: '6px', padding: '8px', background: '#f0f0f1', borderRadius: '4px', fontSize: '10px', fontFamily: 'monospace', lineHeight: '1.8' } }, [
+											(attributes.viewType === 'list' || !attributes.viewType) && el('div', {}, [
+												el('strong', { style: { display: 'block', marginBottom: '2px' } }, '— Liste —'),
+												el('span', {}, '.cts-event-classic'), el('br', {}),
+												el('span', {}, '.cts-list__item'), el('br', {}),
+												el('span', {}, '.cts-list__title'), el('br', {}),
+												el('span', {}, '.cts-list__description')
+											]),
+											attributes.viewType === 'grid' && el('div', {}, [
+												el('strong', { style: { display: 'block', marginBottom: '2px' } }, '— Grid —'),
+												el('span', {}, '.cts-grid-card-modern'), el('br', {}),
+												el('span', {}, '.cts-grid-minimal-card')
+											]),
+											attributes.viewType === 'countdown' && el('div', {}, [
+												el('strong', { style: { display: 'block', marginBottom: '2px' } }, '— Countdown —'),
+												el('span', {}, '.cts-countdown-classic')
+											]),
+											attributes.viewType === 'carousel' && el('div', {}, [
+												el('strong', { style: { display: 'block', marginBottom: '2px' } }, '— Carousel —'),
+												el('span', {}, '.cts-carousel')
+											])
+										])
+									])
 								]
 							)
 						]

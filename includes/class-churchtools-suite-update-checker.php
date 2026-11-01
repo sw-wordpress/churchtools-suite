@@ -14,8 +14,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 class ChurchTools_Suite_Update_Checker {
 
     const TRANSIENT_KEY = 'churchtools_suite_github_release';
-    const GITHUB_API_RELEASES_URL = 'https://api.github.com/repos/FEGAschaffenburg/churchtools-suite/releases?per_page=30';
-    const GITHUB_API_LATEST_URL = 'https://api.github.com/repos/FEGAschaffenburg/churchtools-suite/releases/latest';
+    const GITHUB_API_RELEASES_URL = 'https://api.github.com/repos/feg-aschaffenburg/churchtools-suite/releases?per_page=30';
+    const GITHUB_API_LATEST_URL = 'https://api.github.com/repos/feg-aschaffenburg/churchtools-suite/releases/latest';
+    const FALLBACK_DOWNLOAD_BASE = 'https://plugin.feg-aschaffenburg.de/download';
 
     public static function init(): void {
         // Hook both pre_set and site_transient variants to ensure compatibility
@@ -84,7 +85,7 @@ class ChurchTools_Suite_Update_Checker {
             $asset_url = self::select_main_plugin_zip_url( $release['assets'] ?? [] );
 
             if ( empty( $asset_url ) ) {
-                return $transient;
+                $asset_url = self::build_main_plugin_fallback_url( $release['tag_name'] ?? $latest_version );
             }
 
             // Determine plugin file key as used in the transient
@@ -95,7 +96,7 @@ class ChurchTools_Suite_Update_Checker {
             $update->slug = self::get_plugin_slug();
             $update->plugin = $plugin_file;
             $update->new_version = $latest_version;
-            $update->url = $release['html_url'] ?? 'https://github.com/FEGAschaffenburg/churchtools-suite';
+            $update->url = $release['html_url'] ?? 'https://github.com/feg-aschaffenburg/churchtools-suite';
             $update->package = $asset_url;
 
             $transient->response[ $plugin_file ] = $update;
@@ -157,7 +158,7 @@ class ChurchTools_Suite_Update_Checker {
                     'slug' => (string) $meta['slug'],
                     'plugin' => $plugin_file,
                     'new_version' => $latest_version,
-                    'url' => 'https://github.com/FEGAschaffenburg/churchtools-suite/releases',
+                    'url' => 'https://github.com/feg-aschaffenburg/churchtools-suite/releases',
                     'package' => (string) $asset_info['url'],
                 ];
                 unset( $transient->no_update[ $plugin_file ] );
@@ -224,6 +225,36 @@ class ChurchTools_Suite_Update_Checker {
     }
 
     /**
+     * Build a download URL under the public plugin.feg-aschaffenburg.de download area.
+     *
+     * @param string $filename
+     * @return string
+     */
+    private static function build_fallback_download_url( string $filename ): string {
+        $filename = trim( (string) $filename );
+        if ( $filename === '' ) {
+            return rtrim( self::FALLBACK_DOWNLOAD_BASE, '/' ) . '/churchtools-suite.zip';
+        }
+
+        return rtrim( self::FALLBACK_DOWNLOAD_BASE, '/' ) . '/' . ltrim( $filename, '/' );
+    }
+
+    /**
+     * Build the main plugin fallback ZIP URL from a tag or version.
+     *
+     * @param string $tag_or_version
+     * @return string
+     */
+    private static function build_main_plugin_fallback_url( string $tag_or_version ): string {
+        $version = ltrim( trim( (string) $tag_or_version ), 'vV' );
+        if ( $version === '' ) {
+            return self::build_fallback_download_url( 'churchtools-suite.zip' );
+        }
+
+        return self::build_fallback_download_url( sprintf( 'churchtools-suite-%s.zip', $version ) );
+    }
+
+    /**
      * Select the main plugin ZIP from release assets.
      *
      * @param array $assets
@@ -261,6 +292,11 @@ class ChurchTools_Suite_Update_Checker {
      * @return array|WP_Error
      */
     private static function fetch_latest_release() {
+        $cached = get_transient( self::TRANSIENT_KEY );
+        if ( is_array( $cached ) && ! empty( $cached['tag_name'] ) ) {
+            return $cached;
+        }
+
         $args = [
             'headers' => [
                 'User-Agent' => 'ChurchTools-Suite-Update-Checker',
@@ -269,7 +305,9 @@ class ChurchTools_Suite_Update_Checker {
             'timeout' => 20,
         ];
 
-        // Optional token from option or constant
+        // Optional token from option or constant.
+        // Without token the request remains "normal WP update" and can hit GitHub rate limits,
+        // but it should fail soft rather than break the update-check behavior.
         $token = get_option( 'churchtools_suite_github_token', '' );
         if ( empty( $token ) && defined( 'WP_CHURCHTOOLS_SUITE_GITHUB_TOKEN' ) ) {
             $token = WP_CHURCHTOOLS_SUITE_GITHUB_TOKEN;
@@ -279,7 +317,7 @@ class ChurchTools_Suite_Update_Checker {
             $args['headers']['Authorization'] = 'token ' . $token;
         }
 
-        // Prefer full releases list and pick highest stable version
+        // Prefer full releases list and pick highest stable version.
         $response = wp_remote_get( self::GITHUB_API_RELEASES_URL, $args );
 
         if ( ! is_wp_error( $response ) ) {
@@ -291,31 +329,33 @@ class ChurchTools_Suite_Update_Checker {
                 if ( json_last_error() === JSON_ERROR_NONE && is_array( $releases ) ) {
                     $selected = self::select_highest_stable_release( $releases );
                     if ( ! empty( $selected['tag_name'] ) ) {
+                        set_transient( self::TRANSIENT_KEY, $selected, HOUR_IN_SECONDS );
                         return $selected;
                     }
                 }
             }
         }
 
-        // Fallback: GitHub /latest
+        // Fallback: GitHub /latest.
         $response = wp_remote_get( self::GITHUB_API_LATEST_URL, $args );
 
         if ( is_wp_error( $response ) ) {
-            return $response;
+            return $cached;
         }
 
         $code = wp_remote_retrieve_response_code( $response );
         $body = wp_remote_retrieve_body( $response );
 
         if ( $code !== 200 ) {
-            return new WP_Error( 'github_api_error', sprintf( 'GitHub API returned %s', $code ) );
+            return $cached;
         }
 
         $data = json_decode( $body, true );
-        if ( json_last_error() !== JSON_ERROR_NONE ) {
-            return new WP_Error( 'json_error', 'Invalid JSON from GitHub API' );
+        if ( json_last_error() !== JSON_ERROR_NONE || ! is_array( $data ) ) {
+            return $cached;
         }
 
+        set_transient( self::TRANSIENT_KEY, $data, HOUR_IN_SECONDS );
         return $data;
     }
 
