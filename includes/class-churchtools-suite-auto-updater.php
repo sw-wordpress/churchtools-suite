@@ -14,11 +14,18 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 class ChurchTools_Suite_Auto_Updater {
 
+    // This fork is maintained separately; upstream GitHub updates are disabled.
+    const GITHUB_UPDATES_ENABLED = false;
+
     const CRON_HOOK = 'churchtools_suite_check_updates';
     const GITHUB_API_RELEASES = 'https://api.github.com/repos/FEGAschaffenburg/churchtools-suite/releases?per_page=30';
     const GITHUB_API_RELEASES_LATEST = 'https://api.github.com/repos/FEGAschaffenburg/churchtools-suite/releases/latest';
 
     public static function init(): void {
+        if ( ! self::GITHUB_UPDATES_ENABLED ) {
+            return;
+        }
+
         add_action( self::CRON_HOOK, [ __CLASS__, 'check_and_update' ] );
 
         // Ensure weekly schedule exists if requested
@@ -215,6 +222,10 @@ class ChurchTools_Suite_Auto_Updater {
      * @return array|WP_Error
      */
     public static function get_latest_release_info() {
+        if ( ! self::GITHUB_UPDATES_ENABLED ) {
+            return new WP_Error( 'github_updates_disabled', 'GitHub updates are disabled for this fork.' );
+        }
+
         $headers = [
             'User-Agent' => 'ChurchTools-Suite-Updater',
             'Accept' => 'application/vnd.github.v3+json',

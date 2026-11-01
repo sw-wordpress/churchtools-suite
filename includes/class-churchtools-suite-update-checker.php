@@ -18,6 +18,10 @@ class ChurchTools_Suite_Update_Checker {
     const GITHUB_API_LATEST_URL = 'https://api.github.com/repos/FEGAschaffenburg/churchtools-suite/releases/latest';
 
     public static function init(): void {
+        if ( ! ChurchTools_Suite_Auto_Updater::GITHUB_UPDATES_ENABLED ) {
+            return;
+        }
+
         // Hook both pre_set and site_transient variants to ensure compatibility
         add_filter( 'pre_set_site_transient_update_plugins', [ __CLASS__, 'check_for_update' ] );
         add_filter( 'site_transient_update_plugins', [ __CLASS__, 'check_for_update' ] );
@@ -261,6 +265,10 @@ class ChurchTools_Suite_Update_Checker {
      * @return array|WP_Error
      */
     private static function fetch_latest_release() {
+        if ( ! ChurchTools_Suite_Auto_Updater::GITHUB_UPDATES_ENABLED ) {
+            return new WP_Error( 'github_updates_disabled', 'GitHub updates are disabled for this fork.' );
+        }
+
         $args = [
             'headers' => [
                 'User-Agent' => 'ChurchTools-Suite-Update-Checker',
