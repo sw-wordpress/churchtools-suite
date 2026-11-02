@@ -63,7 +63,7 @@ jQuery(function($) {
 			type: 'POST',
 			data: {
 				action: 'cts_sync_events',
-				nonce: '<?php echo wp_create_nonce('churchtools_suite_admin'); ?>'
+				nonce: '<?php echo esc_js( wp_create_nonce( 'churchtools_suite_admin' ) ); ?>'
 			},
 			success: function(response) {
 				if (response && response.success) {
@@ -119,7 +119,7 @@ jQuery(function($) {
 			type: 'POST',
 			data: {
 				action: 'cts_keepalive_ping',
-				nonce: '<?php echo wp_create_nonce('churchtools_suite_admin'); ?>'
+				nonce: '<?php echo esc_js( wp_create_nonce( 'churchtools_suite_admin' ) ); ?>'
 			},
 			success: function(response) {
 				if (response.success) {
@@ -162,7 +162,7 @@ jQuery(function($) {
 			type: 'POST',
 			data: {
 				action: 'cts_manual_update',
-				nonce: '<?php echo wp_create_nonce('churchtools_suite_admin'); ?>'
+				nonce: '<?php echo esc_js( wp_create_nonce( 'churchtools_suite_admin' ) ); ?>'
 			},
 			success: function(response) {
 				if (response && response.success) {
@@ -215,7 +215,7 @@ jQuery(function($) {
 	
 	// Clear Logs
 	$('#cts-clear-logs').on('click', function() {
-		if (!confirm('<?php esc_html_e('Alle Plugin-Logs unwiderruflich löschen?', 'churchtools-suite'); ?>')) {
+		if (!confirm('<?php esc_html_e( 'Alle Plugin-Logs unwiderruflich löschen?', 'churchtools-suite' ); ?>')) {
 			return;
 		}
 		
@@ -228,7 +228,7 @@ jQuery(function($) {
 			type: 'POST',
 			data: {
 				action: 'cts_clear_logs',
-				nonce: '<?php echo wp_create_nonce('churchtools_suite_admin'); ?>'
+				nonce: '<?php echo esc_js( wp_create_nonce( 'churchtools_suite_admin' ) ); ?>'
 			},
 			success: function(response) {
 				if (response.success) {
@@ -264,7 +264,7 @@ jQuery(function($) {
 			type: 'POST',
 			data: {
 				action: 'cts_cleanup_cronjobs',
-				nonce: '<?php echo wp_create_nonce('churchtools_suite_admin'); ?>'
+				nonce: '<?php echo esc_js( wp_create_nonce( 'churchtools_suite_admin' ) ); ?>'
 			},
 			success: function(response) {
 				if (response.success) {

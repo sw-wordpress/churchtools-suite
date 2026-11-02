@@ -10,25 +10,25 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-// Helper function to get available templates (guarded to avoid redeclare conflicts)
+// Helper function to get available templates (guarded to avoid redeclare conflicts).
 if ( ! function_exists( 'cts_get_available_templates' ) ) {
 	function cts_get_available_templates( $type ) {
-		$template_dir = CHURCHTOOLS_SUITE_PATH . 'templates/views/' . $type . '/';
-		$templates = [];
-		$prefix_map = [
+		$template_dir     = CHURCHTOOLS_SUITE_PATH . 'templates/views/' . $type . '/';
+		$templates        = array();
+		$prefix_map       = array(
 			'event-single' => 'single-',
 			'event-modal'  => 'modal-',
-		];
+		);
 		$canonical_prefix = $prefix_map[ $type ] ?? '';
-        
+
 		if ( is_dir( $template_dir ) ) {
 			$files = scandir( $template_dir );
 			if ( is_array( $files ) ) {
 				foreach ( $files as $file ) {
-					if ( substr( $file, -4 ) === '.php' && $file[0] !== '.' ) {
+					if ( substr( $file, -4 ) === '.php' && '.' !== $file[0] ) {
 						$template_name = substr( $file, 0, -4 );
 
-						if ( $canonical_prefix !== '' ) {
+						if ( '' !== $canonical_prefix ) {
 							if ( strpos( $template_name, $canonical_prefix ) === 0 ) {
 								// Canonical file name: single-professional.php -> professional.
 								$template_name = substr( $template_name, strlen( $canonical_prefix ) );
@@ -50,32 +50,32 @@ if ( ! function_exists( 'cts_get_available_templates' ) ) {
 		$templates = array_keys( $templates );
 
 		sort( $templates );
-        
+
 		return $templates;
 	}
 }
 
-// Dynamically get available templates (v0.9.9.84)
+// Dynamically get available templates (v0.9.9.84).
 $available_single_templates = cts_get_available_templates( 'event-single' );
-$available_modal_templates = cts_get_available_templates( 'event-modal' );
+$available_modal_templates  = cts_get_available_templates( 'event-modal' );
 
-// Fallback if none found
+// Fallback if none found.
 if ( empty( $available_single_templates ) ) {
-	$available_single_templates = [ 'professional' ];
+	$available_single_templates = array( 'professional' );
 }
 if ( empty( $available_modal_templates ) ) {
-	$available_modal_templates = [ 'professional' ];
+	$available_modal_templates = array( 'professional' );
 }
 
-// Form processing
+// Form processing.
 if ( isset( $_POST['cts_save_templates'] ) && check_admin_referer( 'cts_settings' ) ) {
-	$posted_single_template = sanitize_key( sanitize_text_field( $_POST['single_template'] ?? 'professional' ) );
-	$posted_modal_template = sanitize_key( sanitize_text_field( $_POST['modal_template'] ?? 'professional' ) );
+	$posted_single_template = sanitize_key( sanitize_text_field( wp_unslash( $_POST['single_template'] ?? 'professional' ) ) );
+	$posted_modal_template  = sanitize_key( sanitize_text_field( wp_unslash( $_POST['modal_template'] ?? 'professional' ) ) );
 
 	$single_template_to_save = in_array( $posted_single_template, $available_single_templates, true )
 		? $posted_single_template
 		: 'professional';
-	$modal_template_to_save = in_array( $posted_modal_template, $available_modal_templates, true )
+	$modal_template_to_save  = in_array( $posted_modal_template, $available_modal_templates, true )
 		? $posted_modal_template
 		: 'professional';
 
@@ -86,7 +86,7 @@ if ( isset( $_POST['cts_save_templates'] ) && check_admin_referer( 'cts_settings
 }
 
 $single_template = sanitize_key( (string) get_option( 'churchtools_suite_single_template', 'professional' ) );
-$modal_template = sanitize_key( (string) get_option( 'churchtools_suite_modal_template', 'professional' ) );
+$modal_template  = sanitize_key( (string) get_option( 'churchtools_suite_modal_template', 'professional' ) );
 
 if ( ! in_array( $single_template, $available_single_templates, true ) ) {
 	$single_template = 'professional';
@@ -123,7 +123,7 @@ if ( ! in_array( $modal_template, $available_modal_templates, true ) ) {
 						<?php endforeach; ?>
 					</select>
 					<div class="cts-form-description">
-						<?php printf( esc_html__( 'Verfügbare Templates: %s', 'churchtools-suite' ), esc_html( implode( ', ', $available_single_templates ) ) ); ?>
+						<?php printf( /* translators: %s: Comma-separated list of available templates. */ esc_html__( 'Verfügbare Templates: %s', 'churchtools-suite' ), esc_html( implode( ', ', $available_single_templates ) ) ); ?>
 					</div>
 				</td>
 			</tr>
@@ -150,7 +150,7 @@ if ( ! in_array( $modal_template, $available_modal_templates, true ) ) {
 						<?php endforeach; ?>
 					</select>
 					<div class="cts-form-description">
-						<?php printf( esc_html__( 'Verfügbare Templates: %s', 'churchtools-suite' ), esc_html( implode( ', ', $available_modal_templates ) ) ); ?>
+						<?php printf( /* translators: %s: Comma-separated list of available templates. */ esc_html__( 'Verfügbare Templates: %s', 'churchtools-suite' ), esc_html( implode( ', ', $available_modal_templates ) ) ); ?>
 					</div>
 				</td>
 			</tr>

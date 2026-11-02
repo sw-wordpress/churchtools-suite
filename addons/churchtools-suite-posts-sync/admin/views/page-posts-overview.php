@@ -1,10 +1,16 @@
 <?php
+/**
+ * Page posts overview.
+ *
+ * @package ChurchTools_Suite
+ */
+
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
 $last_run_at = is_array( $last_result ) ? (string) ( $last_result['run_at'] ?? '' ) : '';
-$last_stats = is_array( $last_result ) ? (array) ( $last_result['stats'] ?? [] ) : [];
+$last_stats  = is_array( $last_result ) ? (array) ( $last_result['stats'] ?? array() ) : array();
 ?>
 
 <div class="wrap cts-wrap">
@@ -19,7 +25,7 @@ $last_stats = is_array( $last_result ) ? (array) ( $last_result['stats'] ?? [] )
 				<strong><?php esc_html_e( 'Sync aktiv:', 'churchtools-suite-posts-sync' ); ?></strong>
 				<?php echo $sync_enabled ? '✅' : '❌'; ?>
 				<span class="cts-posts-sync-meta-item"><strong><?php esc_html_e( 'Zieltyp:', 'churchtools-suite-posts-sync' ); ?></strong> <?php echo esc_html( $target_type ); ?></span>
-				<?php if ( $last_run_at !== '' ) : ?>
+				<?php if ( '' !== $last_run_at ) : ?>
 					<span class="cts-posts-sync-meta-item"><strong><?php esc_html_e( 'Letzter Lauf:', 'churchtools-suite-posts-sync' ); ?></strong> <?php echo esc_html( $last_run_at ); ?></span>
 				<?php endif; ?>
 			</p>
@@ -71,14 +77,14 @@ $last_stats = is_array( $last_result ) ? (array) ( $last_result['stats'] ?? [] )
 							<?php $expiration_date = (string) get_post_meta( (int) $post_item->ID, ChurchTools_Suite_Posts_Sync_Service::META_CT_EXPIRATION_DATE, true ); ?>
 							<tr>
 								<td><?php echo esc_html( get_the_title( $post_item ) ); ?></td>
-								<td><?php echo esc_html( $group_title !== '' ? $group_title : '—' ); ?></td>
-								<td><?php echo esc_html( $actor_name !== '' ? $actor_name : '—' ); ?></td>
+								<td><?php echo esc_html( '' !== $group_title ? $group_title : '—' ); ?></td>
+								<td><?php echo esc_html( '' !== $actor_name ? $actor_name : '—' ); ?></td>
 								<td><?php echo esc_html( (string) $post_item->post_type ); ?></td>
 								<td><?php echo esc_html( (string) $post_item->post_status ); ?></td>
-								<td><?php echo esc_html( $post_visibility !== '' ? $post_visibility : ( $group_visibility !== '' ? $group_visibility : '—' ) ); ?></td>
+								<td><?php echo esc_html( '' !== $post_visibility ? $post_visibility : ( '' !== $group_visibility ? $group_visibility : '—' ) ); ?></td>
 								<td><?php echo esc_html( (string) $ct_id ); ?></td>
-								<td><?php echo esc_html( $published_date !== '' ? $published_date : (string) $post_item->post_date ); ?></td>
-								<td><?php echo esc_html( $expiration_date !== '' ? $expiration_date : '—' ); ?></td>
+								<td><?php echo esc_html( '' !== $published_date ? $published_date : (string) $post_item->post_date ); ?></td>
+								<td><?php echo esc_html( '' !== $expiration_date ? $expiration_date : '—' ); ?></td>
 								<td><a href="<?php echo esc_url( get_edit_post_link( (int) $post_item->ID ) ); ?>"><?php esc_html_e( 'Bearbeiten', 'churchtools-suite-posts-sync' ); ?></a></td>
 							</tr>
 						<?php endforeach; ?>

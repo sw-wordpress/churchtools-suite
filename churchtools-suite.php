@@ -17,61 +17,63 @@
  * ChurchTools ist eine registrierte Marke der ChurchTools GmbH.
  * Dieses Projekt steht in keiner Verbindung zu oder Unterst�tzung durch die ChurchTools GmbH.
  * Dieses Plugin wird ohne Gewährleistung bereitgestellt (see LICENSE).
+ *
+ * @package ChurchTools_Suite
  */
 
-// Exit if accessed directly
+// Exit if accessed directly.
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-// Suppress WP 6.7 JIT translation notice IMMEDIATELY (v1.0.3.5)
+// Suppress WP 6.7 JIT translation notice IMMEDIATELY (v1.0.3.5).
 remove_filter( 'load_textdomain_mofile', 'wp_check_load_textdomain_just_in_time' );
 
-// Plugin constants
+// Plugin constants.
 define( 'CHURCHTOOLS_SUITE_VERSION', '1.3.0.14' );
 define( 'CHURCHTOOLS_SUITE_PATH', plugin_dir_path( __FILE__ ) );
 define( 'CHURCHTOOLS_SUITE_URL', plugin_dir_url( __FILE__ ) );
 define( 'CHURCHTOOLS_SUITE_BASENAME', plugin_basename( __FILE__ ) );
 
-// Database table prefix
+// Database table prefix.
 define( 'CHURCHTOOLS_SUITE_DB_PREFIX', 'cts_' );
 
-// Load repository factory (v1.0.8.0)
+// Load repository factory (v1.0.8.0).
 require_once CHURCHTOOLS_SUITE_PATH . 'includes/functions/repository-factory.php';
 
 /**
  * Plugin activation
  */
-function activate_churchtools_suite() {
+function churchtools_suite_activate(): void {
 	require_once CHURCHTOOLS_SUITE_PATH . 'includes/class-churchtools-suite-activator.php';
 	ChurchTools_Suite_Activator::activate();
 }
-register_activation_hook( __FILE__, 'activate_churchtools_suite' );
+register_activation_hook( __FILE__, 'churchtools_suite_activate' );
 
 /**
  * Plugin deactivation
  */
-function deactivate_churchtools_suite() {
+function churchtools_suite_deactivate(): void {
 	require_once CHURCHTOOLS_SUITE_PATH . 'includes/class-churchtools-suite-deactivator.php';
 	ChurchTools_Suite_Deactivator::deactivate();
 }
-register_deactivation_hook( __FILE__, 'deactivate_churchtools_suite' );
+register_deactivation_hook( __FILE__, 'churchtools_suite_deactivate' );
 
 /**
  * Initialize the plugin
  */
-function run_churchtools_suite() {
+function churchtools_suite_run(): void {
 	require_once CHURCHTOOLS_SUITE_PATH . 'includes/class-churchtools-suite.php';
 	$plugin = new ChurchTools_Suite();
-	
-	// Store instance globally for sub-plugins (v1.0.9.0)
+
+	// Store instance globally for sub-plugins (v1.0.9.0).
 	global $churchtools_suite_plugin_instance;
 	$churchtools_suite_plugin_instance = $plugin;
-	
+
 	$plugin->run();
 }
-run_churchtools_suite();
+churchtools_suite_run();
 
-# Integrate Posts sync per default
-require_once CHURCHTOOLS_SUITE_PATH . "addons/churchtools-suite-posts-sync/churchtools-suite-posts-sync.php";
-// require_once CHURCHTOOLS_SUITE_PATH . "addons/churchtools-suite-presentations/churchtools-suite-presentations.php";
+// Integrate Posts sync per default.
+require_once CHURCHTOOLS_SUITE_PATH . 'addons/churchtools-suite-posts-sync/churchtools-suite-posts-sync.php';
+// require_once CHURCHTOOLS_SUITE_PATH . "addons/churchtools-suite-presentations/churchtools-suite-presentations.php";.

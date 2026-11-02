@@ -8,7 +8,7 @@
  * @package ChurchTools_Suite
  * @since   0.9.6.27
  * @version 2.0.0 (Modernized - BEM + einzeilig)
- * 
+ *
  * Available variables:
  * @var array $events Events data
  * @var array $args   Shortcode arguments
@@ -18,49 +18,49 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-// Helper function for text truncation
+// Helper function for text truncation.
 if ( ! function_exists( 'cts_truncate_text_minimal' ) ) {
 	function cts_truncate_text_minimal( $text, $length = 80 ) {
 		if ( empty( $text ) || mb_strlen( $text ) <= $length ) {
 			return $text;
 		}
-		
-		$truncated = mb_substr( $text, 0, $length );
+
+		$truncated  = mb_substr( $text, 0, $length );
 		$last_space = mb_strrpos( $truncated, ' ' );
-		
-		if ( $last_space !== false ) {
+
+		if ( false !== $last_space ) {
 			$truncated = mb_substr( $truncated, 0, $last_space );
 		}
-		
+
 		return rtrim( $truncated, '.,;:!?' ) . '…';
 	}
 }
 
-// Parse boolean parameters
-$show_event_description = isset( $args['show_event_description'] ) ? ChurchTools_Suite_Shortcodes::parse_boolean( $args['show_event_description'] ) : true;
+// Parse boolean parameters.
+$show_event_description       = isset( $args['show_event_description'] ) ? ChurchTools_Suite_Shortcodes::parse_boolean( $args['show_event_description'] ) : true;
 $show_appointment_description = isset( $args['show_appointment_description'] ) ? ChurchTools_Suite_Shortcodes::parse_boolean( $args['show_appointment_description'] ) : true;
-$show_time = isset( $args['show_time'] ) ? ChurchTools_Suite_Shortcodes::parse_boolean( $args['show_time'] ) : true;
-$show_month_separator = isset( $args['show_month_separator'] ) ? ChurchTools_Suite_Shortcodes::parse_boolean( $args['show_month_separator'] ) : true;
+$show_time                    = isset( $args['show_time'] ) ? ChurchTools_Suite_Shortcodes::parse_boolean( $args['show_time'] ) : true;
+$show_month_separator         = isset( $args['show_month_separator'] ) ? ChurchTools_Suite_Shortcodes::parse_boolean( $args['show_month_separator'] ) : true;
 
-// Not supported in minimal view
-$show_calendar_name = false;
-$show_location = false;
-$show_services = false;
-$show_tags = false;
-$show_images = false;
+// Not supported in minimal view.
+$show_calendar_name  = false;
+$show_location       = false;
+$show_services       = false;
+$show_tags           = false;
+$show_images         = false;
 $use_calendar_colors = false;
 
-// Style mode and custom colors (simplified for minimal)
-$style_mode = $args['style_mode'] ?? 'theme';
+// Style mode and custom colors (simplified for minimal).
+$style_mode    = $args['style_mode'] ?? 'theme';
 $custom_styles = '';
 
-if ( $style_mode === 'plugin' ) {
-	$text = '#1e293b';
+if ( 'plugin' === $style_mode ) {
+	$text           = '#1e293b';
 	$text_secondary = '#6b7280';
-	$border = '#e5e7eb';
-	$font_size = 14;
-	$spacing = 8;
-	
+	$border         = '#e5e7eb';
+	$font_size      = 14;
+	$spacing        = 8;
+
 	$custom_styles = sprintf(
 		'--minimal-text: %s; --minimal-text-secondary: %s; --minimal-border: %s; --minimal-font-size: %dpx; --minimal-spacing: %dpx;',
 		esc_attr( $text ),
@@ -69,13 +69,13 @@ if ( $style_mode === 'plugin' ) {
 		absint( $font_size ),
 		absint( $spacing )
 	);
-} elseif ( $style_mode === 'custom' ) {
-	$text = $args['custom_text_color'] ?? '#1e293b';
+} elseif ( 'custom' === $style_mode ) {
+	$text           = $args['custom_text_color'] ?? '#1e293b';
 	$text_secondary = $args['custom_text_secondary_color'] ?? '#6b7280';
-	$border = $args['custom_border_color'] ?? '#e5e7eb';
-	$font_size = $args['custom_font_size'] ?? 14;
-	$spacing = $args['custom_spacing'] ?? 8;
-	
+	$border         = $args['custom_border_color'] ?? '#e5e7eb';
+	$font_size      = $args['custom_font_size'] ?? 14;
+	$spacing        = $args['custom_spacing'] ?? 8;
+
 	$custom_styles = sprintf(
 		'--minimal-text: %s; --minimal-text-secondary: %s; --minimal-border: %s; --minimal-font-size: %dpx; --minimal-spacing: %dpx;',
 		esc_attr( $text ),
@@ -86,10 +86,10 @@ if ( $style_mode === 'plugin' ) {
 	);
 }
 
-// Display empty state if no events
+// Display empty state if no events.
 if ( empty( $events ) ) :
-?>
-	<div class="churchtools-suite-wrapper" data-style-mode="<?php echo esc_attr( $style_mode ); ?>"<?php echo $custom_styles ? ' style="' . $custom_styles . '"' : ''; ?>>
+	?>
+	<div class="churchtools-suite-wrapper" data-style-mode="<?php echo esc_attr( $style_mode ); ?>"<?php echo $custom_styles ? ' style="' . esc_attr( $custom_styles ) . '"' : ''; ?>>
 		<div class="cts-list cts-list--minimal">
 			<p class="cts-list__empty-state">
 				<?php esc_html_e( 'Keine Termine gefunden', 'churchtools-suite' ); ?>
@@ -100,11 +100,11 @@ if ( empty( $events ) ) :
 	return;
 endif;
 
-// Track current month for separator
+// Track current month for separator.
 $current_month = null;
 ?>
 
-<div class="churchtools-suite-wrapper" data-style-mode="<?php echo esc_attr( $style_mode ); ?>"<?php echo $custom_styles ? ' style="' . $custom_styles . '"' : ''; ?>>
+<div class="churchtools-suite-wrapper" data-style-mode="<?php echo esc_attr( $style_mode ); ?>"<?php echo $custom_styles ? ' style="' . esc_attr( $custom_styles ) . '"' : ''; ?>>
 	<div class="cts-list cts-list--minimal"
 		data-view="list-minimal"
 		data-style-mode="<?php echo esc_attr( $style_mode ); ?>"
@@ -122,13 +122,13 @@ $current_month = null;
 	<?php foreach ( $events as $event ) : ?>
 		
 		<?php
-		// Month separator
+		// Month separator.
 		$event_month = get_date_from_gmt( $event['start_datetime'], 'Y-m' );
-		if ( $show_month_separator && ( $current_month === null || $current_month !== $event_month ) ) :
-			$current_month = $event_month;
+		if ( $show_month_separator && ( null === $current_month || $current_month !== $event_month ) ) :
+			$current_month   = $event_month;
 			$month_timestamp = strtotime( get_date_from_gmt( $event['start_datetime'] ) );
-			$month_label = date_i18n( 'F Y', $month_timestamp );
-		?>
+			$month_label     = date_i18n( 'F Y', $month_timestamp );
+			?>
 			<h2 class="cts-list__month-separator">
 				<time datetime="<?php echo esc_attr( $event_month ); ?>">
 					<?php echo esc_html( $month_label ); ?>
@@ -137,14 +137,14 @@ $current_month = null;
 		<?php endif; ?>
 		
 		<?php
-		// Extract event data
-		$event_id          = ! empty( $event['id'] ) ? absint( $event['id'] ) : 0;
-		$appointment_id    = ! empty( $event['appointment_id'] ) ? absint( $event['appointment_id'] ) : null;
-		$event_title       = ! empty( $event['title'] ) ? esc_html( $event['title'] ) : esc_html__( 'Untitled Event', 'churchtools-suite' );
-		$event_description = ! empty( $event['description'] ) ? wp_strip_all_tags( $event['description'] ) : '';
+		// Extract event data.
+		$event_id                = ! empty( $event['id'] ) ? absint( $event['id'] ) : 0;
+		$appointment_id          = ! empty( $event['appointment_id'] ) ? absint( $event['appointment_id'] ) : null;
+		$event_title             = ! empty( $event['title'] ) ? esc_html( $event['title'] ) : esc_html__( 'Untitled Event', 'churchtools-suite' );
+		$event_description       = ! empty( $event['description'] ) ? wp_strip_all_tags( $event['description'] ) : '';
 		$event_description_short = ! empty( $event_description ) ? cts_truncate_text_minimal( $event_description, 80 ) : '';
-		
-		// Location data
+
+		// Location data.
 		$event_location = '';
 		if ( ! empty( $event['address_name'] ) ) {
 			$event_location = esc_html( $event['address_name'] );
@@ -153,14 +153,14 @@ $current_month = null;
 		} elseif ( ! empty( $event['address_street'] ) ) {
 			$event_location = esc_html( $event['address_street'] );
 		}
-		
-		// Calendar name
+
+		// Calendar name.
 		$calendar_name = ! empty( $event['calendar_name'] ) ? esc_html( $event['calendar_name'] ) : '';
-		
-		// Use WordPress date format from settings (localized)
+
+		// Use WordPress date format from settings (localized).
 		$date_timestamp = strtotime( get_date_from_gmt( $event['start_datetime'] ) );
-		$date_display = date_i18n( get_option( 'date_format' ), $date_timestamp );
-		
+		$date_display   = date_i18n( get_option( 'date_format' ), $date_timestamp );
+
 		$time_display = '';
 		if ( $show_time && ! empty( $event['start_time'] ) ) {
 			$time_display = $event['start_time'];
@@ -168,19 +168,19 @@ $current_month = null;
 				$time_display .= ' – ' . $event['end_time'];
 			}
 		}
-		
-		// Determine if appointment
+
+		// Determine if appointment.
 		$is_appointment = ! empty( $appointment_id );
-		
-		// Check if we have additional info to show in popup
+
+		// Check if we have additional info to show in popup.
 		$has_additional_info = ( $event_description && ( ( $is_appointment && $show_appointment_description ) || ( ! $is_appointment && $show_event_description ) ) ) || $event_location || $calendar_name;
-		$filter_attrs = ChurchTools_Suite_Shortcodes::build_event_filter_data_attributes( $event );
+		$filter_attrs        = ChurchTools_Suite_Shortcodes::build_event_filter_data_attributes( $event );
 		?>
 		
 		<article 
 			class="cts-list--minimal__item<?php echo $is_appointment ? ' cts-list--minimal__item--appointment' : ''; ?>"
 			data-event-id="<?php echo esc_attr( $event_id ); ?>"
-			<?php echo $filter_attrs; ?>
+			<?php /* phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Attribute markup is assembled above with individually escaped values. */  echo $filter_attrs; ?>
 			<?php if ( $appointment_id ) : ?>
 				data-appointment-id="<?php echo esc_attr( $appointment_id ); ?>"
 			<?php endif; ?>
@@ -200,7 +200,7 @@ $current_month = null;
 			<!-- Content: Title + Short Description -->
 			<div class="cts-list--minimal__content">
 				<span class="cts-list--minimal__title">
-					<?php echo $event_title; ?>
+					<?php echo esc_html( $event_title ); ?>
 				</span>
 				
 				<?php if ( $event_description_short && ( ( $is_appointment && $show_appointment_description ) || ( ! $is_appointment && $show_event_description ) ) ) : ?>
@@ -231,7 +231,7 @@ $current_month = null;
 						
 						<?php if ( $calendar_name ) : ?>
 							<div class="cts-list--minimal__popup-calendar">
-								<strong><?php echo $calendar_name; ?></strong>
+								<strong><?php echo esc_html( $calendar_name ); ?></strong>
 							</div>
 						<?php endif; ?>
 						
@@ -247,7 +247,7 @@ $current_month = null;
 									<path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
 									<circle cx="12" cy="10" r="3"></circle>
 								</svg>
-								<?php echo $event_location; ?>
+								<?php echo esc_html( $event_location ); ?>
 							</div>
 						<?php endif; ?>
 						

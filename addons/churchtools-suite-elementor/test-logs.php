@@ -1,19 +1,19 @@
 <?php
 /**
  * Debug Script: Display Elementor Integration Logs
- * 
+ *
  * Access via: /wp-content/plugins/churchtools-suite-elementor/test-logs.php
- * 
+ *
  * @package ChurchTools_Suite_Elementor
  * @since   0.6.1
  */
 
-// Load WordPress
+// Load WordPress.
 require_once '../../../wp-load.php';
 
-// Security check
-if (!current_user_can('manage_options')) {
-	wp_die('Zugriff verweigert');
+// Security check.
+if ( ! current_user_can( 'manage_options' ) ) {
+	wp_die( 'Zugriff verweigert' );
 }
 
 ?>
@@ -66,11 +66,11 @@ if (!current_user_can('manage_options')) {
 	</div>
 	
 	<div class="info">
-		<strong>Plugin Version:</strong> <?php echo defined('CTS_ELEMENTOR_VERSION') ? CTS_ELEMENTOR_VERSION : 'Nicht geladen'; ?><br>
-		<strong>WordPress Version:</strong> <?php echo get_bloginfo('version'); ?><br>
-		<strong>Elementor aktiv:</strong> <?php echo class_exists('\\Elementor\\Plugin') ? '✅ Ja' : '❌ Nein'; ?><br>
-		<strong>ChurchTools Suite aktiv:</strong> <?php echo class_exists('ChurchTools_Suite') ? '✅ Ja' : '❌ Nein'; ?><br>
-		<strong>Aktualisiert:</strong> <?php echo date('d.m.Y H:i:s'); ?>
+		<strong>Plugin Version:</strong> <?php echo esc_html( defined( 'CTS_ELEMENTOR_VERSION' ) ? CTS_ELEMENTOR_VERSION : 'Nicht geladen' ); ?><br>
+		<strong>WordPress Version:</strong> <?php echo esc_html( get_bloginfo( 'version' ) ); ?><br>
+		<strong>Elementor aktiv:</strong> <?php echo class_exists( '\\Elementor\\Plugin' ) ? '✅ Ja' : '❌ Nein'; ?><br>
+		<strong>ChurchTools Suite aktiv:</strong> <?php echo class_exists( 'ChurchTools_Suite' ) ? '✅ Ja' : '❌ Nein'; ?><br>
+		<strong>Aktualisiert:</strong> <?php echo esc_html( current_datetime()->format( 'd.m.Y H:i:s' ) ); ?>
 	</div>
 	
 	<div style="margin-bottom: 20px;">
@@ -81,13 +81,13 @@ if (!current_user_can('manage_options')) {
 	<h2>📋 Log-Einträge (letzte 50):</h2>
 	
 	<?php
-	$logs = get_option('cts_elementor_log', []);
-	
-	if (empty($logs)) {
+	$cts_logs = get_option( 'cts_elementor_log', array() );
+
+	if ( empty( $cts_logs ) ) {
 		echo '<p style="color: #808080;">Keine Logs vorhanden. Öffne Elementor-Editor um Logs zu generieren.</p>';
 	} else {
-		foreach (array_reverse($logs) as $log) {
-			echo '<div class="log-entry">' . esc_html($log) . '</div>';
+		foreach ( array_reverse( $cts_logs ) as $cts_log ) {
+			echo '<div class="log-entry">' . esc_html( $cts_log ) . '</div>';
 		}
 	}
 	?>
@@ -95,12 +95,12 @@ if (!current_user_can('manage_options')) {
 	<script>
 	function clearLogs() {
 		if (confirm('Alle Logs löschen?')) {
-			fetch('<?php echo admin_url('admin-ajax.php'); ?>', {
+			fetch('<?php echo esc_url( admin_url( 'admin-ajax.php' ) ); ?>', {
 				method: 'POST',
 				headers: {
 					'Content-Type': 'application/x-www-form-urlencoded',
 				},
-				body: 'action=cts_elementor_clear_logs&nonce=<?php echo wp_create_nonce('cts_elementor_clear_logs'); ?>'
+				body: 'action=cts_elementor_clear_logs&nonce=<?php echo esc_js( wp_create_nonce( 'cts_elementor_clear_logs' ) ); ?>'
 			}).then(() => location.reload());
 		}
 	}

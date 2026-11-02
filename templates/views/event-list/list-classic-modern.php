@@ -7,11 +7,11 @@
  * @package ChurchTools_Suite
  * @since   0.10.5.0
  * @version 2.0.0
- * 
+ *
  * Available variables:
  * @var array $events Events data
  * @var array $args   Shortcode arguments
- * 
+ *
  * CHANGES FROM CLASSIC:
  * - BEM naming convention (.cts-list__item vs .cts-event-classic)
  * - CSS Grid layout instead of Flexbox
@@ -24,33 +24,33 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-// Parse boolean parameters (support strings from Gutenberg attributes)
-$show_event_description = isset( $args['show_event_description'] ) ? ChurchTools_Suite_Shortcodes::parse_boolean( $args['show_event_description'] ) : true;
+// Parse boolean parameters (support strings from Gutenberg attributes).
+$show_event_description       = isset( $args['show_event_description'] ) ? ChurchTools_Suite_Shortcodes::parse_boolean( $args['show_event_description'] ) : true;
 $show_appointment_description = isset( $args['show_appointment_description'] ) ? ChurchTools_Suite_Shortcodes::parse_boolean( $args['show_appointment_description'] ) : true;
-$show_services = isset( $args['show_services'] ) ? ChurchTools_Suite_Shortcodes::parse_boolean( $args['show_services'] ) : true;
-$show_location = isset( $args['show_location'] ) ? ChurchTools_Suite_Shortcodes::parse_boolean( $args['show_location'] ) : true;
-$show_calendar_name = isset( $args['show_calendar_name'] ) ? ChurchTools_Suite_Shortcodes::parse_boolean( $args['show_calendar_name'] ) : true;
-$show_time = isset( $args['show_time'] ) ? ChurchTools_Suite_Shortcodes::parse_boolean( $args['show_time'] ) : true;
-$show_tags = isset( $args['show_tags'] ) ? ChurchTools_Suite_Shortcodes::parse_boolean( $args['show_tags'] ) : false;
-$show_month_separator = isset( $args['show_month_separator'] ) ? ChurchTools_Suite_Shortcodes::parse_boolean( $args['show_month_separator'] ) : true;
+$show_services                = isset( $args['show_services'] ) ? ChurchTools_Suite_Shortcodes::parse_boolean( $args['show_services'] ) : true;
+$show_location                = isset( $args['show_location'] ) ? ChurchTools_Suite_Shortcodes::parse_boolean( $args['show_location'] ) : true;
+$show_calendar_name           = isset( $args['show_calendar_name'] ) ? ChurchTools_Suite_Shortcodes::parse_boolean( $args['show_calendar_name'] ) : true;
+$show_time                    = isset( $args['show_time'] ) ? ChurchTools_Suite_Shortcodes::parse_boolean( $args['show_time'] ) : true;
+$show_tags                    = isset( $args['show_tags'] ) ? ChurchTools_Suite_Shortcodes::parse_boolean( $args['show_tags'] ) : false;
+$show_month_separator         = isset( $args['show_month_separator'] ) ? ChurchTools_Suite_Shortcodes::parse_boolean( $args['show_month_separator'] ) : true;
 
-// Parse use_calendar_colors option
+// Parse use_calendar_colors option.
 $use_calendar_colors = isset( $args['use_calendar_colors'] ) ? ChurchTools_Suite_Shortcodes::parse_boolean( $args['use_calendar_colors'] ) : false;
 
-// Style mode and custom colors
-$style_mode = $args['style_mode'] ?? 'theme';
+// Style mode and custom colors.
+$style_mode    = $args['style_mode'] ?? 'theme';
 $custom_styles = '';
 
-// Plugin style mode uses default plugin colors
-if ( $style_mode === 'plugin' ) {
-	$primary = '#2563eb';
-	$text = '#1e293b';
-	$bg = '#ffffff';
+// Plugin style mode uses default plugin colors.
+if ( 'plugin' === $style_mode ) {
+	$primary       = '#2563eb';
+	$text          = '#1e293b';
+	$bg            = '#ffffff';
 	$border_radius = 6;
-	$font_size = 14;
-	$padding = 12;
-	$spacing = 8;
-	
+	$font_size     = 14;
+	$padding       = 12;
+	$spacing       = 8;
+
 	$custom_styles = sprintf(
 		'--cts-primary-color: %s; --cts-text-color: %s; --cts-bg-color: %s; --cts-border-radius: %dpx; --cts-font-size: %dpx; --cts-padding: %dpx; --cts-spacing: %dpx;',
 		esc_attr( $primary ),
@@ -61,15 +61,15 @@ if ( $style_mode === 'plugin' ) {
 		absint( $padding ),
 		absint( $spacing )
 	);
-} elseif ( $style_mode === 'custom' ) {
-	$primary = $args['custom_primary_color'] ?? '#2563eb';
-	$text = $args['custom_text_color'] ?? '#1e293b';
-	$bg = $args['custom_background_color'] ?? '#ffffff';
+} elseif ( 'custom' === $style_mode ) {
+	$primary       = $args['custom_primary_color'] ?? '#2563eb';
+	$text          = $args['custom_text_color'] ?? '#1e293b';
+	$bg            = $args['custom_background_color'] ?? '#ffffff';
 	$border_radius = $args['custom_border_radius'] ?? 6;
-	$font_size = $args['custom_font_size'] ?? 14;
-	$padding = $args['custom_padding'] ?? 12;
-	$spacing = $args['custom_spacing'] ?? 8;
-	
+	$font_size     = $args['custom_font_size'] ?? 14;
+	$padding       = $args['custom_padding'] ?? 12;
+	$spacing       = $args['custom_spacing'] ?? 8;
+
 	$custom_styles = sprintf(
 		'--cts-primary-color: %s; --cts-text-color: %s; --cts-bg-color: %s; --cts-border-radius: %dpx; --cts-font-size: %dpx; --cts-padding: %dpx; --cts-spacing: %dpx;',
 		esc_attr( $primary ),
@@ -82,11 +82,11 @@ if ( $style_mode === 'plugin' ) {
 	);
 }
 
-// Track current month for separator
+// Track current month for separator.
 $current_month = null;
 ?>
 
-<div class="churchtools-suite-wrapper" data-style-mode="<?php echo esc_attr( $style_mode ); ?>"<?php echo $custom_styles ? ' style="' . $custom_styles . '"' : ''; ?>>
+<div class="churchtools-suite-wrapper" data-style-mode="<?php echo esc_attr( $style_mode ); ?>"<?php echo $custom_styles ? ' style="' . esc_attr( $custom_styles ) . '"' : ''; ?>>
 	<div class="cts-list cts-list--classic" 
 		data-view="list-classic-modern"
 		data-show-event-description="<?php echo esc_attr( $show_event_description ? '1' : '0' ); ?>"
@@ -108,12 +108,12 @@ $current_month = null;
 	<?php else : ?>
 		
 		<?php foreach ( $events as $event ) : ?>
-			<?php 
-			// Month separator logic (fixed)
+			<?php
+			// Month separator logic (fixed).
 			$event_month = get_date_from_gmt( $event['start_datetime'], 'Y-m' );
-			if ( $show_month_separator && ( $current_month === null || $current_month !== $event_month ) ) : 
-				$current_month = $event_month; // Update BEFORE separator output
-			?>
+			if ( $show_month_separator && ( null === $current_month || $current_month !== $event_month ) ) :
+				$current_month = $event_month; // Update BEFORE separator output.
+				?>
 				<div class="cts-list__month-separator">
 					<time class="cts-list__month-name" datetime="<?php echo esc_attr( $event_month ); ?>">
 						<?php echo esc_html( date_i18n( 'F Y', strtotime( get_date_from_gmt( $event['start_datetime'] ) ) ) ); ?>
@@ -121,44 +121,44 @@ $current_month = null;
 				</div>
 			<?php endif; ?>
 			
-			<?php 
-			// Event action logic (modal, page, none)
+			<?php
+			// Event action logic (modal, page, none).
 			$event_action = isset( $args['event_action'] ) ? $args['event_action'] : 'modal';
 
-			// Single event target for page clicks
-			$single_event_base = apply_filters( 'churchtools_suite_single_event_base_url', home_url( '/events/' ) );
+			// Single event target for page clicks.
+			$single_event_base     = apply_filters( 'churchtools_suite_single_event_base_url', home_url( '/events/' ) );
 			$single_event_template = get_option( 'churchtools_suite_single_template', 'professional' );
-			
+
 			$click_class = '';
 			$click_attrs = '';
-		
-			if ( $event_action === 'modal' ) {
+
+			if ( 'modal' === $event_action ) {
 				$click_class = ' cts-list__item--clickable';
 				$click_attrs = sprintf(
 					' data-event-id="%s" role="button" tabindex="0" aria-label="%s"',
 					esc_attr( $event['id'] ),
-					esc_attr( sprintf( __( 'Details für %s anzeigen', 'churchtools-suite' ), $event['title'] ) )
+					esc_attr( sprintf( /* translators: %s: Event title. */ __( 'Details für %s anzeigen', 'churchtools-suite' ), $event['title'] ) )
 				);
-			} elseif ( $event_action === 'page' ) {
+			} elseif ( 'page' === $event_action ) {
 				$click_class = ' cts-list__item--page-link';
-				$page_url = add_query_arg(
-					[
-						'event_id' => $event['id'],
-						'template' => $single_event_template,
+				$page_url    = add_query_arg(
+					array(
+						'event_id'     => $event['id'],
+						'template'     => $single_event_template,
 						'ctse_context' => 'elementor',
-					],
+					),
 					$single_event_base
 				);
 				$click_attrs = sprintf(
 					' data-event-id="%s" data-event-url="%s" role="link" tabindex="0" aria-label="%s"',
 					esc_attr( $event['id'] ),
 					esc_url( $page_url ),
-					esc_attr( sprintf( __( 'Zu %s navigieren', 'churchtools-suite' ), $event['title'] ) )
+					esc_attr( sprintf( /* translators: %s: Event title. */ __( 'Zu %s navigieren', 'churchtools-suite' ), $event['title'] ) )
 				);
 			}
-			
-			// Calendar color styling
-			$item_style = '';
+
+			// Calendar color styling.
+			$item_style     = '';
 			$calendar_color = $event['calendar_color'] ?? '#2563eb';
 			if ( $use_calendar_colors && ! empty( $event['calendar_color'] ) ) {
 				$item_style = sprintf( ' style="--calendar-color: %s; --cts-primary-color: %s;"', esc_attr( $calendar_color ), esc_attr( $calendar_color ) );
@@ -166,28 +166,28 @@ $current_month = null;
 			$filter_attrs = ChurchTools_Suite_Shortcodes::build_event_filter_data_attributes( $event );
 			?>
 			
-			<article class="cts-list__item<?php echo esc_attr( $click_class ); ?>"<?php echo $click_attrs . $item_style; ?> <?php echo $filter_attrs; ?>>
+			<article class="cts-list__item<?php /* phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Attribute markup is assembled above with individually escaped values. */  echo esc_attr( $click_class ); ?>"<?php echo $click_attrs . $item_style; ?> <?php echo $filter_attrs; ?>>
 				
 				<!-- Date Box (with calendar color if active) -->
-				<?php 
+				<?php
 				$date_box_style = '';
 				if ( $use_calendar_colors ) {
-					// Calculate luminance for intelligent text color
+					// Calculate luminance for intelligent text color.
 					$hex = ltrim( $calendar_color, '#' );
-					$r = hexdec( substr( $hex, 0, 2 ) );
-					$g = hexdec( substr( $hex, 2, 2 ) );
-					$b = hexdec( substr( $hex, 4, 2 ) );
-					
-					// Relative luminance (W3C formula)
+					$r   = hexdec( substr( $hex, 0, 2 ) );
+					$g   = hexdec( substr( $hex, 2, 2 ) );
+					$b   = hexdec( substr( $hex, 4, 2 ) );
+
+					// Relative luminance (W3C formula).
 					$luminance = ( 0.299 * $r + 0.587 * $g + 0.114 * $b );
-					
-					// Choose text color: Dark for light backgrounds (> 128), Light for dark
+
+					// Choose text color: Dark for light backgrounds (> 128), Light for dark.
 					$text_color = ( $luminance > 128 ) ? '#1e293b' : '#ffffff';
-					
+
 					$date_box_style = sprintf( ' style="background-color: %s; color: %s;"', esc_attr( $calendar_color ), esc_attr( $text_color ) );
 				}
 				?>
-				<div class="cts-list__date-box"<?php echo $date_box_style; ?>>
+				<div class="cts-list__date-box"<?php /* phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Attribute markup is assembled above with individually escaped values. */  echo $date_box_style; ?>>
 					<span class="cts-list__date-month"><?php echo esc_html( $event['start_month'] ); ?></span>
 					<span class="cts-list__date-day"><?php echo esc_html( $event['start_day'] ); ?></span>
 					<span class="cts-list__date-weekday"><?php echo esc_html( strtoupper( $event['start_weekday'] ) ); ?></span>
@@ -205,13 +205,14 @@ $current_month = null;
 				<?php endif; ?>
 				
 				<!-- Calendar Name (colored when use_calendar_colors=true) -->
-				<?php if ( $show_calendar_name && ! empty( $event['calendar_name'] ) ) : 
+				<?php
+				if ( $show_calendar_name && ! empty( $event['calendar_name'] ) ) :
 					$calendar_name_style = '';
 					if ( $use_calendar_colors ) {
 						$calendar_name_style = sprintf( ' style="color: %s; font-weight: 600;"', esc_attr( $calendar_color ) );
 					}
-				?>
-					<span class="cts-list__calendar"<?php echo $calendar_name_style; ?>>
+					?>
+					<span class="cts-list__calendar"<?php /* phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Attribute markup is assembled above with individually escaped values. */  echo $calendar_name_style; ?>>
 						<?php echo esc_html( $event['calendar_name'] ); ?>
 					</span>
 				<?php endif; ?>
@@ -234,19 +235,19 @@ $current_month = null;
 				<!-- Services -->
 				<?php if ( ! empty( $event['services'] ) ) : ?>
 					<div class="cts-list__services">
-						<?php 
+						<?php
 						$service_items = array();
-						
-						foreach ( array_slice( $event['services'], 0, 2 ) as $s ) {
-							if ( ! empty( $s['person_name'] ) ) {
-								$service_items[] = $s['service_name'] . ': ' . $s['person_name'];
+
+						foreach ( array_slice( $event['services'], 0, 2 ) as $cts_s ) {
+							if ( ! empty( $cts_s['person_name'] ) ) {
+								$service_items[] = $cts_s['service_name'] . ': ' . $cts_s['person_name'];
 							} else {
-								$service_items[] = $s['service_name'];
+								$service_items[] = $cts_s['service_name'];
 							}
 						}
-						
+
 						echo esc_html( implode( ' | ', $service_items ) );
-						
+
 						if ( count( $event['services'] ) > 2 ) {
 							echo ' <span class="cts-list__services-more">+' . ( count( $event['services'] ) - 2 ) . '</span>';
 						}
@@ -271,16 +272,18 @@ $current_month = null;
 						</span>
 						
 						<?php
-						// Info icon with full address
-						$info_parts = array_filter( [
-							$event['address_name'] ?? '',
-							$event['address_street'] ?? '',
-							$event['address_zip'] ?? '',
-							$event['address_city'] ?? ''
-						] );
-						if ( count( $info_parts ) > 1 ) : // Show icon only if more than just the name is available
+						// Info icon with full address.
+						$info_parts = array_filter(
+							array(
+								$event['address_name'] ?? '',
+								$event['address_street'] ?? '',
+								$event['address_zip'] ?? '',
+								$event['address_city'] ?? '',
+							)
+						);
+						if ( count( $info_parts ) > 1 ) : // Show icon only if more than just the name is available.
 							$info_text = implode( ', ', $info_parts );
-						?>
+							?>
 							<button class="cts-list__location-info" 
 								type="button" 
 								aria-label="<?php esc_attr_e( 'Vollständige Adresse anzeigen', 'churchtools-suite' ); ?>"
@@ -294,10 +297,10 @@ $current_month = null;
 				<!-- Tags -->
 				<?php if ( ! empty( $event['tags_array'] ) ) : ?>
 					<div class="cts-list__tags">
-						<?php foreach ( $event['tags_array'] as $tag ) : ?>
+						<?php foreach ( $event['tags_array'] as $cts_tag ) : ?>
 							<span class="cts-list__tag" 
-								style="background-color: <?php echo esc_attr( $tag['color'] ?? '#6b7280' ); ?>;">
-								<?php echo esc_html( $tag['name'] ); ?>
+								style="background-color: <?php echo esc_attr( $cts_tag['color'] ?? '#6b7280' ); ?>;">
+								<?php echo esc_html( $cts_tag['name'] ); ?>
 							</span>
 						<?php endforeach; ?>
 					</div>

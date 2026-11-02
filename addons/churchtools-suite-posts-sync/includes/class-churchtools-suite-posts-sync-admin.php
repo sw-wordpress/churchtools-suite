@@ -1,4 +1,10 @@
 <?php
+/**
+ * Class cts posts sync admin.
+ *
+ * @package ChurchTools_Suite
+ */
+
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
@@ -6,12 +12,12 @@ if ( ! defined( 'ABSPATH' ) ) {
 class ChurchTools_Suite_Posts_Sync_Admin {
 
 	public function init() {
-		add_action( 'admin_menu', [ $this, 'register_submenu' ], 45 );
-		add_action( 'add_meta_boxes', [ $this, 'register_ct_meta_boxes' ], 10, 2 );
-		add_action( 'admin_enqueue_scripts', [ $this, 'enqueue_admin_assets' ] );
-		add_action( 'cts_posts_settings_save', [ $this, 'save_posts_settings' ] );
-		add_action( 'cts_posts_settings_render', [ $this, 'render_posts_settings' ] );
-		add_action( 'wp_ajax_cts_posts_sync_run_now', [ $this, 'ajax_posts_sync_run_now' ] );
+		add_action( 'admin_menu', array( $this, 'register_submenu' ), 45 );
+		add_action( 'add_meta_boxes', array( $this, 'register_ct_meta_boxes' ), 10, 2 );
+		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_admin_assets' ) );
+		add_action( 'cts_posts_settings_save', array( $this, 'save_posts_settings' ) );
+		add_action( 'cts_posts_settings_render', array( $this, 'render_posts_settings' ) );
+		add_action( 'wp_ajax_cts_posts_sync_run_now', array( $this, 'ajax_posts_sync_run_now' ) );
 	}
 
 	public function enqueue_admin_assets() {
@@ -19,12 +25,12 @@ class ChurchTools_Suite_Posts_Sync_Admin {
 			return;
 		}
 
-		$page = isset( $_GET['page'] ) ? sanitize_key( (string) $_GET['page'] ) : '';
-		$tab = isset( $_GET['tab'] ) ? sanitize_key( (string) $_GET['tab'] ) : '';
-		$subtab = isset( $_GET['subtab'] ) ? sanitize_key( (string) $_GET['subtab'] ) : '';
-		
-		$is_overview_page = ( $page === 'churchtools-suite-posts-overview' );
-		$is_posts_settings_tab = ( $page === 'churchtools-suite' && $tab === 'settings' && $subtab === 'posts' );
+		/* phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only navigation, display filters, or status messages; no state is changed by these query arguments. */ $page   = isset( $_GET['page'] ) ? sanitize_key( (string) $_GET['page'] ) : '';
+		/* phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only navigation, display filters, or status messages; no state is changed by these query arguments. */ $tab    = isset( $_GET['tab'] ) ? sanitize_key( (string) $_GET['tab'] ) : '';
+		/* phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only navigation, display filters, or status messages; no state is changed by these query arguments. */ $subtab = isset( $_GET['subtab'] ) ? sanitize_key( (string) $_GET['subtab'] ) : '';
+
+		$is_overview_page      = ( 'churchtools-suite-posts-overview' === $page );
+		$is_posts_settings_tab = ( 'churchtools-suite' === $page && 'settings' === $tab && 'posts' === $subtab );
 
 		if ( ! $is_overview_page && ! $is_posts_settings_tab ) {
 			return;
@@ -33,7 +39,7 @@ class ChurchTools_Suite_Posts_Sync_Admin {
 		wp_enqueue_style(
 			'cts-posts-sync-admin',
 			CTS_POSTS_SYNC_URL . 'assets/css/churchtools-suite-posts-sync-admin.css',
-			[],
+			array(),
 			CTS_POSTS_SYNC_VERSION
 		);
 
@@ -41,7 +47,7 @@ class ChurchTools_Suite_Posts_Sync_Admin {
 			wp_enqueue_script(
 				'cts-posts-sync-admin',
 				CTS_POSTS_SYNC_URL . 'assets/js/churchtools-suite-posts-sync-admin.js',
-				[ 'jquery' ],
+				array( 'jquery' ),
 				CTS_POSTS_SYNC_VERSION,
 				true
 			);
@@ -49,13 +55,13 @@ class ChurchTools_Suite_Posts_Sync_Admin {
 			wp_localize_script(
 				'cts-posts-sync-admin',
 				'ctsPostsSyncAdmin',
-				[
-					'nonce' => wp_create_nonce( 'churchtools_suite_admin' ),
-					'messages' => [
+				array(
+					'nonce'    => wp_create_nonce( 'churchtools_suite_admin' ),
+					'messages' => array(
 						'networkError' => __( 'Netzwerkfehler beim Synchronisieren.', 'churchtools-suite-posts-sync' ),
-						'syncError' => __( 'Fehler beim Synchronisieren.', 'churchtools-suite-posts-sync' ),
-					],
-				]
+						'syncError'    => __( 'Fehler beim Synchronisieren.', 'churchtools-suite-posts-sync' ),
+					),
+				)
 			);
 		}
 	}
@@ -71,7 +77,7 @@ class ChurchTools_Suite_Posts_Sync_Admin {
 			__( '📝 Posts', 'churchtools-suite-posts-sync' ),
 			'manage_churchtools_suite',
 			'churchtools-suite-posts-overview',
-			[ $this, 'render_overview_page' ]
+			array( $this, 'render_overview_page' )
 		);
 	}
 
@@ -90,14 +96,14 @@ class ChurchTools_Suite_Posts_Sync_Admin {
 		}
 
 		$ct_post_id = (string) get_post_meta( $post->ID, ChurchTools_Suite_Posts_Sync_Service::META_CT_POST_ID, true );
-		if ( $ct_post_id === '' ) {
+		if ( '' === $ct_post_id ) {
 			return;
 		}
 
 		add_meta_box(
 			'cts-posts-sync-meta-box',
 			__( 'ChurchTools Metadaten', 'churchtools-suite-posts-sync' ),
-			[ $this, 'render_ct_meta_box' ],
+			array( $this, 'render_ct_meta_box' ),
 			(string) $post_type,
 			'normal',
 			'default'
@@ -111,13 +117,13 @@ class ChurchTools_Suite_Posts_Sync_Admin {
 			return;
 		}
 
-		$ct_meta = [];
+		$ct_meta = array();
 		foreach ( $all_meta as $meta_key => $meta_values ) {
 			if ( strpos( (string) $meta_key, '_cts_ct_' ) !== 0 ) {
 				continue;
 			}
 
-			if ( ! is_array( $meta_values ) || $meta_values === [] ) {
+			if ( ! is_array( $meta_values ) || array() === $meta_values ) {
 				$ct_meta[ $meta_key ] = '';
 				continue;
 			}
@@ -125,7 +131,7 @@ class ChurchTools_Suite_Posts_Sync_Admin {
 			$ct_meta[ $meta_key ] = maybe_unserialize( (string) $meta_values[0] );
 		}
 
-		if ( $ct_meta === [] ) {
+		if ( array() === $ct_meta ) {
 			echo '<p>' . esc_html__( 'Keine ChurchTools Metadaten gefunden.', 'churchtools-suite-posts-sync' ) . '</p>';
 			return;
 		}
@@ -145,60 +151,60 @@ class ChurchTools_Suite_Posts_Sync_Admin {
 		echo '</tbody></table>';
 	}
 
-	public function save_posts_settings( $raw_post_data = [] ) {
+	public function save_posts_settings( $raw_post_data = array() ) {
 		if ( ! is_admin() || ! current_user_can( 'manage_churchtools_suite' ) ) {
 			return;
 		}
 
-		$post_data = is_array( $raw_post_data ) ? $raw_post_data : [];
+		$post_data = is_array( $raw_post_data ) ? $raw_post_data : array();
 
 		if ( ! $this->is_local_environment() ) {
 			return;
 		}
 
-		$enabled = isset( $post_data['ct_posts_sync_enabled'] ) ? 1 : 0;
-		$target_type = isset( $post_data['ct_posts_target_type'] ) ? sanitize_key( wp_unslash( (string) $post_data['ct_posts_target_type'] ) ) : ( defined( 'CTS_POSTS_SYNC_CPT' ) ? CTS_POSTS_SYNC_CPT : 'ct_post' );
+		$enabled       = isset( $post_data['ct_posts_sync_enabled'] ) ? 1 : 0;
+		$target_type   = isset( $post_data['ct_posts_target_type'] ) ? sanitize_key( wp_unslash( (string) $post_data['ct_posts_target_type'] ) ) : ( defined( 'CTS_POSTS_SYNC_CPT' ) ? CTS_POSTS_SYNC_CPT : 'ct_post' );
 		$target_status = isset( $post_data['ct_posts_target_status'] ) ? sanitize_key( wp_unslash( (string) $post_data['ct_posts_target_status'] ) ) : 'draft';
-		$sync_limit = isset( $post_data['ct_posts_sync_limit'] ) ? absint( wp_unslash( (string) $post_data['ct_posts_sync_limit'] ) ) : 200;
-		$after_date = isset( $post_data['ct_posts_after_date'] ) ? sanitize_text_field( wp_unslash( (string) $post_data['ct_posts_after_date'] ) ) : '';
-		$after_time = isset( $post_data['ct_posts_after_time'] ) ? sanitize_text_field( wp_unslash( (string) $post_data['ct_posts_after_time'] ) ) : '';
-		$before_date = isset( $post_data['ct_posts_before_date'] ) ? sanitize_text_field( wp_unslash( (string) $post_data['ct_posts_before_date'] ) ) : '';
-		$before_time = isset( $post_data['ct_posts_before_time'] ) ? sanitize_text_field( wp_unslash( (string) $post_data['ct_posts_before_time'] ) ) : '';
+		$sync_limit    = isset( $post_data['ct_posts_sync_limit'] ) ? absint( wp_unslash( (string) $post_data['ct_posts_sync_limit'] ) ) : 200;
+		$after_date    = isset( $post_data['ct_posts_after_date'] ) ? sanitize_text_field( wp_unslash( (string) $post_data['ct_posts_after_date'] ) ) : '';
+		$after_time    = isset( $post_data['ct_posts_after_time'] ) ? sanitize_text_field( wp_unslash( (string) $post_data['ct_posts_after_time'] ) ) : '';
+		$before_date   = isset( $post_data['ct_posts_before_date'] ) ? sanitize_text_field( wp_unslash( (string) $post_data['ct_posts_before_date'] ) ) : '';
+		$before_time   = isset( $post_data['ct_posts_before_time'] ) ? sanitize_text_field( wp_unslash( (string) $post_data['ct_posts_before_time'] ) ) : '';
 
-		$after_local = isset( $post_data['ct_posts_after_local'] ) ? sanitize_text_field( wp_unslash( (string) $post_data['ct_posts_after_local'] ) ) : '';
+		$after_local  = isset( $post_data['ct_posts_after_local'] ) ? sanitize_text_field( wp_unslash( (string) $post_data['ct_posts_after_local'] ) ) : '';
 		$before_local = isset( $post_data['ct_posts_before_local'] ) ? sanitize_text_field( wp_unslash( (string) $post_data['ct_posts_before_local'] ) ) : '';
 
-		if ( $after_local === '' && $after_date !== '' ) {
-			$after_local = $after_date . 'T' . ( $after_time !== '' ? $after_time : '00:00' );
+		if ( '' === $after_local && '' !== $after_date ) {
+			$after_local = $after_date . 'T' . ( '' !== $after_time ? $after_time : '00:00' );
 		}
 
-		if ( $before_local === '' && $before_date !== '' ) {
-			$before_local = $before_date . 'T' . ( $before_time !== '' ? $before_time : '23:59' );
+		if ( '' === $before_local && '' !== $before_date ) {
+			$before_local = $before_date . 'T' . ( '' !== $before_time ? $before_time : '23:59' );
 		}
 
-		$after = $this->normalize_local_datetime_to_utc_iso( $after_local );
+		$after  = $this->normalize_local_datetime_to_utc_iso( $after_local );
 		$before = $this->normalize_local_datetime_to_utc_iso( $before_local );
 
-		if ( $after === '' && isset( $post_data['ct_posts_after'] ) ) {
+		if ( '' === $after && isset( $post_data['ct_posts_after'] ) ) {
 			$after = sanitize_text_field( wp_unslash( (string) $post_data['ct_posts_after'] ) );
 		}
-		if ( $before === '' && isset( $post_data['ct_posts_before'] ) ) {
+		if ( '' === $before && isset( $post_data['ct_posts_before'] ) ) {
 			$before = sanitize_text_field( wp_unslash( (string) $post_data['ct_posts_before'] ) );
 		}
 		$campus_ids = isset( $post_data['ct_posts_campus_ids'] ) ? $this->sanitize_id_list_input( wp_unslash( (string) $post_data['ct_posts_campus_ids'] ) ) : '';
-		$actor_ids = isset( $post_data['ct_posts_actor_ids'] ) ? $this->sanitize_id_list_input( wp_unslash( (string) $post_data['ct_posts_actor_ids'] ) ) : '';
-		$group_ids = '';
+		$actor_ids  = isset( $post_data['ct_posts_actor_ids'] ) ? $this->sanitize_id_list_input( wp_unslash( (string) $post_data['ct_posts_actor_ids'] ) ) : '';
+		$group_ids  = '';
 		if ( isset( $post_data['ct_posts_group_ids_select'] ) && is_array( $post_data['ct_posts_group_ids_select'] ) ) {
 			$group_ids = $this->sanitize_id_list_from_array( wp_unslash( $post_data['ct_posts_group_ids_select'] ) );
 		} elseif ( isset( $post_data['ct_posts_group_ids'] ) ) {
 			$group_ids = $this->sanitize_id_list_input( wp_unslash( (string) $post_data['ct_posts_group_ids'] ) );
 		}
-		$group_visibility = isset( $post_data['ct_posts_group_visibility'] ) ? sanitize_key( wp_unslash( (string) $post_data['ct_posts_group_visibility'] ) ) : '';
-		$post_visibility = isset( $post_data['ct_posts_post_visibility'] ) ? sanitize_key( wp_unslash( (string) $post_data['ct_posts_post_visibility'] ) ) : '';
-		$img_orientation = isset( $post_data['ct_posts_img_orientation'] ) ? sanitize_key( wp_unslash( (string) $post_data['ct_posts_img_orientation'] ) ) : '';
-		$only_my_groups = isset( $post_data['ct_posts_only_my_groups'] ) ? 1 : 0;
-		$include_comments = isset( $post_data['ct_posts_include_comments'] ) ? 1 : 0;
-		$include_linkings = isset( $post_data['ct_posts_include_linkings'] ) ? 1 : 0;
+		$group_visibility  = isset( $post_data['ct_posts_group_visibility'] ) ? sanitize_key( wp_unslash( (string) $post_data['ct_posts_group_visibility'] ) ) : '';
+		$post_visibility   = isset( $post_data['ct_posts_post_visibility'] ) ? sanitize_key( wp_unslash( (string) $post_data['ct_posts_post_visibility'] ) ) : '';
+		$img_orientation   = isset( $post_data['ct_posts_img_orientation'] ) ? sanitize_key( wp_unslash( (string) $post_data['ct_posts_img_orientation'] ) ) : '';
+		$only_my_groups    = isset( $post_data['ct_posts_only_my_groups'] ) ? 1 : 0;
+		$include_comments  = isset( $post_data['ct_posts_include_comments'] ) ? 1 : 0;
+		$include_linkings  = isset( $post_data['ct_posts_include_linkings'] ) ? 1 : 0;
 		$include_reactions = isset( $post_data['ct_posts_include_reactions'] ) ? 1 : 0;
 
 		$supported_target_types = $this->get_supported_target_types();
@@ -207,7 +213,7 @@ class ChurchTools_Suite_Posts_Sync_Admin {
 			$target_type = in_array( defined( 'CTS_POSTS_SYNC_CPT' ) ? CTS_POSTS_SYNC_CPT : 'ct_post', $supported_target_types, true ) ? ( defined( 'CTS_POSTS_SYNC_CPT' ) ? CTS_POSTS_SYNC_CPT : 'ct_post' ) : 'post';
 		}
 
-		if ( ! in_array( $target_status, [ 'draft', 'publish', 'private' ], true ) ) {
+		if ( ! in_array( $target_status, array( 'draft', 'publish', 'private' ), true ) ) {
 			$target_status = 'draft';
 		}
 
@@ -215,11 +221,11 @@ class ChurchTools_Suite_Posts_Sync_Admin {
 			$sync_limit = 200;
 		}
 
-		if ( ! in_array( $group_visibility, [ '', 'hidden', 'intern', 'public' ], true ) ) {
+		if ( ! in_array( $group_visibility, array( '', 'hidden', 'intern', 'public' ), true ) ) {
 			$group_visibility = '';
 		}
 
-		if ( ! in_array( $post_visibility, [ '', 'group_visible', 'group_intern', 'public' ], true ) ) {
+		if ( ! in_array( $post_visibility, array( '', 'group_visible', 'group_intern', 'public' ), true ) ) {
 			$post_visibility = '';
 		}
 
@@ -249,50 +255,50 @@ class ChurchTools_Suite_Posts_Sync_Admin {
 	public function render_posts_settings() {
 		$groups_sync_feedback = get_option( 'churchtools_suite_ct_posts_groups_sync_feedback', null );
 		if ( is_array( $groups_sync_feedback ) ) {
-			$feedback_status = isset( $groups_sync_feedback['status'] ) ? (string) $groups_sync_feedback['status'] : '';
+			$feedback_status  = isset( $groups_sync_feedback['status'] ) ? (string) $groups_sync_feedback['status'] : '';
 			$feedback_message = isset( $groups_sync_feedback['message'] ) ? (string) $groups_sync_feedback['message'] : '';
 
 			$notice_class = 'cts-notice-info';
-			if ( $feedback_status === 'success' ) {
+			if ( 'success' === $feedback_status ) {
 				$notice_class = 'cts-notice-success';
-			} elseif ( $feedback_status === 'error' ) {
+			} elseif ( 'error' === $feedback_status ) {
 				$notice_class = 'cts-notice-error';
 			}
 
-			if ( $feedback_message !== '' ) {
+			if ( '' !== $feedback_message ) {
 				echo '<div class="cts-notice ' . esc_attr( $notice_class ) . '"><p>' . esc_html( $feedback_message ) . '</p></div>';
 			}
 
 			delete_option( 'churchtools_suite_ct_posts_groups_sync_feedback' );
 		}
 
-		$enabled = (int) get_option( 'churchtools_suite_ct_posts_sync_enabled', 0 );
-		$target_type = (string) get_option( 'churchtools_suite_ct_posts_target_type', defined( 'CTS_POSTS_SYNC_CPT' ) ? CTS_POSTS_SYNC_CPT : 'ct_post' );
-		$target_status = (string) get_option( 'churchtools_suite_ct_posts_target_status', 'draft' );
-		$sync_limit = (int) get_option( 'churchtools_suite_ct_posts_sync_limit', 200 );
-		$after = (string) get_option( 'churchtools_suite_ct_posts_after', '' );
-		$before = (string) get_option( 'churchtools_suite_ct_posts_before', '' );
-		$after_parts = $this->get_local_datetime_parts( $after );
-		$before_parts = $this->get_local_datetime_parts( $before );
-		$after_date_local = $after_parts['date'];
-		$after_time_local = $after_parts['time'];
-		$before_date_local = $before_parts['date'];
-		$before_time_local = $before_parts['time'];
-		$campus_ids = (string) get_option( 'churchtools_suite_ct_posts_campus_ids', '' );
-		$actor_ids = (string) get_option( 'churchtools_suite_ct_posts_actor_ids', '' );
-		$group_ids = (string) get_option( 'churchtools_suite_ct_posts_group_ids', '' );
-		$selected_group_ids = $this->parse_group_ids( $group_ids );
-		$groups_cache = get_option( 'churchtools_suite_ct_posts_groups_cache', [] );
-		$groups_cache = is_array( $groups_cache ) ? $groups_cache : [];
-		$groups_last_sync = (string) get_option( 'churchtools_suite_ct_posts_groups_last_sync', '' );
-		$group_visibility = (string) get_option( 'churchtools_suite_ct_posts_group_visibility', '' );
-		$post_visibility = (string) get_option( 'churchtools_suite_ct_posts_post_visibility', '' );
-		$post_img_orientation = (string) get_option( 'churchtools_suite_post_img_orientation', '' );
-		$only_my_groups = (int) get_option( 'churchtools_suite_ct_posts_only_my_groups', 0 );
-		$include_comments = (int) get_option( 'churchtools_suite_ct_posts_include_comments', 0 );
-		$include_linkings = (int) get_option( 'churchtools_suite_ct_posts_include_linkings', 0 );
-		$include_reactions = (int) get_option( 'churchtools_suite_ct_posts_include_reactions', 0 );
-		$is_local_environment = $this->is_local_environment();
+		$enabled                = (int) get_option( 'churchtools_suite_ct_posts_sync_enabled', 0 );
+		$target_type            = (string) get_option( 'churchtools_suite_ct_posts_target_type', defined( 'CTS_POSTS_SYNC_CPT' ) ? CTS_POSTS_SYNC_CPT : 'ct_post' );
+		$target_status          = (string) get_option( 'churchtools_suite_ct_posts_target_status', 'draft' );
+		$sync_limit             = (int) get_option( 'churchtools_suite_ct_posts_sync_limit', 200 );
+		$after                  = (string) get_option( 'churchtools_suite_ct_posts_after', '' );
+		$before                 = (string) get_option( 'churchtools_suite_ct_posts_before', '' );
+		$after_parts            = $this->get_local_datetime_parts( $after );
+		$before_parts           = $this->get_local_datetime_parts( $before );
+		$after_date_local       = $after_parts['date'];
+		$after_time_local       = $after_parts['time'];
+		$before_date_local      = $before_parts['date'];
+		$before_time_local      = $before_parts['time'];
+		$campus_ids             = (string) get_option( 'churchtools_suite_ct_posts_campus_ids', '' );
+		$actor_ids              = (string) get_option( 'churchtools_suite_ct_posts_actor_ids', '' );
+		$group_ids              = (string) get_option( 'churchtools_suite_ct_posts_group_ids', '' );
+		$selected_group_ids     = $this->parse_group_ids( $group_ids );
+		$groups_cache           = get_option( 'churchtools_suite_ct_posts_groups_cache', array() );
+		$groups_cache           = is_array( $groups_cache ) ? $groups_cache : array();
+		$groups_last_sync       = (string) get_option( 'churchtools_suite_ct_posts_groups_last_sync', '' );
+		$group_visibility       = (string) get_option( 'churchtools_suite_ct_posts_group_visibility', '' );
+		$post_visibility        = (string) get_option( 'churchtools_suite_ct_posts_post_visibility', '' );
+		$post_img_orientation   = (string) get_option( 'churchtools_suite_post_img_orientation', '' );
+		$only_my_groups         = (int) get_option( 'churchtools_suite_ct_posts_only_my_groups', 0 );
+		$include_comments       = (int) get_option( 'churchtools_suite_ct_posts_include_comments', 0 );
+		$include_linkings       = (int) get_option( 'churchtools_suite_ct_posts_include_linkings', 0 );
+		$include_reactions      = (int) get_option( 'churchtools_suite_ct_posts_include_reactions', 0 );
+		$is_local_environment   = $this->is_local_environment();
 		$supported_target_types = $this->get_supported_target_types();
 
 		if ( $sync_limit < 1 || $sync_limit > 1000 ) {
@@ -358,7 +364,7 @@ class ChurchTools_Suite_Posts_Sync_Admin {
 		echo '<tr><th scope="row"><label for="ct_posts_group_ids">' . esc_html__( 'Post-Gruppen-IDs', 'churchtools-suite-posts-sync' ) . '</label></th><td>';
 		echo '<div class="cts-posts-sync-group-sync-row">';
 		echo '<button type="submit" name="ct_posts_sync_groups_now" value="1" class="button" ' . disabled( ! $is_local_environment || ! $enabled, true, false ) . '>' . esc_html__( 'Post-Gruppen jetzt synchronisieren', 'churchtools-suite-posts-sync' ) . '</button>';
-		if ( $groups_last_sync !== '' ) {
+		if ( '' !== $groups_last_sync ) {
 			echo '<span class="cts-form-description">' . esc_html__( 'Letzter Post-Gruppen-Sync:', 'churchtools-suite-posts-sync' ) . ' ' . esc_html( $groups_last_sync ) . '</span>';
 		}
 		echo '</div>';
@@ -369,15 +375,15 @@ class ChurchTools_Suite_Posts_Sync_Admin {
 				continue;
 			}
 
-			$group_id = isset( $group_item['id'] ) ? (int) $group_item['id'] : 0;
+			$group_id    = isset( $group_item['id'] ) ? (int) $group_item['id'] : 0;
 			$group_title = isset( $group_item['title'] ) ? (string) $group_item['title'] : '';
-			if ( $group_id <= 0 || $group_title === '' ) {
+			if ( $group_id <= 0 || '' === $group_title ) {
 				continue;
 			}
 
 			$group_visibility_item = isset( $group_item['visibility'] ) ? (string) $group_item['visibility'] : '';
-			$label = $group_title . ' (#' . $group_id . ')';
-			if ( $group_visibility_item !== '' ) {
+			$label                 = $group_title . ' (#' . $group_id . ')';
+			if ( '' !== $group_visibility_item ) {
 				$label .= ' [' . $group_visibility_item . ']';
 			}
 
@@ -432,22 +438,22 @@ class ChurchTools_Suite_Posts_Sync_Admin {
 	}
 
 	public function render_overview_page() {
-		$sync_enabled = (bool) get_option( 'churchtools_suite_ct_posts_sync_enabled', 0 );
-		$target_type = (string) get_option( 'churchtools_suite_ct_posts_target_type', defined( 'CTS_POSTS_SYNC_CPT' ) ? CTS_POSTS_SYNC_CPT : 'ct_post' );
-		$last_result = get_option( 'churchtools_suite_posts_sync_last_result', [] );
-		$is_local_environment = $this->is_local_environment();
+		$sync_enabled           = (bool) get_option( 'churchtools_suite_ct_posts_sync_enabled', 0 );
+		$target_type            = (string) get_option( 'churchtools_suite_ct_posts_target_type', defined( 'CTS_POSTS_SYNC_CPT' ) ? CTS_POSTS_SYNC_CPT : 'ct_post' );
+		$last_result            = get_option( 'churchtools_suite_posts_sync_last_result', array() );
+		$is_local_environment   = $this->is_local_environment();
 		$supported_target_types = $this->get_supported_target_types();
 
 		$posts = get_posts(
-			[
-				'post_type' => in_array( $target_type, $supported_target_types, true ) ? $target_type : ( defined( 'CTS_POSTS_SYNC_CPT' ) ? CTS_POSTS_SYNC_CPT : 'ct_post' ),
-				'post_status' => [ 'publish', 'draft', 'private', 'pending', 'future' ],
-				'numberposts' => 200,
-				'meta_key' => ChurchTools_Suite_Posts_Sync_Service::META_CT_POST_ID,
-				'orderby' => 'date',
-				'order' => 'DESC',
+			array(
+				'post_type'        => in_array( $target_type, $supported_target_types, true ) ? $target_type : ( defined( 'CTS_POSTS_SYNC_CPT' ) ? CTS_POSTS_SYNC_CPT : 'ct_post' ),
+				'post_status'      => array( 'publish', 'draft', 'private', 'pending', 'future' ),
+				/* phpcs:ignore WordPress.WP.PostsPerPage.posts_per_page_numberposts -- This explicit lookup must examine all matching imported records. */ 'numberposts' => 200,
+				/* phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key -- Metadata lookup is required to match imported ChurchTools records to their existing WordPress posts. */ 'meta_key' => ChurchTools_Suite_Posts_Sync_Service::META_CT_POST_ID,
+				'orderby'          => 'date',
+				'order'            => 'DESC',
 				'suppress_filters' => true,
-			]
+			)
 		);
 
 		require CTS_POSTS_SYNC_PATH . 'admin/views/page-posts-overview.php';
@@ -459,55 +465,61 @@ class ChurchTools_Suite_Posts_Sync_Admin {
 		}
 
 		$nonce_ok = check_ajax_referer( 'churchtools_suite_admin', 'nonce', false );
-		if ( $nonce_ok === false ) {
-			wp_send_json_error( [ 'message' => __( 'Sicherheitsprüfung fehlgeschlagen.', 'churchtools-suite-posts-sync' ) ] );
+		if ( false === $nonce_ok ) {
+			wp_send_json_error( array( 'message' => __( 'Sicherheitsprüfung fehlgeschlagen.', 'churchtools-suite-posts-sync' ) ) );
 			return;
 		}
 
 		if ( ! current_user_can( 'manage_churchtools_suite' ) ) {
-			wp_send_json_error( [ 'message' => __( 'Keine Berechtigung.', 'churchtools-suite-posts-sync' ) ] );
+			wp_send_json_error( array( 'message' => __( 'Keine Berechtigung.', 'churchtools-suite-posts-sync' ) ) );
 			return;
 		}
 
 		if ( ! $this->is_local_environment() ) {
-			wp_send_json_error( [ 'message' => __( 'Posts-Sync ist nur in lokaler Umgebung ausführbar.', 'churchtools-suite-posts-sync' ) ] );
+			wp_send_json_error( array( 'message' => __( 'Posts-Sync ist nur in lokaler Umgebung ausführbar.', 'churchtools-suite-posts-sync' ) ) );
 			return;
 		}
 
 		try {
 			require_once CHURCHTOOLS_SUITE_PATH . 'includes/class-churchtools-suite-ct-client.php';
-			require_once CTS_POSTS_SYNC_PATH . 'includes/class-cts-posts-sync-service.php';
+			require_once CTS_POSTS_SYNC_PATH . 'includes/class-churchtools-suite-posts-sync-service.php';
 
 			$limit = (int) get_option( 'churchtools_suite_ct_posts_sync_limit', 200 );
 			if ( $limit < 1 || $limit > 1000 ) {
 				$limit = 200;
 			}
 
-			$client = new ChurchTools_Suite_CT_Client();
+			$client  = new ChurchTools_Suite_CT_Client();
 			$service = new ChurchTools_Suite_Posts_Sync_Service( $client );
-			$result = $service->sync_posts( [ 'limit' => $limit ] );
+			$result  = $service->sync_posts( array( 'limit' => $limit ) );
 
 			if ( is_wp_error( $result ) ) {
-				wp_send_json_error( [ 'message' => $result->get_error_message() ] );
+				wp_send_json_error( array( 'message' => $result->get_error_message() ) );
 				return;
 			}
 
 			if ( ! is_array( $result ) ) {
-				wp_send_json_error( [ 'message' => __( 'Unerwartetes Sync-Ergebnis.', 'churchtools-suite-posts-sync' ) ] );
+				wp_send_json_error( array( 'message' => __( 'Unerwartetes Sync-Ergebnis.', 'churchtools-suite-posts-sync' ) ) );
 				return;
 			}
 
-			update_option( 'churchtools_suite_posts_sync_last_result', [
-				'run_at' => current_time( 'mysql' ),
-				'stats' => $result,
-			], false );
+			update_option(
+				'churchtools_suite_posts_sync_last_result',
+				array(
+					'run_at' => current_time( 'mysql' ),
+					'stats'  => $result,
+				),
+				false
+			);
 
-			wp_send_json_success( [
-				'message' => __( 'Posts-Sync erfolgreich ausgeführt.', 'churchtools-suite-posts-sync' ),
-				'stats' => $result,
-			] );
+			wp_send_json_success(
+				array(
+					'message' => __( 'Posts-Sync erfolgreich ausgeführt.', 'churchtools-suite-posts-sync' ),
+					'stats'   => $result,
+				)
+			);
 		} catch ( Exception $e ) {
-			wp_send_json_error( [ 'message' => __( 'Fehler beim Posts-Sync: ', 'churchtools-suite-posts-sync' ) . $e->getMessage() ] );
+			wp_send_json_error( array( 'message' => __( 'Fehler beim Posts-Sync: ', 'churchtools-suite-posts-sync' ) . $e->getMessage() ) );
 		}
 	}
 
@@ -516,12 +528,12 @@ class ChurchTools_Suite_Posts_Sync_Admin {
 			return true;
 		}
 
-		$env_type = function_exists( 'wp_get_environment_type' ) ? wp_get_environment_type() : '';
-		$home_host = parse_url( home_url(), PHP_URL_HOST );
-		$home_host = is_string( $home_host ) ? strtolower( $home_host ) : '';
-		$is_local_host = $home_host !== '' && ( in_array( $home_host, [ 'localhost', '127.0.0.1', '::1' ], true ) || preg_match( '/\.(test|local|localhost)$/', $home_host ) );
+		$env_type      = function_exists( 'wp_get_environment_type' ) ? wp_get_environment_type() : '';
+		$home_host     = wp_parse_url( home_url(), PHP_URL_HOST );
+		$home_host     = is_string( $home_host ) ? strtolower( $home_host ) : '';
+		$is_local_host = '' !== $home_host && ( in_array( $home_host, array( 'localhost', '127.0.0.1', '::1' ), true ) || preg_match( '/\.(test|local|localhost)$/', $home_host ) );
 
-		$is_allowed = in_array( (string) $env_type, [ 'local', 'development', 'staging' ], true ) || (bool) $is_local_host;
+		$is_allowed = in_array( (string) $env_type, array( 'local', 'development', 'staging' ), true ) || (bool) $is_local_host;
 
 		return (bool) apply_filters( 'cts_posts_sync_is_allowed_environment', $is_allowed, (string) $env_type, $home_host );
 	}
@@ -532,10 +544,10 @@ class ChurchTools_Suite_Posts_Sync_Admin {
 			return '';
 		}
 
-		$ids = [];
+		$ids = array();
 		foreach ( $parts as $part ) {
 			$part = trim( (string) $part );
-			if ( $part === '' ) {
+			if ( '' === $part ) {
 				continue;
 			}
 			$value = (int) $part;
@@ -553,7 +565,7 @@ class ChurchTools_Suite_Posts_Sync_Admin {
 			return '';
 		}
 
-		$ids = [];
+		$ids = array();
 		foreach ( $values as $value ) {
 			$id = (int) $value;
 			if ( $id > 0 ) {
@@ -567,15 +579,15 @@ class ChurchTools_Suite_Posts_Sync_Admin {
 
 	private function parse_group_ids( string $raw_group_ids ): array {
 		if ( trim( $raw_group_ids ) === '' ) {
-			return [];
+			return array();
 		}
 
 		$parts = preg_split( '/[^0-9]+/', $raw_group_ids );
 		if ( ! is_array( $parts ) ) {
-			return [];
+			return array();
 		}
 
-		$ids = [];
+		$ids = array();
 		foreach ( $parts as $part ) {
 			$id = (int) $part;
 			if ( $id > 0 ) {
@@ -600,46 +612,46 @@ class ChurchTools_Suite_Posts_Sync_Admin {
 			require_once CHURCHTOOLS_SUITE_PATH . 'includes/class-churchtools-suite-ct-client.php';
 			$client = new ChurchTools_Suite_CT_Client();
 
-			$response = $client->api_request( 'groups', 'GET', [ 'limit' => 200 ] );
+			$response = $client->api_request( 'groups', 'GET', array( 'limit' => 200 ) );
 
 			if ( is_wp_error( $response ) ) {
-				return [
-					'status' => 'error',
+				return array(
+					'status'  => 'error',
 					'message' => sprintf(
 						/* translators: %s: API error message */
 						__( 'Gruppen-Sync fehlgeschlagen: %s', 'churchtools-suite-posts-sync' ),
 						$response->get_error_message()
 					),
-				];
+				);
 			}
 
-			$groups = $this->extract_groups_from_response( is_array( $response ) ? $response : [] );
+			$groups = $this->extract_groups_from_response( is_array( $response ) ? $response : array() );
 			if ( empty( $groups ) ) {
-				return [
-					'status' => 'warning',
+				return array(
+					'status'  => 'warning',
 					'message' => __( 'Gruppen-Sync abgeschlossen, aber keine Gruppen in der API-Antwort gefunden.', 'churchtools-suite-posts-sync' ),
-				];
+				);
 			}
 
-			$cache = [];
+			$cache = array();
 			foreach ( $groups as $group ) {
 				if ( ! is_array( $group ) ) {
 					continue;
 				}
 
-				$group_data = isset( $group['group'] ) && is_array( $group['group'] ) ? $group['group'] : $group;
-				$group_id = (int) ( $group_data['domainIdentifier'] ?? $group_data['id'] ?? 0 );
+				$group_data  = isset( $group['group'] ) && is_array( $group['group'] ) ? $group['group'] : $group;
+				$group_id    = (int) ( $group_data['domainIdentifier'] ?? $group_data['id'] ?? 0 );
 				$group_title = trim( (string) ( $group_data['title'] ?? $group_data['name'] ?? '' ) );
-				if ( $group_id <= 0 || $group_title === '' ) {
+				if ( $group_id <= 0 || '' === $group_title ) {
 					continue;
 				}
 
 				$visibility = (string) ( $group_data['domainAttributes']['visibility'] ?? '' );
-				$cache[] = [
-					'id' => $group_id,
-					'title' => $group_title,
+				$cache[]    = array(
+					'id'         => $group_id,
+					'title'      => $group_title,
 					'visibility' => $visibility,
-				];
+				);
 
 				ChurchTools_Suite_Posts_Sync_Service::ensure_group_category_term( (string) $group_id, $group_title );
 			}
@@ -655,7 +667,7 @@ class ChurchTools_Suite_Posts_Sync_Admin {
 							}
 							return $carry;
 						},
-						[]
+						array()
 					)
 				);
 
@@ -669,29 +681,29 @@ class ChurchTools_Suite_Posts_Sync_Admin {
 				update_option( 'churchtools_suite_ct_posts_groups_cache', $cache, false );
 				update_option( 'churchtools_suite_ct_posts_groups_last_sync', current_time( 'mysql' ), false );
 
-				return [
-					'status' => 'success',
+				return array(
+					'status'  => 'success',
 					'message' => sprintf(
 						/* translators: %d: count of synced groups */
 						__( 'Gruppen-Sync erfolgreich: %d Gruppen geladen.', 'churchtools-suite-posts-sync' ),
 						count( $cache )
 					),
-				];
+				);
 			}
 
-			return [
-				'status' => 'warning',
+			return array(
+				'status'  => 'warning',
 				'message' => __( 'Gruppen-Sync abgeschlossen, aber keine gültigen Gruppen verarbeitet.', 'churchtools-suite-posts-sync' ),
-			];
+			);
 		} catch ( Exception $e ) {
-			return [
-				'status' => 'error',
+			return array(
+				'status'  => 'error',
 				'message' => sprintf(
 					/* translators: %s: exception message */
 					__( 'Gruppen-Sync fehlgeschlagen: %s', 'churchtools-suite-posts-sync' ),
 					$e->getMessage()
 				),
-			];
+			);
 		}
 	}
 
@@ -702,24 +714,24 @@ class ChurchTools_Suite_Posts_Sync_Admin {
 				return $data;
 			}
 
-			foreach ( [ 'groups', 'items', 'results' ] as $key ) {
+			foreach ( array( 'groups', 'items', 'results' ) as $key ) {
 				if ( isset( $data[ $key ] ) && is_array( $data[ $key ] ) ) {
 					return $data[ $key ];
 				}
 			}
 		}
 
-		foreach ( [ 'groups', 'items', 'results' ] as $key ) {
+		foreach ( array( 'groups', 'items', 'results' ) as $key ) {
 			if ( isset( $response[ $key ] ) && is_array( $response[ $key ] ) ) {
 				return $response[ $key ];
 			}
 		}
 
-		return [];
+		return array();
 	}
 
 	private function is_numeric_array( array $array ): bool {
-		if ( $array === [] ) {
+		if ( array() === $array ) {
 			return true;
 		}
 
@@ -731,16 +743,16 @@ class ChurchTools_Suite_Posts_Sync_Admin {
 			return ChurchTools_Suite_Posts_Sync::get_supported_target_types();
 		}
 
-		return [ 'post', 'page', defined( 'CTS_POSTS_SYNC_CPT' ) ? CTS_POSTS_SYNC_CPT : 'ct_post' ];
+		return array( 'post', 'page', defined( 'CTS_POSTS_SYNC_CPT' ) ? CTS_POSTS_SYNC_CPT : 'ct_post' );
 	}
 
 	private function normalize_local_datetime_to_utc_iso( string $value ): string {
 		$value = trim( $value );
-		if ( $value === '' ) {
+		if ( '' === $value ) {
 			return '';
 		}
 
-		$formats = [ 'Y-m-d\TH:i', 'Y-m-d\TH:i:s' ];
+		$formats        = array( 'Y-m-d\TH:i', 'Y-m-d\TH:i:s' );
 		$local_timezone = function_exists( 'wp_timezone' ) ? wp_timezone() : new DateTimeZone( 'UTC' );
 
 		foreach ( $formats as $format ) {
@@ -755,26 +767,26 @@ class ChurchTools_Suite_Posts_Sync_Admin {
 
 	private function get_local_datetime_parts( string $value ): array {
 		$value = trim( $value );
-		if ( $value === '' ) {
-			return [
+		if ( '' === $value ) {
+			return array(
 				'date' => '',
 				'time' => '',
-			];
+			);
 		}
 
 		try {
-			$utc = new DateTimeImmutable( $value, new DateTimeZone( 'UTC' ) );
+			$utc            = new DateTimeImmutable( $value, new DateTimeZone( 'UTC' ) );
 			$local_timezone = function_exists( 'wp_timezone' ) ? wp_timezone() : new DateTimeZone( 'UTC' );
-			$local = $utc->setTimezone( $local_timezone );
-			return [
+			$local          = $utc->setTimezone( $local_timezone );
+			return array(
 				'date' => $local->format( 'Y-m-d' ),
 				'time' => $local->format( 'H:i' ),
-			];
+			);
 		} catch ( Exception $e ) {
-			return [
+			return array(
 				'date' => '',
 				'time' => '',
-			];
+			);
 		}
 	}
 
@@ -784,9 +796,9 @@ class ChurchTools_Suite_Posts_Sync_Admin {
 			return is_string( $json ) ? $json : '';
 		}
 
-		$value = (string) $meta_value;
+		$value   = (string) $meta_value;
 		$trimmed = trim( $value );
-		if ( $trimmed === '' ) {
+		if ( '' === $trimmed ) {
 			return '';
 		}
 

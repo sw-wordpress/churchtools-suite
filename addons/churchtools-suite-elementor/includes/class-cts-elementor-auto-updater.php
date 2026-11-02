@@ -15,8 +15,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 class CTS_Elementor_Auto_Updater {
 
 	const GITHUB_API_RELEASES_LATEST = 'https://api.github.com/repos/FEGAschaffenburg/churchtools-suite/releases/latest';
-	const PLUGIN_SLUG = 'churchtools-suite-elementor';
-	const PLUGIN_FILE = 'churchtools-suite-elementor/churchtools-suite-elementor.php';
+	const PLUGIN_SLUG                = 'churchtools-suite-elementor';
+	const PLUGIN_FILE                = 'churchtools-suite-elementor/churchtools-suite-elementor.php';
 
 	/**
 	 * Resolve active plugin file key used by WordPress update transient.
@@ -46,16 +46,16 @@ class CTS_Elementor_Auto_Updater {
 	}
 
 	public static function init(): void {
-		// Offer update info to WordPress update API
-		add_filter( 'pre_set_site_transient_update_plugins', [ __CLASS__, 'push_update_to_transient' ] );
-		add_filter( 'site_transient_update_plugins', [ __CLASS__, 'push_update_to_transient' ] );
-		
-		// Provide plugin information for update modal
-		add_filter( 'plugins_api', [ __CLASS__, 'plugins_api_filter' ], 10, 3 );
+		// Offer update info to WordPress update API.
+		add_filter( 'pre_set_site_transient_update_plugins', array( __CLASS__, 'push_update_to_transient' ) );
+		add_filter( 'site_transient_update_plugins', array( __CLASS__, 'push_update_to_transient' ) );
+
+		// Provide plugin information for update modal.
+		add_filter( 'plugins_api', array( __CLASS__, 'plugins_api_filter' ), 10, 3 );
 
 		// Force refresh when opening Plugins / Updates screens to avoid stale cache.
-		add_action( 'load-plugins.php', [ __CLASS__, 'force_cache_refresh' ] );
-		add_action( 'load-update-core.php', [ __CLASS__, 'force_cache_refresh' ] );
+		add_action( 'load-plugins.php', array( __CLASS__, 'force_cache_refresh' ) );
+		add_action( 'load-update-core.php', array( __CLASS__, 'force_cache_refresh' ) );
 	}
 
 	/**
@@ -74,27 +74,30 @@ class CTS_Elementor_Auto_Updater {
 	 * @return array|WP_Error Release info or error
 	 */
 	public static function get_latest_release_info() {
-		// Check cache first (1 hour)
+		// Check cache first (1 hour).
 		$cache_key = 'cts_elementor_latest_release';
-		$cached = get_transient( $cache_key );
-		if ( $cached !== false ) {
+		$cached    = get_transient( $cache_key );
+		if ( false !== $cached ) {
 			return $cached;
 		}
 
-		$response = wp_remote_get( self::GITHUB_API_RELEASES_LATEST, [
-			'timeout' => 10,
-			'headers' => [
-				'User-Agent' => 'ChurchTools-Suite-Elementor-Updater',
-				'Accept'     => 'application/vnd.github.v3+json',
-			],
-		] );
+		$response = wp_remote_get(
+			self::GITHUB_API_RELEASES_LATEST,
+			array(
+				'timeout' => 10,
+				'headers' => array(
+					'User-Agent' => 'ChurchTools-Suite-Elementor-Updater',
+					'Accept'     => 'application/vnd.github.v3+json',
+				),
+			)
+		);
 
 		if ( is_wp_error( $response ) ) {
 			return $response;
 		}
 
 		$status = wp_remote_retrieve_response_code( $response );
-		if ( $status !== 200 ) {
+		if ( 200 !== $status ) {
 			return new WP_Error( 'github_error', sprintf( 'GitHub API returned status %d', $status ) );
 		}
 
@@ -105,8 +108,8 @@ class CTS_Elementor_Auto_Updater {
 			return new WP_Error( 'no_tag', 'No tag_name in GitHub response' );
 		}
 
-		// Find ZIP asset for Elementor addon inside monorepo release assets
-		$zip_url = '';
+		// Find ZIP asset for Elementor addon inside monorepo release assets.
+		$zip_url       = '';
 		$asset_version = '';
 		if ( ! empty( $data['assets'] ) && is_array( $data['assets'] ) ) {
 			foreach ( $data['assets'] as $asset ) {
@@ -130,19 +133,19 @@ class CTS_Elementor_Auto_Updater {
 			return new WP_Error( 'no_zip', 'No ZIP asset found in release' );
 		}
 
-		$resolved_version = $asset_version !== '' ? $asset_version : ltrim( (string) $data['tag_name'], 'vV' );
+		$resolved_version = '' !== $asset_version ? $asset_version : ltrim( (string) $data['tag_name'], 'vV' );
 
-		$info = [
-			'tag_name'       => $data['tag_name'],
-			'version'        => $resolved_version,
-			'zip_url'        => $zip_url,
-			'html_url'       => $data['html_url'] ?? '',
-			'name'           => $data['name'] ?? $data['tag_name'],
-			'body'           => $data['body'] ?? '',
-			'published_at'   => $data['published_at'] ?? '',
-		];
+		$info = array(
+			'tag_name'     => $data['tag_name'],
+			'version'      => $resolved_version,
+			'zip_url'      => $zip_url,
+			'html_url'     => $data['html_url'] ?? '',
+			'name'         => $data['name'] ?? $data['tag_name'],
+			'body'         => $data['body'] ?? '',
+			'published_at' => $data['published_at'] ?? '',
+		);
 
-		// Cache for 1 hour
+		// Cache for 1 hour.
 		set_transient( $cache_key, $info, HOUR_IN_SECONDS );
 
 		return $info;
@@ -168,34 +171,34 @@ class CTS_Elementor_Auto_Updater {
 
 		$current_version = $transient->checked[ $plugin_file ] ?? CTS_ELEMENTOR_VERSION;
 		$current_version = ltrim( trim( (string) $current_version ), 'vV' );
-		$latest_version = ltrim( trim( (string) ( $release['version'] ?? '' ) ), 'vV' );
+		$latest_version  = ltrim( trim( (string) ( $release['version'] ?? '' ) ), 'vV' );
 
-		if ( $latest_version === '' ) {
+		if ( '' === $latest_version ) {
 			unset( $transient->response[ $plugin_file ] );
 			return $transient;
 		}
 
 		if ( version_compare( $latest_version, $current_version, '>' ) ) {
-			$plugin_data = [
-				'slug'        => self::PLUGIN_SLUG,
-				'plugin'      => $plugin_file,
-				'new_version' => $latest_version,
-				'url'         => $release['html_url'],
-				'package'     => $release['zip_url'],
-				'tested'      => '6.7',
+			$plugin_data = array(
+				'slug'         => self::PLUGIN_SLUG,
+				'plugin'       => $plugin_file,
+				'new_version'  => $latest_version,
+				'url'          => $release['html_url'],
+				'package'      => $release['zip_url'],
+				'tested'       => '6.7',
 				'requires_php' => '8.0',
-			];
+			);
 
 			$transient->response[ $plugin_file ] = (object) $plugin_data;
 		} else {
 			unset( $transient->response[ $plugin_file ] );
-			$transient->no_update[ $plugin_file ] = (object) [
+			$transient->no_update[ $plugin_file ] = (object) array(
 				'slug'        => self::PLUGIN_SLUG,
 				'plugin'      => $plugin_file,
 				'new_version' => $current_version,
 				'url'         => $release['html_url'],
 				'package'     => '',
-			];
+			);
 		}
 
 		return $transient;
@@ -205,16 +208,16 @@ class CTS_Elementor_Auto_Updater {
 	 * Provide plugin information for the update modal
 	 *
 	 * @param false|object|array $result
-	 * @param string $action
-	 * @param object $args
+	 * @param string             $action
+	 * @param object             $args
 	 * @return false|object|array
 	 */
 	public static function plugins_api_filter( $result, $action, $args ) {
-		if ( $action !== 'plugin_information' ) {
+		if ( 'plugin_information' !== $action ) {
 			return $result;
 		}
 
-		if ( ! isset( $args->slug ) || $args->slug !== self::PLUGIN_SLUG ) {
+		if ( ! isset( $args->slug ) || self::PLUGIN_SLUG !== $args->slug ) {
 			return $result;
 		}
 
@@ -223,7 +226,7 @@ class CTS_Elementor_Auto_Updater {
 			return $result;
 		}
 
-		$plugin_info = (object) [
+		$plugin_info = (object) array(
 			'name'          => 'ChurchTools Suite - Elementor Integration',
 			'slug'          => self::PLUGIN_SLUG,
 			'version'       => $release['version'],
@@ -233,13 +236,13 @@ class CTS_Elementor_Auto_Updater {
 			'tested'        => '6.7',
 			'requires_php'  => '8.0',
 			'download_link' => $release['zip_url'],
-			'sections'      => [
+			'sections'      => array(
 				'description' => 'Elementor Page Builder Widget für ChurchTools Suite Events. Zeigt Events in Listen-, Raster- oder Kalender-Ansicht.',
 				'changelog'   => $release['body'] ? wp_kses_post( $release['body'] ) : 'Siehe GitHub Release für Details.',
-			],
-			'banners'       => [],
+			),
+			'banners'       => array(),
 			'external'      => true,
-		];
+		);
 
 		return $plugin_info;
 	}

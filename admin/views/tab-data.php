@@ -10,7 +10,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-$active_subtab = isset( $_GET['subtab'] ) ? sanitize_key( $_GET['subtab'] ) : 'events';
+/* phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only navigation, display filters, or status messages; no state is changed by these query arguments. */ $active_subtab = isset( $_GET['subtab'] ) ? sanitize_key( $_GET['subtab'] ) : 'events';
 ?>
 
 <div class="wrap cts-wrap">
@@ -27,22 +27,22 @@ $active_subtab = isset( $_GET['subtab'] ) ? sanitize_key( $_GET['subtab'] ) : 'e
 	
 	<!-- Sub-Navigation (styled tabs like main header) -->
 	<div class="cts-tabs cts-tabs-small" style="margin-bottom:18px;">
-		<a href="<?php echo esc_url( admin_url( 'admin.php?page=churchtools-suite-data&subtab=events' ) ); ?>" class="cts-tab <?php echo $active_subtab === 'events' ? 'active' : ''; ?>">
+		<a href="<?php echo esc_url( admin_url( 'admin.php?page=churchtools-suite-data&subtab=events' ) ); ?>" class="cts-tab <?php echo 'events' === $active_subtab ? 'active' : ''; ?>">
 			<span>📅</span>
 			<?php esc_html_e( 'Termine', 'churchtools-suite' ); ?>
 		</a>
-		<a href="<?php echo esc_url( admin_url( 'admin.php?page=churchtools-suite-data&subtab=imported-services' ) ); ?>" class="cts-tab <?php echo $active_subtab === 'imported-services' ? 'active' : ''; ?>">
+		<a href="<?php echo esc_url( admin_url( 'admin.php?page=churchtools-suite-data&subtab=imported-services' ) ); ?>" class="cts-tab <?php echo 'imported-services' === $active_subtab ? 'active' : ''; ?>">
 			<span>🧩</span>
 			<?php esc_html_e( 'Importierte Services', 'churchtools-suite' ); ?>
 		</a>
 	</div>
 
 	<?php
-	// Data page header with quick actions (similar to Dashboard)
+	// Data page header with quick actions (similar to Dashboard).
 	$ct_auth_method = get_option( 'churchtools_suite_ct_auth_method', 'password' );
-	$ct_token = get_option( 'churchtools_suite_ct_token', '' );
-	$ct_cookies = get_option( 'churchtools_suite_ct_cookies', [] );
-	$is_connected = ( $ct_auth_method === 'token' ) ? ! empty( $ct_token ) : ! empty( $ct_cookies );
+	$ct_token       = get_option( 'churchtools_suite_ct_token', '' );
+	$ct_cookies     = get_option( 'churchtools_suite_ct_cookies', array() );
+	$is_connected   = ( 'token' === $ct_auth_method ) ? ! empty( $ct_token ) : ! empty( $ct_cookies );
 	?>
 	<div class="cts-section-header" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:18px;">
 		<div>

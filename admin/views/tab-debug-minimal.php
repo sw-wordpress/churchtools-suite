@@ -12,7 +12,11 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 global $wpdb;
 $sync_history_table = $wpdb->prefix . 'cts_sync_history';
+// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery -- Custom plugin tables and maintenance queries have no equivalent WordPress query API.
+// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Plugin-owned table identifiers and generated placeholder lists; query values are prepared separately for WordPress 6.0 compatibility.
 $sync_history = $wpdb->get_results( "SELECT * FROM {$sync_history_table} ORDER BY started_at DESC LIMIT 10" );
+// phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+// phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery
 ?>
 
 <div class="cts-settings">
@@ -57,38 +61,38 @@ $sync_history = $wpdb->get_results( "SELECT * FROM {$sync_history_table} ORDER B
 			</div>
 			<div class="cts-card-body">
 				<?php
-				// Load Cron Display Helper
+				// Load Cron Display Helper.
 				require_once CHURCHTOOLS_SUITE_PATH . 'includes/class-churchtools-suite-cron-display.php';
-				
-				$our_hooks = [
+
+				$our_hooks = array(
 					'churchtools_suite_auto_sync',
 					'churchtools_suite_session_keepalive',
 					'churchtools_suite_check_updates',
-				];
-				
+				);
+
 				echo '<table class="cts-debug-table">';
 				echo '<tr>';
 				echo '<td><strong>' . esc_html__( 'Aufgabe', 'churchtools-suite' ) . '</strong></td>';
 				echo '<td><strong>' . esc_html__( 'Nächste Ausführung', 'churchtools-suite' ) . '</strong></td>';
 				echo '<td><strong>' . esc_html__( 'Intervall', 'churchtools-suite' ) . '</strong></td>';
 				echo '</tr>';
-				
+
 				foreach ( $our_hooks as $hook ) {
-					$next_run = wp_next_scheduled( $hook );
+					$next_run     = wp_next_scheduled( $hook );
 					$display_name = ChurchTools_Suite_Cron_Display::get_cron_display_name( $hook );
-					$description = ChurchTools_Suite_Cron_Display::get_cron_description( $hook );
-					
-					// Get cron schedule
-					$crons = get_option( 'cron', [] );
+					$description  = ChurchTools_Suite_Cron_Display::get_cron_description( $hook );
+
+					// Get cron schedule.
+					$crons    = get_option( 'cron', array() );
 					$schedule = '';
 					foreach ( $crons as $timestamp => $cron ) {
 						if ( isset( $cron[ $hook ] ) ) {
-							$event = reset( $cron[ $hook ] );
+							$event    = reset( $cron[ $hook ] );
 							$schedule = $event['schedule'] ?? 'einmalig';
 							break;
 						}
 					}
-					
+
 					echo '<tr>';
 					echo '<td>';
 					echo '<strong>' . esc_html( $display_name ) . '</strong><br>';
@@ -97,10 +101,10 @@ $sync_history = $wpdb->get_results( "SELECT * FROM {$sync_history_table} ORDER B
 					echo '</td>';
 					echo '<td>';
 					if ( $next_run ) {
-						// v0.10.2.2: WordPress-Zeitzone verwenden (nicht UTC!)
+						// v0.10.2.2: WordPress-Zeitzone verwenden (nicht UTC!).
 						$local_time = get_date_from_gmt( gmdate( 'Y-m-d H:i:s', $next_run ), 'Y-m-d H:i:s' );
 						echo esc_html( date_i18n( 'D, d. M Y H:i', strtotime( $local_time ) ) );
-						echo '<br><span style="color:#666; font-size:0.85em;">in ' . human_time_diff( $next_run ) . '</span>';
+						echo '<br><span style="color:#666; font-size:0.85em;">in ' . esc_html( human_time_diff( $next_run ) ) . '</span>';
 					} else {
 						echo '<span style="color:#d63638;">❌ ' . esc_html__( 'Nicht geplant', 'churchtools-suite' ) . '</span>';
 					}
@@ -108,7 +112,7 @@ $sync_history = $wpdb->get_results( "SELECT * FROM {$sync_history_table} ORDER B
 					echo '<td>' . esc_html( $schedule ) . '</td>';
 					echo '</tr>';
 				}
-				
+
 				echo '</table>';
 				?>
 			</div>

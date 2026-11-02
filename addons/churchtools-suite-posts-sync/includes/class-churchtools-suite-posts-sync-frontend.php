@@ -3,6 +3,8 @@
  * Frontend integration for Posts Sync addon.
  *
  * Provides shortcode and Gutenberg block rendering for synced ChurchTools posts.
+ *
+ * @package ChurchTools_Suite
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -11,28 +13,28 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 class ChurchTools_Suite_Posts_Sync_Frontend {
 
-	private const SHORTCODE_TAG = 'cts_posts';
-	private const BLOCK_NAME = 'churchtools-suite-posts-sync/posts-list';
-	private const FRONTEND_STYLE_HANDLE = 'cts-posts-sync-frontend';
+	private const SHORTCODE_TAG              = 'cts_posts';
+	private const BLOCK_NAME                 = 'churchtools-suite-posts-sync/posts-list';
+	private const FRONTEND_STYLE_HANDLE      = 'cts-posts-sync-frontend';
 	private const BLOCK_EDITOR_SCRIPT_HANDLE = 'cts-posts-sync-block-editor';
-	private const SYNCED_POST_META_KEY = '_cts_ct_post_id';
-	private const PUBLICATION_DATE_META_KEY = '_cts_ct_publication_date';
-	private const PUBLISHED_DATE_META_KEY = '_cts_ct_published_date';
-	private const EXPIRATION_DATE_META_KEY = '_cts_ct_expiration_date';
+	private const SYNCED_POST_META_KEY       = '_cts_ct_post_id';
+	private const PUBLICATION_DATE_META_KEY  = '_cts_ct_publication_date';
+	private const PUBLISHED_DATE_META_KEY    = '_cts_ct_published_date';
+	private const EXPIRATION_DATE_META_KEY   = '_cts_ct_expiration_date';
 
 	/**
 	 * Initialize frontend hooks.
 	 */
 	public static function init(): void {
-		add_action( 'init', [ __CLASS__, 'register_shortcodes_and_blocks' ] );
-		add_action( 'enqueue_block_editor_assets', [ __CLASS__, 'enqueue_block_editor_assets_fallback' ] );
+		add_action( 'init', array( __CLASS__, 'register_shortcodes_and_blocks' ) );
+		add_action( 'enqueue_block_editor_assets', array( __CLASS__, 'enqueue_block_editor_assets_fallback' ) );
 	}
 
 	/**
 	 * Register shortcode and dynamic block.
 	 */
 	public static function register_shortcodes_and_blocks(): void {
-		add_shortcode( self::SHORTCODE_TAG, [ __CLASS__, 'render_shortcode' ] );
+		add_shortcode( self::SHORTCODE_TAG, array( __CLASS__, 'render_shortcode' ) );
 		self::register_block_assets();
 
 		if ( ! function_exists( 'register_block_type' ) ) {
@@ -41,47 +43,47 @@ class ChurchTools_Suite_Posts_Sync_Frontend {
 
 		register_block_type(
 			self::BLOCK_NAME,
-			[
-				'api_version' => 2,
-				'title' => __( 'ChurchTools Posts', 'churchtools-suite-posts-sync' ),
-				'description' => __( 'Zeigt synchronisierte ChurchTools-Posts als Liste an.', 'churchtools-suite-posts-sync' ),
-				'category' => 'churchtools-suite',
-				'icon' => 'media-document',
-				'keywords' => [ 'churchtools', 'posts', 'posts' ],
-				'editor_script' => self::BLOCK_EDITOR_SCRIPT_HANDLE,
-				'style' => self::FRONTEND_STYLE_HANDLE,
-				'render_callback' => [ __CLASS__, 'render_block' ],
-				'attributes' => [
-					'limit' => [
-						'type' => 'number',
+			array(
+				'api_version'     => 2,
+				'title'           => __( 'ChurchTools Posts', 'churchtools-suite-posts-sync' ),
+				'description'     => __( 'Zeigt synchronisierte ChurchTools-Posts als Liste an.', 'churchtools-suite-posts-sync' ),
+				'category'        => 'churchtools-suite',
+				'icon'            => 'media-document',
+				'keywords'        => array( 'churchtools', 'posts', 'posts' ),
+				'editor_script'   => self::BLOCK_EDITOR_SCRIPT_HANDLE,
+				'style'           => self::FRONTEND_STYLE_HANDLE,
+				'render_callback' => array( __CLASS__, 'render_block' ),
+				'attributes'      => array(
+					'limit'        => array(
+						'type'    => 'number',
 						'default' => 10,
-					],
-					'postType' => [
-						'type' => 'string',
+					),
+					'postType'     => array(
+						'type'    => 'string',
 						'default' => '',
-					],
-					'showDate' => [
-						'type' => 'boolean',
+					),
+					'showDate'     => array(
+						'type'    => 'boolean',
 						'default' => true,
-					],
-					'showExcerpt' => [
-						'type' => 'boolean',
+					),
+					'showExcerpt'  => array(
+						'type'    => 'boolean',
 						'default' => true,
-					],
-					'excerptWords' => [
-						'type' => 'number',
+					),
+					'excerptWords' => array(
+						'type'    => 'number',
 						'default' => 28,
-					],
-					'onlyNew' => [
-						'type' => 'boolean',
+					),
+					'onlyNew'      => array(
+						'type'    => 'boolean',
 						'default' => false,
-					],
-					'onlySynced' => [
-						'type' => 'boolean',
+					),
+					'onlySynced'   => array(
+						'type'    => 'boolean',
 						'default' => true,
-					],
-				],
-			]
+					),
+				),
+			)
 		);
 	}
 
@@ -99,7 +101,7 @@ class ChurchTools_Suite_Posts_Sync_Frontend {
 
 		if ( function_exists( 'wp_add_inline_script' ) ) {
 			$inline_script = self::get_block_editor_inline_script();
-			if ( $inline_script !== '' ) {
+			if ( '' !== $inline_script ) {
 				wp_add_inline_script( 'wp-blocks', $inline_script, 'after' );
 			}
 		}
@@ -109,32 +111,32 @@ class ChurchTools_Suite_Posts_Sync_Frontend {
 	 * Build a minimal inline fallback block registration for editor reliability.
 	 */
 	private static function get_block_editor_inline_script(): string {
-		$post_type_options = [];
+		$post_type_options = array();
 		foreach ( self::get_supported_target_types() as $post_type ) {
-			$post_type_obj = get_post_type_object( $post_type );
-			$post_type_options[] = [
+			$post_type_obj       = get_post_type_object( $post_type );
+			$post_type_options[] = array(
 				'value' => (string) $post_type,
 				'label' => $post_type_obj && ! empty( $post_type_obj->labels->singular_name )
 					? (string) $post_type_obj->labels->singular_name
 					: (string) $post_type,
-			];
+			);
 		}
 
 		$payload = wp_json_encode(
-			[
-				'blockName' => self::BLOCK_NAME,
+			array(
+				'blockName'       => self::BLOCK_NAME,
 				'defaultPostType' => (string) get_option( 'churchtools_suite_ct_posts_target_type', 'post' ),
 				'postTypeOptions' => $post_type_options,
-			],
+			),
 			JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES
 		);
 
-		if ( ! is_string( $payload ) || $payload === '' ) {
+		if ( ! is_string( $payload ) || '' === $payload ) {
 			return '';
 		}
 
 		return "(function(){\n"
-			. "  var data = " . $payload . ";\n"
+			. '  var data = ' . $payload . ";\n"
 			. "  window.ctsPostsSyncBlockData = data;\n"
 			. "  if (typeof console !== 'undefined' && console.info) { console.info('[CTS Posts Sync] Inline fallback active'); }\n"
 			. "  if (!window.wp || !wp.blocks || !wp.element || !wp.components || !wp.blockEditor) { return; }\n"
@@ -187,7 +189,7 @@ class ChurchTools_Suite_Posts_Sync_Frontend {
 			. "    },\n"
 			. "    save: function() { return null; }\n"
 			. "  });\n"
-			. "})();";
+			. '})();';
 	}
 
 	/**
@@ -201,37 +203,37 @@ class ChurchTools_Suite_Posts_Sync_Frontend {
 		wp_register_style(
 			self::FRONTEND_STYLE_HANDLE,
 			CTS_POSTS_SYNC_URL . 'assets/css/churchtools-suite-posts-sync-frontend.css',
-			[],
+			array(),
 			CTS_POSTS_SYNC_VERSION
 		);
 
 		wp_register_script(
 			self::BLOCK_EDITOR_SCRIPT_HANDLE,
 			CTS_POSTS_SYNC_URL . 'assets/js/churchtools-suite-posts-sync-block.js',
-			[ 'wp-blocks', 'wp-element', 'wp-i18n', 'wp-components', 'wp-block-editor' ],
+			array( 'wp-blocks', 'wp-element', 'wp-i18n', 'wp-components', 'wp-block-editor' ),
 			CTS_POSTS_SYNC_VERSION,
 			true
 		);
 
-		$post_type_options = [];
+		$post_type_options = array();
 		foreach ( self::get_supported_target_types() as $post_type ) {
-			$post_type_obj = get_post_type_object( $post_type );
-			$post_type_options[] = [
+			$post_type_obj       = get_post_type_object( $post_type );
+			$post_type_options[] = array(
 				'value' => (string) $post_type,
 				'label' => $post_type_obj && ! empty( $post_type_obj->labels->singular_name )
 					? (string) $post_type_obj->labels->singular_name
 					: (string) $post_type,
-			];
+			);
 		}
 
 		wp_localize_script(
 			self::BLOCK_EDITOR_SCRIPT_HANDLE,
 			'ctsPostsSyncBlockData',
-			[
-				'blockName' => self::BLOCK_NAME,
+			array(
+				'blockName'       => self::BLOCK_NAME,
 				'defaultPostType' => (string) get_option( 'churchtools_suite_ct_posts_target_type', 'post' ),
 				'postTypeOptions' => $post_type_options,
-			]
+			)
 		);
 	}
 
@@ -240,33 +242,33 @@ class ChurchTools_Suite_Posts_Sync_Frontend {
 	 *
 	 * @param array<string, string> $atts Shortcode attributes.
 	 */
-	public static function render_shortcode( $atts = [] ): string {
+	public static function render_shortcode( $atts = array() ): string {
 		$atts = shortcode_atts(
-			[
-				'limit' => 10,
-				'post_type' => '',
-				'show_date' => 'true',
-				'show_excerpt' => 'true',
-				'show_content' => 'false',
+			array(
+				'limit'         => 10,
+				'post_type'     => '',
+				'show_date'     => 'true',
+				'show_excerpt'  => 'true',
+				'show_content'  => 'false',
 				'excerpt_words' => 28,
-				'only_new' => 'false',
-				'only_synced' => 'true',
-			],
+				'only_new'      => 'false',
+				'only_synced'   => 'true',
+			),
 			(array) $atts,
 			self::SHORTCODE_TAG
 		);
 
 		return self::render_posts_list(
-			[
-				'limit' => (int) $atts['limit'],
-				'post_type' => (string) $atts['post_type'],
-				'show_date' => self::parse_bool( $atts['show_date'], true ),
-				'show_excerpt' => self::parse_bool( $atts['show_excerpt'], true ),
-				'show_content' => self::parse_bool( $atts['show_content'], false ),
+			array(
+				'limit'         => (int) $atts['limit'],
+				'post_type'     => (string) $atts['post_type'],
+				'show_date'     => self::parse_bool( $atts['show_date'], true ),
+				'show_excerpt'  => self::parse_bool( $atts['show_excerpt'], true ),
+				'show_content'  => self::parse_bool( $atts['show_content'], false ),
 				'excerpt_words' => (int) $atts['excerpt_words'],
-				'only_new' => self::parse_bool( $atts['only_new'], false ),
-				'only_synced' => self::parse_bool( $atts['only_synced'], true ),
-			],
+				'only_new'      => self::parse_bool( $atts['only_new'], false ),
+				'only_synced'   => self::parse_bool( $atts['only_synced'], true ),
+			),
 			false
 		);
 	}
@@ -276,17 +278,17 @@ class ChurchTools_Suite_Posts_Sync_Frontend {
 	 *
 	 * @param array<string, mixed> $attributes Block attributes.
 	 */
-	public static function render_block( array $attributes = [] ): string {
+	public static function render_block( array $attributes = array() ): string {
 		return self::render_posts_list(
-			[
-				'limit' => isset( $attributes['limit'] ) ? (int) $attributes['limit'] : 10,
-				'post_type' => isset( $attributes['postType'] ) ? (string) $attributes['postType'] : '',
-				'show_date' => isset( $attributes['showDate'] ) ? (bool) $attributes['showDate'] : true,
-				'show_excerpt' => isset( $attributes['showExcerpt'] ) ? (bool) $attributes['showExcerpt'] : true,
+			array(
+				'limit'         => isset( $attributes['limit'] ) ? (int) $attributes['limit'] : 10,
+				'post_type'     => isset( $attributes['postType'] ) ? (string) $attributes['postType'] : '',
+				'show_date'     => isset( $attributes['showDate'] ) ? (bool) $attributes['showDate'] : true,
+				'show_excerpt'  => isset( $attributes['showExcerpt'] ) ? (bool) $attributes['showExcerpt'] : true,
 				'excerpt_words' => isset( $attributes['excerptWords'] ) ? (int) $attributes['excerptWords'] : 28,
-				'only_new' => isset( $attributes['onlyNew'] ) ? (bool) $attributes['onlyNew'] : false,
-				'only_synced' => isset( $attributes['onlySynced'] ) ? (bool) $attributes['onlySynced'] : true,
-			],
+				'only_new'      => isset( $attributes['onlyNew'] ) ? (bool) $attributes['onlyNew'] : false,
+				'only_synced'   => isset( $attributes['onlySynced'] ) ? (bool) $attributes['onlySynced'] : true,
+			),
 			true
 		);
 	}
@@ -308,7 +310,7 @@ class ChurchTools_Suite_Posts_Sync_Frontend {
 		}
 
 		$post_type = isset( $config['post_type'] ) ? sanitize_key( (string) $config['post_type'] ) : '';
-		if ( $post_type === '' ) {
+		if ( '' === $post_type ) {
 			$post_type = (string) get_option( 'churchtools_suite_ct_posts_target_type', 'post' );
 		}
 
@@ -317,13 +319,15 @@ class ChurchTools_Suite_Posts_Sync_Frontend {
 			$post_type = in_array( 'post', $supported_types, true ) ? 'post' : ( $supported_types[0] ?? 'post' );
 		}
 
-		$show_date = ! empty( $config['show_date'] );
+		$show_date    = ! empty( $config['show_date'] );
 		$show_excerpt = ! empty( $config['show_excerpt'] );
 		$show_content = ! empty( $config['show_content'] );
-		if ( $show_content ) $show_excerpt = false;
+		if ( $show_content ) {
+			$show_excerpt = false;
+		}
 
-		$only_new = ! empty( $config['only_new'] );
-		$only_synced = ! empty( $config['only_synced'] );
+		$only_new      = ! empty( $config['only_new'] );
+		$only_synced   = ! empty( $config['only_synced'] );
 		$excerpt_words = isset( $config['excerpt_words'] ) ? (int) $config['excerpt_words'] : 28;
 		if ( $excerpt_words < 8 ) {
 			$excerpt_words = 8;
@@ -332,41 +336,41 @@ class ChurchTools_Suite_Posts_Sync_Frontend {
 			$excerpt_words = 80;
 		}
 
-		$query_args = [
-			'post_type' => $post_type,
-			'post_status' => 'publish',
-			'posts_per_page' => $only_new ? max( $limit * 4, 50 ) : $limit,
-			'orderby' => 'date',
-			'order' => 'DESC',
+		$query_args = array(
+			'post_type'           => $post_type,
+			'post_status'         => 'publish',
+			'posts_per_page'      => $only_new ? max( $limit * 4, 50 ) : $limit,
+			'orderby'             => 'date',
+			'order'               => 'DESC',
 			'ignore_sticky_posts' => true,
-			'meta_query' => [
+			/* phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query -- Metadata lookup is required to match imported ChurchTools records to their existing WordPress posts. */ 'meta_query' => array(
 				'relation' => 'AND',
-				[
+				array(
 					'relation' => 'OR',
-					[
-						'key' => self::EXPIRATION_DATE_META_KEY,
+					array(
+						'key'     => self::EXPIRATION_DATE_META_KEY,
 						'compare' => 'NOT EXISTS',
-					],
-					[
-						'key' => self::EXPIRATION_DATE_META_KEY,
-						'value' => '',
+					),
+					array(
+						'key'     => self::EXPIRATION_DATE_META_KEY,
+						'value'   => '',
 						'compare' => '=',
-					],
-					[
-						'key' => self::EXPIRATION_DATE_META_KEY,
-						'value' => current_time( 'mysql' ),
+					),
+					array(
+						'key'     => self::EXPIRATION_DATE_META_KEY,
+						'value'   => current_time( 'mysql' ),
 						'compare' => '>',
-						'type' => 'DATETIME',
-					],
-				],
-			],
-		];
+						'type'    => 'DATETIME',
+					),
+				),
+			),
+		);
 
 		if ( $only_synced ) {
-			$query_args['meta_query'][] = [
-				'key' => self::SYNCED_POST_META_KEY,
+			$query_args['meta_query'][] = array(
+				'key'     => self::SYNCED_POST_META_KEY,
 				'compare' => 'EXISTS',
-			];
+			);
 		}
 
 		$query = new WP_Query( $query_args );
@@ -400,16 +404,16 @@ class ChurchTools_Suite_Posts_Sync_Frontend {
 		echo '<div class="' . esc_attr( $wrapper_classes ) . '">';
 		foreach ( $posts as $post ) {
 			setup_postdata( $post );
-			$post_id = (int) $post->ID;
-			$title = get_the_title( $post_id );
-			$permalink = get_permalink( $post_id );
+			$post_id       = (int) $post->ID;
+			$title         = get_the_title( $post_id );
+			$permalink     = get_permalink( $post_id );
 			$post_type_obj = get_post_type_object( (string) get_post_type( $post_id ) );
-			$allow_link = $post_type_obj && ! empty( $post_type_obj->publicly_queryable ) && ! empty( $post_type_obj->public );
-			$excerpt = '';
+			$allow_link    = $post_type_obj && ! empty( $post_type_obj->publicly_queryable ) && ! empty( $post_type_obj->public );
+			$excerpt       = '';
 
 			if ( $show_excerpt ) {
 				$raw_excerpt = get_the_excerpt( $post_id );
-				if ( $raw_excerpt === '' ) {
+				if ( '' === $raw_excerpt ) {
 					$raw_excerpt = get_post_field( 'post_content', $post_id );
 				}
 				$excerpt = wp_trim_words( wp_strip_all_tags( (string) $raw_excerpt ), $excerpt_words );
@@ -427,13 +431,13 @@ class ChurchTools_Suite_Posts_Sync_Frontend {
 					<?php endif; ?>
 				</h3>
 				<?php if ( $show_date && $date_display ) : ?>
-					<p class="cts-posts-sync-date"><?php echo esc_html( $date_display ); ?></p>
+					<p class="cts-posts-sync-date"><?php echo esc_html( (string) ( $date_display ) ); ?></p>
 				<?php endif; ?>
-				<?php if ( $show_excerpt && $excerpt !== '' ) : ?>
+				<?php if ( $show_excerpt && '' !== $excerpt ) : ?>
 					<p class="cts-posts-sync-excerpt"><?php echo esc_html( $excerpt ); ?></p>
 				<?php endif; ?>
-				<?php if ( $show_content && $excerpt !== '' ) : ?>
-					<p class="cts-posts-sync-excerpt"><?php echo  $excerpt ; ?></p>
+				<?php if ( $show_content && '' !== $excerpt ) : ?>
+					<p class="cts-posts-sync-excerpt"><?php echo wp_kses_post( $excerpt ); ?></p>
 				<?php endif; ?>
 			</article>
 			<?php
@@ -448,8 +452,8 @@ class ChurchTools_Suite_Posts_Sync_Frontend {
 	 * Check whether a synced post is currently within its "new" time window.
 	 */
 	private static function is_post_currently_new( WP_Post $post ): bool {
-		$start_value = '';
-		$start_meta_keys = [ self::PUBLICATION_DATE_META_KEY, self::PUBLISHED_DATE_META_KEY ];
+		$start_value     = '';
+		$start_meta_keys = array( self::PUBLICATION_DATE_META_KEY, self::PUBLISHED_DATE_META_KEY );
 		foreach ( $start_meta_keys as $meta_key ) {
 			$candidate = (string) get_post_meta( $post->ID, $meta_key, true );
 			if ( trim( $candidate ) !== '' ) {
@@ -461,8 +465,8 @@ class ChurchTools_Suite_Posts_Sync_Frontend {
 		$end_value = (string) get_post_meta( $post->ID, self::EXPIRATION_DATE_META_KEY, true );
 
 		$start = self::parse_datetime_value( $start_value );
-		$end = self::parse_datetime_value( $end_value );
-		$now = current_datetime();
+		$end   = self::parse_datetime_value( $end_value );
+		$now   = current_datetime();
 
 		if ( $start instanceof DateTimeImmutable && $now < $start ) {
 			return false;
@@ -480,12 +484,12 @@ class ChurchTools_Suite_Posts_Sync_Frontend {
 	 */
 	private static function parse_datetime_value( string $value ): ?DateTimeImmutable {
 		$value = trim( $value );
-		if ( $value === '' ) {
+		if ( '' === $value ) {
 			return null;
 		}
 
 		try {
-			$datetime = new DateTimeImmutable( $value );
+			$datetime      = new DateTimeImmutable( $value );
 			$site_timezone = function_exists( 'wp_timezone' ) ? wp_timezone() : new DateTimeZone( 'UTC' );
 			return $datetime->setTimezone( $site_timezone );
 		} catch ( Exception $exception ) {
@@ -500,7 +504,7 @@ class ChurchTools_Suite_Posts_Sync_Frontend {
 		wp_enqueue_style(
 			self::FRONTEND_STYLE_HANDLE,
 			CTS_POSTS_SYNC_URL . 'assets/css/churchtools-suite-posts-sync-frontend.css',
-			[],
+			array(),
 			CTS_POSTS_SYNC_VERSION
 		);
 	}
@@ -513,7 +517,7 @@ class ChurchTools_Suite_Posts_Sync_Frontend {
 			return ChurchTools_Suite_Posts_Sync::get_supported_target_types();
 		}
 
-		return [ 'post', 'page', defined( 'CTS_POSTS_SYNC_CPT' ) ? CTS_POSTS_SYNC_CPT : 'ct_post' ];
+		return array( 'post', 'page', defined( 'CTS_POSTS_SYNC_CPT' ) ? CTS_POSTS_SYNC_CPT : 'ct_post' );
 	}
 
 	/**
@@ -526,15 +530,15 @@ class ChurchTools_Suite_Posts_Sync_Frontend {
 			return $value;
 		}
 
-		if ( $value === null ) {
+		if ( null === $value ) {
 			return $default;
 		}
 
 		$normalized = strtolower( trim( (string) $value ) );
-		if ( in_array( $normalized, [ '1', 'true', 'yes', 'on' ], true ) ) {
+		if ( in_array( $normalized, array( '1', 'true', 'yes', 'on' ), true ) ) {
 			return true;
 		}
-		if ( in_array( $normalized, [ '0', 'false', 'no', 'off' ], true ) ) {
+		if ( in_array( $normalized, array( '0', 'false', 'no', 'off' ), true ) ) {
 			return false;
 		}
 

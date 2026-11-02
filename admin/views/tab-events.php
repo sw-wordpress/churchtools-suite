@@ -10,32 +10,36 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-// Load repositories
+// Load repositories.
 require_once CHURCHTOOLS_SUITE_PATH . 'includes/repositories/class-churchtools-suite-repository-base.php';
 require_once CHURCHTOOLS_SUITE_PATH . 'includes/repositories/class-churchtools-suite-events-repository.php';
 require_once CHURCHTOOLS_SUITE_PATH . 'includes/repositories/class-churchtools-suite-calendars-repository.php';
 require_once CHURCHTOOLS_SUITE_PATH . 'includes/repositories/class-churchtools-suite-event-services-repository.php';
 
-$events_repo = new ChurchTools_Suite_Events_Repository();
-$calendars_repo = new ChurchTools_Suite_Calendars_Repository();
+$events_repo         = new ChurchTools_Suite_Events_Repository();
+$calendars_repo      = new ChurchTools_Suite_Calendars_Repository();
 $event_services_repo = new ChurchTools_Suite_Event_Services_Repository();
 
-// Filter-Parameter
-$from = isset( $_GET['from'] ) ? sanitize_text_field( wp_unslash( $_GET['from'] ) ) : '';
-$to = isset( $_GET['to'] ) ? sanitize_text_field( wp_unslash( $_GET['to'] ) ) : '';
-$calendar_filter = isset( $_GET['calendar_id'] ) ? sanitize_text_field( wp_unslash( $_GET['calendar_id'] ) ) : '';
-$page = max( 1, (int) ( $_GET['paged'] ?? 1 ) );
-$limit = 200; // show more rows per page to avoid hidden events
-$offset = ( $page - 1 ) * $limit;
+// Filter-Parameter.
+/* phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only navigation, display filters, or status messages; no state is changed by these query arguments. */ $from            = isset( $_GET['from'] ) ? sanitize_text_field( wp_unslash( $_GET['from'] ) ) : '';
+/* phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only navigation, display filters, or status messages; no state is changed by these query arguments. */ $to              = isset( $_GET['to'] ) ? sanitize_text_field( wp_unslash( $_GET['to'] ) ) : '';
+/* phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only navigation, display filters, or status messages; no state is changed by these query arguments. */ $calendar_filter = isset( $_GET['calendar_id'] ) ? sanitize_text_field( wp_unslash( $_GET['calendar_id'] ) ) : '';
+/* phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only navigation, display filters, or status messages; no state is changed by these query arguments. */ $cts_page        = max( 1, (int) ( absint( wp_unslash( $_GET['paged'] ?? 1 ) ) ) );
+$limit  = 200; // show more rows per page to avoid hidden events.
+$offset = ( $cts_page - 1 ) * $limit;
 
-// Kombinierte Abfrage
+// Kombinierte Abfrage.
 global $wpdb;
-$prefix = $wpdb->prefix . CHURCHTOOLS_SUITE_DB_PREFIX;
+$prefix       = $wpdb->prefix . CHURCHTOOLS_SUITE_DB_PREFIX;
 $events_table = $prefix . 'events';
 
-// v0.9.0.3: Check if table exists
+// v0.9.0.3: Check if table exists.
 $wpdb->suppress_errors();
+// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery -- Custom plugin tables and maintenance queries have no equivalent WordPress query API.
+// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Plugin-owned table identifiers and generated placeholder lists; query values are prepared separately for WordPress 6.0 compatibility.
 $table_exists = $wpdb->get_var( "SHOW TABLES LIKE '{$events_table}'" );
+// phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+// phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery
 $wpdb->show_errors();
 
 if ( ! $table_exists ) {
@@ -45,61 +49,77 @@ if ( ! $table_exists ) {
 	return;
 }
 
-// v0.10.5.0: Check if new columns exist
+// v0.10.5.0: Check if new columns exist.
 $wpdb->suppress_errors();
+// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery -- Custom plugin tables and maintenance queries have no equivalent WordPress query API.
+// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Plugin-owned table identifiers and generated placeholder lists; query values are prepared separately for WordPress 6.0 compatibility.
 $sample = $wpdb->get_row( "SELECT * FROM {$events_table} LIMIT 1", ARRAY_A );
+// phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+// phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery
 $wpdb->show_errors();
 
 $has_image_columns = $sample && isset( $sample['image_attachment_id'] );
 
-// Build SELECT with conditional image columns
-$select_fields = "id, event_id, appointment_id, calendar_id, title, description, event_description, appointment_description, start_datetime, end_datetime, is_all_day, location_name, address_name, address_street, address_zip, address_city, address_latitude, address_longitude, tags, status";
+// Build SELECT with conditional image columns.
+$select_fields = 'id, event_id, appointment_id, calendar_id, title, description, event_description, appointment_description, start_datetime, end_datetime, is_all_day, location_name, address_name, address_street, address_zip, address_city, address_latitude, address_longitude, tags, status';
 if ( $has_image_columns ) {
-	$select_fields .= ", image_attachment_id, image_url";
+	$select_fields .= ', image_attachment_id, image_url';
 }
-$select_fields .= ", raw_payload, last_modified, appointment_modified, created_at, updated_at";
+$select_fields .= ', raw_payload, last_modified, appointment_modified, created_at, updated_at';
 
-$sql = "SELECT {$select_fields} FROM {$events_table} WHERE 1=1";
-$count_sql = "SELECT COUNT(*) FROM {$events_table} WHERE 1=1";
-$where_params = [];
+$sql          = "SELECT {$select_fields} FROM {$events_table} WHERE 1=1";
+$count_sql    = "SELECT COUNT(*) FROM {$events_table} WHERE 1=1";
+$where_params = array();
 
 if ( ! empty( $from ) ) {
-	$sql .= " AND start_datetime >= %s";
-	$count_sql .= " AND start_datetime >= %s";
+	$sql           .= ' AND start_datetime >= %s';
+	$count_sql     .= ' AND start_datetime >= %s';
 	$where_params[] = $from . ' 00:00:00';
 }
 
 if ( ! empty( $to ) ) {
-	$sql .= " AND start_datetime <= %s";
-	$count_sql .= " AND start_datetime <= %s";
+	$sql           .= ' AND start_datetime <= %s';
+	$count_sql     .= ' AND start_datetime <= %s';
 	$where_params[] = $to . ' 23:59:59';
 }
 
 if ( ! empty( $calendar_filter ) ) {
-	$sql .= " AND calendar_id = %s";
-	$count_sql .= " AND calendar_id = %s";
+	$sql           .= ' AND calendar_id = %s';
+	$count_sql     .= ' AND calendar_id = %s';
 	$where_params[] = $calendar_filter;
 }
 
-$sql .= " ORDER BY start_datetime ASC";
-$sql .= " LIMIT %d OFFSET %d";
+$sql .= ' ORDER BY start_datetime ASC';
+$sql .= ' LIMIT %d OFFSET %d';
 
-// Prepare queries
+// Prepare queries.
 $prepared_count = $count_sql;
 if ( ! empty( $where_params ) ) {
+	// phpcs:disable WordPress.DB.PreparedSQL.NotPrepared -- SQL is assembled from fixed clauses and values passed through wpdb::prepare above.
 	$prepared_count = $wpdb->prepare( $count_sql, ...$where_params );
+	// phpcs:enable WordPress.DB.PreparedSQL.NotPrepared
 }
 
 $prepared_sql = $sql;
-$query_params = array_merge( $where_params, [ $limit, $offset ] );
+$query_params = array_merge( $where_params, array( $limit, $offset ) );
 if ( ! empty( $query_params ) ) {
+	// phpcs:disable WordPress.DB.PreparedSQL.NotPrepared -- SQL is assembled from fixed clauses and values passed through wpdb::prepare above.
 	$prepared_sql = $wpdb->prepare( $sql, ...$query_params );
+	// phpcs:enable WordPress.DB.PreparedSQL.NotPrepared
 }
 
+// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery -- Custom plugin tables and maintenance queries have no equivalent WordPress query API.
+// phpcs:disable WordPress.DB.PreparedSQL.NotPrepared -- SQL is assembled from fixed clauses and values passed through wpdb::prepare above.
 $events = $wpdb->get_results( $prepared_sql );
+// phpcs:enable WordPress.DB.PreparedSQL.NotPrepared
+// phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery
+// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery -- Custom plugin tables and maintenance queries have no equivalent WordPress query API.
+// phpcs:disable WordPress.DB.PreparedSQL.NotPrepared -- SQL is assembled from fixed clauses and values passed through wpdb::prepare above.
 $total = (int) $wpdb->get_var( $prepared_count );
+// phpcs:enable WordPress.DB.PreparedSQL.NotPrepared
+// phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery
 
-$calendars = $calendars_repo->get_all();
+$calendars   = $calendars_repo->get_all();
 $total_pages = ceil( $total / $limit );
 ?>
 
@@ -154,7 +174,7 @@ $total_pages = ceil( $total / $limit );
 				<?php endif; ?>
 				
 				<div class="cts-filter-count">
-					📊 <?php printf( esc_html__( '%d Termine', 'churchtools-suite' ), $total ); ?>
+					📊 <?php printf( /* translators: %d: Number of events. */ esc_html__( '%d Termine', 'churchtools-suite' ), (int) $total ); ?>
 				</div>
 			</div>
 			
@@ -167,13 +187,17 @@ $total_pages = ceil( $total / $limit );
 					<?php if ( ! empty( $to ) ) : ?>
 						<span><?php esc_html_e( 'Bis:', 'churchtools-suite' ); ?> <strong><?php echo esc_html( date_i18n( get_option( 'date_format' ), strtotime( $to ) ) ); ?></strong></span>
 					<?php endif; ?>
-					<?php if ( ! empty( $calendar_filter ) ) : 
+					<?php
+					if ( ! empty( $calendar_filter ) ) :
 						foreach ( $calendars as $cal ) {
-							if ( $cal->calendar_id === $calendar_filter ) : ?>
+							if ( $cal->calendar_id === $calendar_filter ) :
+								?>
 								<span><?php esc_html_e( 'Kalender:', 'churchtools-suite' ); ?> <strong><?php echo esc_html( $cal->name ); ?></strong></span>
-							<?php endif;
+								<?php
+							endif;
 						}
-					endif; ?>
+					endif;
+					?>
 				</div>
 			<?php endif; ?>
 		</form>
@@ -205,7 +229,8 @@ $total_pages = ceil( $total / $limit );
 						</tr>
 					</thead>
 					<tbody>
-						<?php foreach ( $events as $event ) : 
+						<?php
+						foreach ( $events as $event ) :
 							$calendar = null;
 							foreach ( $calendars as $cal ) {
 								if ( $cal->calendar_id === $event->calendar_id ) {
@@ -213,34 +238,34 @@ $total_pages = ceil( $total / $limit );
 									break;
 								}
 							}
-							
-							// Lade Services für dieses Event
+
+							// Lade Services für dieses Event.
 							$services = $event_services_repo->get_for_event( $event->id );
 
-							$raw = ! empty( $event->raw_payload ) ? json_decode( $event->raw_payload, true ) : [];
-							$base = $raw['appointment']['base'] ?? $raw['base'] ?? $raw;
-							$link = $base['link'] ?? '';
-							$image_url = $base['image'] ?? '';
+							$raw         = ! empty( $event->raw_payload ) ? json_decode( $event->raw_payload, true ) : array();
+							$base        = $raw['appointment']['base'] ?? $raw['base'] ?? $raw;
+							$cts_link    = $base['link'] ?? '';
+							$image_url   = $base['image'] ?? '';
 							$is_canceled = (bool) ( $base['isCanceled'] ?? $raw['isCanceled'] ?? false );
-							
-							// Konvertiere UTC zu lokaler WordPress-Zeitzone
+
+							// Konvertiere UTC zu lokaler WordPress-Zeitzone.
 							$start_local = get_date_from_gmt( $event->start_datetime );
-							$end_local = $event->end_datetime ? get_date_from_gmt( $event->end_datetime ) : null;
-							$is_all_day = (bool) $event->is_all_day;
-							
-							// Typ bestimmen (Event oder Appointment)
-							$type_label = ! empty( $event->appointment_id ) 
-								? __( 'Termin', 'churchtools-suite' ) 
+							$end_local   = $event->end_datetime ? get_date_from_gmt( $event->end_datetime ) : null;
+							$is_all_day  = (bool) $event->is_all_day;
+
+							// Typ bestimmen (Event oder Appointment).
+							$type_label           = ! empty( $event->appointment_id )
+								? __( 'Termin', 'churchtools-suite' )
 								: __( 'Event', 'churchtools-suite' );
-							$type_icon = ! empty( $event->appointment_id ) ? '📅' : '🎯';
-							$last_modified = ! empty( $event->last_modified ) ? get_date_from_gmt( $event->last_modified ) : '';
+							$type_icon            = ! empty( $event->appointment_id ) ? '📅' : '🎯';
+							$last_modified        = ! empty( $event->last_modified ) ? get_date_from_gmt( $event->last_modified ) : '';
 							$appointment_modified = ! empty( $event->appointment_modified ) ? get_date_from_gmt( $event->appointment_modified ) : '';
-							$raw = ! empty( $event->raw_payload ) ? json_decode( $event->raw_payload, true ) : [];
-							$base = $raw['appointment']['base'] ?? $raw['base'] ?? $raw;
-							$link = $base['link'] ?? '';
-							$image_url = $base['image'] ?? '';
-							$is_canceled = (bool) ( $base['isCanceled'] ?? $raw['isCanceled'] ?? false );
-						?>
+							$raw                  = ! empty( $event->raw_payload ) ? json_decode( $event->raw_payload, true ) : array();
+							$base                 = $raw['appointment']['base'] ?? $raw['base'] ?? $raw;
+							$cts_link             = $base['link'] ?? '';
+							$image_url            = $base['image'] ?? '';
+							$is_canceled          = (bool) ( $base['isCanceled'] ?? $raw['isCanceled'] ?? false );
+							?>
 							<tr>
 								<td class="cts-event-date">
 									<div class="cts-event-date-primary">
@@ -248,12 +273,12 @@ $total_pages = ceil( $total / $limit );
 								</div>
 								<?php if ( ! $is_all_day ) : ?>
 									<div class="cts-event-date-time">
-										<?php 
-										echo esc_html( date_i18n( get_option( 'time_format' ), strtotime( $start_local ) ) ); 
+										<?php
+										echo esc_html( date_i18n( get_option( 'time_format' ), strtotime( $start_local ) ) );
 										if ( $end_local ) {
 											echo ' - ' . esc_html( date_i18n( get_option( 'time_format' ), strtotime( $end_local ) ) );
-											}
-											?>
+										}
+										?>
 										</div>
 									<?php else : ?>
 										<div class="cts-event-date-time">
@@ -270,9 +295,9 @@ $total_pages = ceil( $total / $limit );
 
 								<td class="cts-event-description">
 									<?php if ( ! empty( $event->event_description ) || ! empty( $event->appointment_description ) ) : ?>
-										<?php 
+										<?php
 										$desc = ! empty( $event->event_description ) ? $event->event_description : $event->appointment_description;
-										echo esc_html( wp_trim_words( $desc, 20 ) ); 
+										echo esc_html( wp_trim_words( $desc, 20 ) );
 										?>
 									<?php else : ?>
 										<span class="cts-muted">—</span>
@@ -292,10 +317,10 @@ $total_pages = ceil( $total / $limit );
 								</td>
 								
 								<td class="cts-event-location">
-									<?php 
-									// Priorität: 1. Strukturierte Adresse, 2. location_name, 3. Leer
-									if ( ! empty( $event->address_name ) || ! empty( $event->address_street ) ) : 
-										// Strukturierte Adresse
+									<?php
+									// Priorität: 1. Strukturierte Adresse, 2. location_name, 3. Leer.
+									if ( ! empty( $event->address_name ) || ! empty( $event->address_street ) ) :
+										// Strukturierte Adresse.
 										?>
 										<div class="cts-address-structured">
 											<?php if ( ! empty( $event->address_name ) ) : ?>
@@ -311,9 +336,9 @@ $total_pages = ceil( $total / $limit );
 											<?php endif; ?>
 											<?php if ( ! empty( $event->address_latitude ) && ! empty( $event->address_longitude ) ) : ?>
 												<a href="https://maps.google.com/?q=<?php echo esc_attr( $event->address_latitude ); ?>,<?php echo esc_attr( $event->address_longitude ); ?>" 
-												   target="_blank" 
-												   class="cts-address-map-link"
-												   title="<?php esc_attr_e( 'In Google Maps öffnen', 'churchtools-suite' ); ?>">
+													target="_blank"
+													class="cts-address-map-link"
+													title="<?php esc_attr_e( 'In Google Maps öffnen', 'churchtools-suite' ); ?>">
 													🗺️ <?php esc_html_e( 'Karte', 'churchtools-suite' ); ?>
 												</a>
 											<?php endif; ?>
@@ -326,27 +351,27 @@ $total_pages = ceil( $total / $limit );
 								</td>
 								
 								<td class="cts-event-tags">
-									<?php 
+									<?php
 									if ( ! empty( $event->tags ) ) :
 										$tags = json_decode( $event->tags, true );
 										if ( is_array( $tags ) && ! empty( $tags ) ) :
-											foreach ( $tags as $tag ) :
-												$tag_color = $tag['color'] ?? 'basic';
+											foreach ( $tags as $cts_tag ) :
+												$tag_color = $cts_tag['color'] ?? 'basic';
 												?>
-												<span class="cts-tag cts-tag-<?php echo esc_attr( $tag_color ); ?>" title="<?php echo esc_attr( $tag['description'] ?? '' ); ?>">
-													🏷️ <?php echo esc_html( $tag['name'] ?? '' ); ?>
+												<span class="cts-tag cts-tag-<?php echo esc_attr( $tag_color ); ?>" title="<?php echo esc_attr( $cts_tag['description'] ?? '' ); ?>">
+													🏷️ <?php echo esc_html( $cts_tag['name'] ?? '' ); ?>
 												</span>
-											<?php 
+												<?php
 											endforeach;
 										else :
 											?>
 											<span class="cts-muted">—</span>
-											<?php 
+											<?php
 										endif;
 									else :
 										?>
 										<span class="cts-muted">—</span>
-										<?php 
+										<?php
 									endif;
 									?>
 								</td>
@@ -370,7 +395,7 @@ $total_pages = ceil( $total / $limit );
 								</td>
 
 								<td class="cts-event-services">
-									<?php 
+									<?php
 									if ( ! empty( $services ) ) :
 										$service_labels = array();
 										foreach ( $services as $service ) {
@@ -380,7 +405,7 @@ $total_pages = ceil( $total / $limit );
 											}
 											$service_labels[] = $label;
 										}
-										echo implode( ', ', $service_labels );
+										echo wp_kses_post( implode( ', ', $service_labels ) );
 									else :
 										echo '<span class="cts-muted">—</span>';
 									endif;
@@ -388,11 +413,11 @@ $total_pages = ceil( $total / $limit );
 								</td>
 								
 								<td class="cts-event-details">
-									<?php if ( ! empty( $event->event_description ) || ! empty( $event->appointment_description ) || $link || $image_url || $event->raw_payload ) : ?>
+									<?php if ( ! empty( $event->event_description ) || ! empty( $event->appointment_description ) || $cts_link || $image_url || $event->raw_payload ) : ?>
 										<button type="button" 
-										        class="cts-btn cts-btn-small cts-details-toggle" 
-										        data-event-id="<?php echo esc_attr( $event->id ); ?>"
-									        onclick="ctsSuite.openEventModal(<?php echo intval( $event->id ); ?>);">
+												class="cts-btn cts-btn-small cts-details-toggle"
+												data-event-id="<?php echo esc_attr( $event->id ); ?>"
+											onclick="ctsSuite.openEventModal(<?php echo intval( $event->id ); ?>);">
 											📝 <?php esc_html_e( 'Infos', 'churchtools-suite' ); ?>
 										</button>
 										<div id="event-details-<?php echo esc_attr( $event->id ); ?>" class="cts-event-details-modal-data" style="display:none;">
@@ -422,7 +447,7 @@ $total_pages = ceil( $total / $limit );
 											<?php if ( $has_image_columns ) : ?>
 												<div class="cts-description-section cts-meta-grid">
 													<div><strong><?php esc_html_e( 'Bild (Attachment ID)', 'churchtools-suite' ); ?>:</strong> 
-														<?php 
+														<?php
 														if ( isset( $event->image_attachment_id ) && ! empty( $event->image_attachment_id ) ) {
 															echo esc_html( $event->image_attachment_id );
 															echo ' <a href="' . esc_url( admin_url( 'post.php?post=' . $event->image_attachment_id . '&action=edit' ) ) . '" target="_blank" style="font-size: 11px;">↗ Bearbeiten</a>';
@@ -432,7 +457,7 @@ $total_pages = ceil( $total / $limit );
 														?>
 													</div>
 													<div><strong><?php esc_html_e( 'Bild-URL (Fallback)', 'churchtools-suite' ); ?>:</strong> 
-														<?php 
+														<?php
 														if ( isset( $event->image_url ) && ! empty( $event->image_url ) ) {
 															echo '<a href="' . esc_url( $event->image_url ) . '" target="_blank" style="font-size: 11px; word-break: break-all;">' . esc_html( $event->image_url ) . '</a>';
 														} else {
@@ -443,10 +468,10 @@ $total_pages = ceil( $total / $limit );
 												</div>
 											<?php endif; ?>
 
-											<?php if ( $link ) : ?>
+											<?php if ( $cts_link ) : ?>
 												<div class="cts-description-section">
 													<strong>🔗 <?php esc_html_e( 'Link', 'churchtools-suite' ); ?>:</strong>
-													<p><a href="<?php echo esc_url( $link ); ?>" target="_blank" rel="noopener noreferrer"><?php echo esc_html( $link ); ?></a></p>
+													<p><a href="<?php echo esc_url( $cts_link ); ?>" target="_blank" rel="noopener noreferrer"><?php echo esc_html( $cts_link ); ?></a></p>
 												</div>
 											<?php endif; ?>
 
@@ -470,18 +495,18 @@ $total_pages = ceil( $total / $limit );
 												</div>
 											<?php endif; ?>
 
-											<?php 
+											<?php
 											// Zeige Bild (priorität: lokale attachment > external URL)
-											// v0.10.5.0: Only if columns exist
+											// v0.10.5.0: Only if columns exist.
 											$display_image_url = null;
 											if ( $has_image_columns && isset( $event->image_attachment_id ) && ! empty( $event->image_attachment_id ) ) {
 												$display_image_url = wp_get_attachment_url( $event->image_attachment_id );
 											} elseif ( $has_image_columns && isset( $event->image_url ) && ! empty( $event->image_url ) && filter_var( $event->image_url, FILTER_VALIDATE_URL ) ) {
 												$display_image_url = $event->image_url;
 											}
-											
+
 											if ( $display_image_url ) :
-											?>
+												?>
 												<div class="cts-description-section">
 													<strong>🖼️ <?php esc_html_e( 'Bild', 'churchtools-suite' ); ?>:</strong>
 													<img src="<?php echo esc_url( $display_image_url ); ?>" alt="" class="cts-modal-image" onerror="this.style.display='none';" />
@@ -496,7 +521,7 @@ $total_pages = ceil( $total / $limit );
 											<?php if ( $event->raw_payload ) : ?>
 												<div class="cts-description-section">
 													<strong>🧾 <?php esc_html_e( 'Raw Payload', 'churchtools-suite' ); ?>:</strong>
-													<p><?php printf( esc_html__( '%d Zeichen JSON', 'churchtools-suite' ), strlen( $event->raw_payload ) ); ?></p>
+													<p><?php printf( /* translators: %d: Number of characters in the JSON payload. */ esc_html__( '%d Zeichen JSON', 'churchtools-suite' ), (int) strlen( $event->raw_payload ) ); ?></p>
 												</div>
 											<?php endif; ?>
 										</div>
@@ -547,18 +572,18 @@ $total_pages = ceil( $total / $limit );
 				<div class="cts-pagination">
 					<?php
 					$base_url = add_query_arg(
-						[
-							'page' => 'churchtools-suite-data',
-							'subtab' => 'events',
-							'from' => $from,
-							'to' => $to,
+						array(
+							'page'        => 'churchtools-suite-data',
+							'subtab'      => 'events',
+							'from'        => $from,
+							'to'          => $to,
 							'calendar_id' => $calendar_filter,
-						],
+						),
 						admin_url( 'admin.php' )
 					);
-					
-					if ( $page > 1 ) :
-						$prev_url = add_query_arg( 'paged', $page - 1, $base_url );
+
+					if ( $cts_page > 1 ) :
+						$prev_url = add_query_arg( 'paged', $cts_page - 1, $base_url );
 						?>
 						<a href="<?php echo esc_url( $prev_url ); ?>" class="cts-btn cts-btn-secondary">
 							← <?php esc_html_e( 'Zurück', 'churchtools-suite' ); ?>
@@ -566,11 +591,12 @@ $total_pages = ceil( $total / $limit );
 					<?php endif; ?>
 					
 					<span class="cts-pagination-info">
-						<?php printf( esc_html__( 'Seite %d von %d', 'churchtools-suite' ), $page, $total_pages ); ?>
+						<?php printf( /* translators: 1: Current page, 2: Total pages. */ esc_html__( 'Seite %1$d von %2$d', 'churchtools-suite' ), (int) $cts_page, (int) $total_pages ); ?>
 					</span>
 					
-					<?php if ( $page < $total_pages ) :
-						$next_url = add_query_arg( 'paged', $page + 1, $base_url );
+					<?php
+					if ( $cts_page < $total_pages ) :
+						$next_url = add_query_arg( 'paged', $cts_page + 1, $base_url );
 						?>
 						<a href="<?php echo esc_url( $next_url ); ?>" class="cts-btn cts-btn-secondary">
 							<?php esc_html_e( 'Weiter', 'churchtools-suite' ); ?> →

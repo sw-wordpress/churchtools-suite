@@ -12,51 +12,64 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 require_once CHURCHTOOLS_SUITE_PATH . 'includes/functions/secret-storage.php';
 
-// Status prüfen
-$ct_url = get_option( 'churchtools_suite_ct_url', '' );
+// Status prüfen.
+$ct_url         = get_option( 'churchtools_suite_ct_url', '' );
 $ct_auth_method = get_option( 'churchtools_suite_ct_auth_method', 'password' );
-$ct_username = get_option( 'churchtools_suite_ct_username', '' );
-$ct_password = get_option( 'churchtools_suite_ct_password', '' );
-$ct_token = ChurchTools_Suite_Secret_Storage::decrypt( (string) get_option( 'churchtools_suite_ct_token', '' ) );
-$ct_cookies = get_option( 'churchtools_suite_ct_cookies', [] );
-$ct_last_login = get_option( 'churchtools_suite_ct_last_login', '' );
-$is_configured = ! empty( $ct_url ) && (
-	( $ct_auth_method === 'token' && ! empty( $ct_token ) ) ||
-	( $ct_auth_method !== 'token' && ! empty( $ct_username ) && ! empty( $ct_password ) )
+$ct_username    = get_option( 'churchtools_suite_ct_username', '' );
+$ct_password    = get_option( 'churchtools_suite_ct_password', '' );
+$ct_token       = ChurchTools_Suite_Secret_Storage::decrypt( (string) get_option( 'churchtools_suite_ct_token', '' ) );
+$ct_cookies     = get_option( 'churchtools_suite_ct_cookies', array() );
+$ct_last_login  = get_option( 'churchtools_suite_ct_last_login', '' );
+$is_configured  = ! empty( $ct_url ) && (
+	( 'token' === $ct_auth_method && ! empty( $ct_token ) ) ||
+	( 'token' !== $ct_auth_method && ! empty( $ct_username ) && ! empty( $ct_password ) )
 );
-$is_connected = ( $ct_auth_method === 'token' ) ? ! empty( $ct_token ) : ! empty( $ct_cookies );
+$is_connected   = ( 'token' === $ct_auth_method ) ? ! empty( $ct_token ) : ! empty( $ct_cookies );
 
-// Statistiken (v1.0.8.0: Use Repository Factory for user_id isolation)
+// Statistiken (v1.0.8.0: Use Repository Factory for user_id isolation).
 global $wpdb;
 $prefix = $wpdb->prefix . CHURCHTOOLS_SUITE_DB_PREFIX;
 
 // Use the repository factory for user-isolated statistics.
 $use_factory = class_exists( 'ChurchTools_Suite_Repository_Factory' );
-$user_id = get_current_user_id();
+$user_id     = get_current_user_id();
 
-// v0.9.0.3: Suppress DB errors if tables don't exist yet (first activation)
+// v0.9.0.3: Suppress DB errors if tables don't exist yet (first activation).
 $wpdb->suppress_errors();
 
 if ( $use_factory ) {
-	// Use Repository Factory for isolated counts
+	// Use Repository Factory for isolated counts.
 	require_once CHURCHTOOLS_SUITE_PATH . 'includes/repositories/class-churchtools-suite-repository-factory.php';
-	$events_repo = ChurchTools_Suite_Repository_Factory::get_events_repo( $user_id );
+	$events_repo    = ChurchTools_Suite_Repository_Factory::get_events_repo( $user_id );
 	$calendars_repo = ChurchTools_Suite_Repository_Factory::get_calendars_repo( $user_id );
-	
-	$events_count = $events_repo->count();
-	$calendars_count = count( array_filter( $calendars_repo->get_all(), function( $cal ) {
-		return ! empty( $cal->is_selected );
-	} ) );
+
+	$events_count    = $events_repo->count();
+	$calendars_count = count(
+		array_filter(
+			$calendars_repo->get_all(),
+			function ( $cal ) {
+				return ! empty( $cal->is_selected );
+			}
+		)
+	);
 } else {
-	// Fallback: Direct database queries (backwards compatibility)
+	// Fallback: Direct database queries (backwards compatibility).
+	// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery -- Custom plugin tables and maintenance queries have no equivalent WordPress query API.
+	// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Plugin-owned table identifiers and generated placeholder lists; query values are prepared separately for WordPress 6.0 compatibility.
 	$events_count = (int) $wpdb->get_var( "SELECT COUNT(*) FROM {$prefix}events" );
+	// phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+	// phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery
+	// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery -- Custom plugin tables and maintenance queries have no equivalent WordPress query API.
+	// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Plugin-owned table identifiers and generated placeholder lists; query values are prepared separately for WordPress 6.0 compatibility.
 	$calendars_count = (int) $wpdb->get_var( "SELECT COUNT(*) FROM {$prefix}calendars WHERE is_selected = 1" );
+	// phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+	// phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery
 }
 
 $wpdb->show_errors();
 
-// Check if tables exist (if queries returned NULL, tables might not exist)
-$tables_missing = ( $wpdb->last_error !== '' );
+// Check if tables exist (if queries returned NULL, tables might not exist).
+$tables_missing = ( '' !== $wpdb->last_error );
 ?>
 
 <div class="cts-dashboard">
@@ -100,7 +113,7 @@ $tables_missing = ( $wpdb->last_error !== '' );
 	</div>
 
 	<?php
-	// Show update notice if an update is available (cached by transient if desired)
+	// Show update notice if an update is available (cached by transient if desired).
 	$update_info = null;
 	if ( class_exists( 'ChurchTools_Suite_Auto_Updater' ) ) {
 		$info = ChurchTools_Suite_Auto_Updater::get_latest_release_info();
@@ -110,65 +123,65 @@ $tables_missing = ( $wpdb->last_error !== '' );
 	}
 
 	if ( is_array( $update_info ) && ! empty( $update_info['is_update'] ) ) :
-		// Auto-Update Konfiguration prüfen
+		// Auto-Update Konfiguration prüfen.
 		$auto_update_enabled = get_option( 'churchtools_suite_auto_update_enabled', 0 );
-		$auto_update_level = get_option( 'churchtools_suite_auto_update_level', 'major_minor_patch' );
-		
-		// Versions-Typ ermitteln (Major.Minor.Patch.Build)
+		$auto_update_level   = get_option( 'churchtools_suite_auto_update_level', 'major_minor_patch' );
+
+		// Versions-Typ ermitteln (Major.Minor.Patch.Build).
 		$current_version = CHURCHTOOLS_SUITE_VERSION;
-		$new_version = ltrim( $update_info['tag_name'] ?? $update_info['latest_version'], 'v' );
-		
+		$new_version     = ltrim( $update_info['tag_name'] ?? $update_info['latest_version'], 'v' );
+
 		$current_parts = explode( '.', $current_version );
-		$new_parts = explode( '.', $new_version );
-		
-		// Fehlende Teile mit 0 auffüllen
-		while ( count( $current_parts ) < 4 ) $current_parts[] = '0';
-		while ( count( $new_parts ) < 4 ) $new_parts[] = '0';
-		
-		// Update-Typ bestimmen
-		$update_type = 'build'; // Default
-		$update_icon = '🔨';
-		$update_color = '#0ea5e9'; // Cyan
+		$new_parts     = explode( '.', $new_version );
+
+		// Fehlende Teile mit 0 auffüllen.
+		$current_parts = array_pad( $current_parts, 4, '0' );
+		$new_parts     = array_pad( $new_parts, 4, '0' );
+
+		// Update-Typ bestimmen.
+		$update_type  = 'build'; // Default.
+		$update_icon  = '🔨';
+		$update_color = '#0ea5e9'; // Cyan.
 		$update_label = __( 'Build Update', 'churchtools-suite' );
-		$update_desc = __( 'Kleinste Änderungen, Bugfixes oder technische Verbesserungen', 'churchtools-suite' );
-		
+		$update_desc  = __( 'Kleinste Änderungen, Bugfixes oder technische Verbesserungen', 'churchtools-suite' );
+
 		if ( (int) $new_parts[0] > (int) $current_parts[0] ) {
-			$update_type = 'major';
-			$update_icon = '🚀';
-			$update_color = '#dc2626'; // Red
+			$update_type  = 'major';
+			$update_icon  = '🚀';
+			$update_color = '#dc2626'; // Red.
 			$update_label = __( 'Major Update', 'churchtools-suite' );
-			$update_desc = __( 'Große neue Features, möglicherweise Breaking Changes', 'churchtools-suite' );
+			$update_desc  = __( 'Große neue Features, möglicherweise Breaking Changes', 'churchtools-suite' );
 		} elseif ( (int) $new_parts[1] > (int) $current_parts[1] ) {
-			$update_type = 'minor';
-			$update_icon = '✨';
-			$update_color = '#f59e0b'; // Orange
+			$update_type  = 'minor';
+			$update_icon  = '✨';
+			$update_color = '#f59e0b'; // Orange.
 			$update_label = __( 'Minor Update', 'churchtools-suite' );
-			$update_desc = __( 'Neue Features, keine Breaking Changes', 'churchtools-suite' );
+			$update_desc  = __( 'Neue Features, keine Breaking Changes', 'churchtools-suite' );
 		} elseif ( (int) $new_parts[2] > (int) $current_parts[2] ) {
-			$update_type = 'patch';
-			$update_icon = '🔧';
-			$update_color = '#10b981'; // Green
+			$update_type  = 'patch';
+			$update_icon  = '🔧';
+			$update_color = '#10b981'; // Green.
 			$update_label = __( 'Patch Update', 'churchtools-suite' );
-			$update_desc = __( 'Bugfixes und kleinere Verbesserungen', 'churchtools-suite' );
+			$update_desc  = __( 'Bugfixes und kleinere Verbesserungen', 'churchtools-suite' );
 		}
-		
-		// Prüfen ob Update-Typ gemäß Konfiguration erlaubt ist (v0.10.3.3)
+
+		// Prüfen ob Update-Typ gemäß Konfiguration erlaubt ist (v0.10.3.3).
 		$update_allowed = false;
 		switch ( $auto_update_level ) {
 			case 'major':
-				$update_allowed = ( $update_type === 'major' );
+				$update_allowed = ( 'major' === $update_type );
 				break;
 			case 'major_minor':
-				$update_allowed = in_array( $update_type, [ 'major', 'minor' ], true );
+				$update_allowed = in_array( $update_type, array( 'major', 'minor' ), true );
 				break;
 			case 'major_minor_patch':
-				$update_allowed = in_array( $update_type, [ 'major', 'minor', 'patch' ], true );
+				$update_allowed = in_array( $update_type, array( 'major', 'minor', 'patch' ), true );
 				break;
 			case 'all':
-				$update_allowed = true; // Alle Updates erlaubt
+				$update_allowed = true; // Alle Updates erlaubt.
 				break;
 		}
-	?>
+		?>
 	<div class="cts-card" style="border-left:4px solid <?php echo esc_attr( $update_color ); ?>; margin-top:16px;">
 		<div class="cts-card-header">
 			<button id="cts-sync-now" class="cts-button cts-button-primary" style="font-size: 16px; padding: 12px 24px;">
@@ -188,30 +201,32 @@ $tables_missing = ( $wpdb->last_error !== '' );
 			<?php endif; ?>
 			<?php if ( ! $auto_update_enabled ) : ?>
 				<p style="margin:8px 0 0; padding:8px 12px; background:#fff3cd; border-radius:4px; font-size:13px; color:#856404;">
-					⚠️ <?php 
+					⚠️
+					<?php
 					printf(
-						esc_html__( 'Auto-Update ist deaktiviert. Manuelle Installation bleibt möglich. %sJetzt aktivieren%s', 'churchtools-suite' ),
+						/* translators: 1: Opening settings link, 2: Closing link tag. */                        esc_html__( 'Auto-Update ist deaktiviert. Manuelle Installation bleibt möglich. %1$sJetzt aktivieren%2$s', 'churchtools-suite' ),
 						'<a href="?page=churchtools-suite&tab=settings&subtab=advanced">',
 						'</a>'
-					); 
+					);
 					?>
 				</p>
 						<p class="cts-card-subtitle"><?php esc_html_e( 'Integration Suite Status:', 'churchtools-suite' ); ?></p>
 				<p style="margin:8px 0 0; padding:8px 12px; background:#e0f2fe; border-radius:4px; font-size:13px; color:#0c4a6e;">
-					ℹ️ <?php 
+					ℹ️
+					<?php
 					printf(
-						esc_html__( 'Dieses Update wird nicht automatisch installiert (Stufe: %s). Manuelle Installation ist weiterhin möglich. %sEinstellungen ändern%s', 'churchtools-suite' ),
+						/* translators: 1: Update level, 2: Opening settings link, 3: Closing link tag. */                        esc_html__( 'Dieses Update wird nicht automatisch installiert (Stufe: %1$s). Manuelle Installation ist weiterhin möglich. %2$sEinstellungen ändern%3$s', 'churchtools-suite' ),
 						'<strong>' . esc_html( $auto_update_level ) . '</strong>',
 						'<a href="?page=churchtools-suite&tab=settings&subtab=advanced">',
 						'</a>'
-					); 
+					);
 					?>
 				</p>
 			<?php endif; ?>
 		</div>
 		<div class="cts-card-footer">
 			<button id="cts_install_update_btn" class="cts-button cts-button-danger">
-				<?php echo $update_icon; ?> <?php esc_html_e( 'Jetzt installieren', 'churchtools-suite' ); ?>
+				<?php echo esc_html( $update_icon ); ?> <?php esc_html_e( 'Jetzt installieren', 'churchtools-suite' ); ?>
 			</button>
 			<a href="?page=churchtools-suite&tab=settings" class="cts-button" style="margin-left:8px;"><?php esc_html_e( 'Einstellungen', 'churchtools-suite' ); ?></a>
 		</div>
@@ -231,16 +246,16 @@ $tables_missing = ( $wpdb->last_error !== '' );
 						<span class="cts-status-indicator"></span>
 						<?php esc_html_e( 'Verbunden', 'churchtools-suite' ); ?>
 					</p>
-					<p class="cts-card-detail"><?php echo esc_html( parse_url( $ct_url, PHP_URL_HOST ) ?: $ct_url ); ?></p>
+					<p class="cts-card-detail"><?php echo esc_html( wp_parse_url( $ct_url, PHP_URL_HOST ) ?: $ct_url ); ?></p>
 					<?php if ( $ct_last_login ) : ?>
-						<p class="cts-card-meta"><?php echo esc_html( sprintf( __( 'Letzter Login: %s', 'churchtools-suite' ), date_i18n( get_option( 'date_format' ) . ' ' . get_option( 'time_format' ), strtotime( $ct_last_login ) ) ) ); ?></p>
+						<p class="cts-card-meta"><?php echo esc_html( sprintf( /* translators: %s: Date and time of the last login. */ __( 'Letzter Login: %s', 'churchtools-suite' ), date_i18n( get_option( 'date_format' ) . ' ' . get_option( 'time_format' ), strtotime( $ct_last_login ) ) ) ); ?></p>
 					<?php endif; ?>
 				<?php elseif ( $is_configured ) : ?>
 					<p class="cts-status cts-status-inactive">
 						<span class="cts-status-indicator"></span>
 						<?php esc_html_e( 'Konfiguriert', 'churchtools-suite' ); ?>
 					</p>
-					<p class="cts-card-detail"><?php echo esc_html( parse_url( $ct_url, PHP_URL_HOST ) ?: $ct_url ); ?></p>
+					<p class="cts-card-detail"><?php echo esc_html( wp_parse_url( $ct_url, PHP_URL_HOST ) ?: $ct_url ); ?></p>
 					<p class="cts-card-meta"><?php esc_html_e( 'Verbindung noch nicht getestet', 'churchtools-suite' ); ?></p>
 				<?php else : ?>
 					<p class="cts-status cts-status-error">
@@ -259,122 +274,127 @@ $tables_missing = ( $wpdb->last_error !== '' );
 
 		<!-- Automatischer Sync -->
 		<?php
-		$auto_sync_enabled = get_option( 'churchtools_suite_auto_sync_enabled', 0 );
-		$last_sync_status = get_option( 'churchtools_suite_last_sync_status', '' );
-		$last_sync_error = get_option( 'churchtools_suite_last_sync_error', '' );
+		$auto_sync_enabled    = get_option( 'churchtools_suite_auto_sync_enabled', 0 );
+		$last_sync_status     = get_option( 'churchtools_suite_last_sync_status', '' );
+		$last_sync_error      = get_option( 'churchtools_suite_last_sync_error', '' );
 		$last_sync_error_time = get_option( 'churchtools_suite_last_sync_error_time', '' );
-		$last_sync_stats = get_option( 'churchtools_suite_last_sync_stats', [] );
-		$auto_sync_interval = get_option( 'churchtools_suite_auto_sync_interval', 'daily' );
-		
-		// Intervall-Namen (für Referenz, aktuell nicht verwendet da Cron-Display verwendet wird)
-		$interval_names = [
-			'hourly' => __( 'Stündlich', 'churchtools-suite' ),
-			'twicedaily' => __( 'Zweimal täglich', 'churchtools-suite' ),
-			'daily' => __( 'Täglich', 'churchtools-suite' ),
-			'cts_2days' => __( 'Alle 2 Tage', 'churchtools-suite' ),
-			'cts_3days' => __( 'Alle 3 Tage', 'churchtools-suite' ),
-			'cts_weekly' => __( 'Wöchentlich', 'churchtools-suite' ),
-			'cts_2weeks' => __( 'Alle 2 Wochen', 'churchtools-suite' ),
+		$last_sync_stats      = get_option( 'churchtools_suite_last_sync_stats', array() );
+		$auto_sync_interval   = get_option( 'churchtools_suite_auto_sync_interval', 'daily' );
+
+		// Intervall-Namen (für Referenz, aktuell nicht verwendet da Cron-Display verwendet wird).
+		$interval_names = array(
+			'hourly'      => __( 'Stündlich', 'churchtools-suite' ),
+			'twicedaily'  => __( 'Zweimal täglich', 'churchtools-suite' ),
+			'daily'       => __( 'Täglich', 'churchtools-suite' ),
+			'cts_2days'   => __( 'Alle 2 Tage', 'churchtools-suite' ),
+			'cts_3days'   => __( 'Alle 3 Tage', 'churchtools-suite' ),
+			'cts_weekly'  => __( 'Wöchentlich', 'churchtools-suite' ),
+			'cts_2weeks'  => __( 'Alle 2 Wochen', 'churchtools-suite' ),
 			'cts_monthly' => __( 'Monatlich', 'churchtools-suite' ),
-		];
+		);
 		?>
 		<div class="cts-card">
 			<div class="cts-card-header">
-				   <span class="cts-card-icon">⏰</span>
-				   <h3><?php esc_html_e( 'Cronjobs', 'churchtools-suite' ); ?></h3>
+					<span class="cts-card-icon">⏰</span>
+					<h3><?php esc_html_e( 'Cronjobs', 'churchtools-suite' ); ?></h3>
 			</div>
 			<div class="cts-card-body">
-				   <?php
-				   // Cronjobs visuell darstellen
-				   $cron = _get_cron_array();
-				   $relevant_hooks = [];
-				   if ( is_array( $cron ) ) {
-					   foreach ( $cron as $ts => $hooks ) {
-						   foreach ( $hooks as $hook => $events ) {
-							   if ( preg_match( '/churchtools|cts_|puc_/i', $hook ) ) {
-								   if ( ! isset( $relevant_hooks[ $hook ] ) ) {
-									   $relevant_hooks[ $hook ] = [];
-								   }
-								   $relevant_hooks[ $hook ][] = (int) $ts;
-							   }
-						   }
-					   }
-				   }
+					<?php
+					// Cronjobs visuell darstellen.
+					$cron           = _get_cron_array();
+					$relevant_hooks = array();
+					if ( is_array( $cron ) ) {
+						foreach ( $cron as $ts => $hooks ) {
+							foreach ( $hooks as $hook => $events ) {
+								if ( preg_match( '/churchtools|cts_|puc_/i', $hook ) ) {
+									if ( ! isset( $relevant_hooks[ $hook ] ) ) {
+										$relevant_hooks[ $hook ] = array();
+									}
+									$relevant_hooks[ $hook ][] = (int) $ts;
+								}
+							}
+						}
+					}
 
-				   $known_hooks = [
-					   'churchtools_suite_auto_sync',
-					   'churchtools_suite_session_keepalive',
-					   'churchtools_suite_calendar_reconcile',
-					   'churchtools_suite_check_updates',
-				   ];
+					$known_hooks = array(
+						'churchtools_suite_auto_sync',
+						'churchtools_suite_session_keepalive',
+						'churchtools_suite_calendar_reconcile',
+						'churchtools_suite_check_updates',
+					);
 
-				   foreach ( $known_hooks as $known_hook ) {
-					   if ( ! isset( $relevant_hooks[ $known_hook ] ) ) {
-						   $relevant_hooks[ $known_hook ] = [];
-					   }
-				   }
+					foreach ( $known_hooks as $known_hook ) {
+						if ( ! isset( $relevant_hooks[ $known_hook ] ) ) {
+							$relevant_hooks[ $known_hook ] = array();
+						}
+					}
 
-				   if ( empty( $relevant_hooks ) ) : ?>
-					   <p class="cts-card-meta"><?php esc_html_e( 'Keine automatischen Cron-Jobs für dieses Plugin gefunden.', 'churchtools-suite' ); ?></p>
-				   <?php else : ?>
-					   <div class="cts-cronjob-list" style="display: flex; flex-wrap: wrap; gap: 18px;">
-					   <?php foreach ( $relevant_hooks as $hook_name => $timestamps ) :
-						   if ( ! empty( $timestamps ) ) {
-							   sort( $timestamps );
-						   }
-						   $next = ! empty( $timestamps ) ? (int) $timestamps[0] : 0;
-						   $count = count( $timestamps );
-						   $overdue = $next > 0 && $next < time();
-					   
-					   // Use ChurchTools_Suite_Cron_Display helper for consistent labels
-					   $label = class_exists( 'ChurchTools_Suite_Cron_Display' ) 
-						   ? ChurchTools_Suite_Cron_Display::get_cron_display_name( $hook_name )
-						   : $hook_name;
-					   $desc = class_exists( 'ChurchTools_Suite_Cron_Display' )
-						   ? ChurchTools_Suite_Cron_Display::get_cron_description( $hook_name )
-						   : '';
-					   ?>
-					   <div class="cts-cronjob-card" style="background:#f8f9fa; border:1px solid #e0e0e0; border-radius:7px; padding:16px; min-width:220px; max-width:320px; flex:1 1 220px; box-shadow:0 1px 2px rgba(0,0,0,0.03);">
-						   <div style="font-weight:600; font-size:16px; margin-bottom:4px; color:#2271b1; display:flex; align-items:center; gap:6px;">
-							   <span style="font-size:18px;">⏰</span> <?php echo esc_html( $label ); ?>
-						   </div>
-						   <div style="font-size:13px; color:#666; margin-bottom:8px; min-height:18px;">
-							   <?php echo esc_html( $desc ); ?>
-						   </div>
-						   <div style="font-size:13px; margin-bottom:6px;">
-							   <strong><?php esc_html_e('Nächste Ausführung:', 'churchtools-suite'); ?></strong> <span style="color:<?php echo $overdue ? '#d66' : '#2271b1'; ?>;">
-							   <?php if ( $next > 0 ) : ?>
-								   <?php echo date_i18n( get_option( 'date_format' ) . ' ' . get_option( 'time_format' ), $next ); ?>
-								   <?php if ( $overdue ) : ?> (<?php printf( esc_html__('überfällig seit %s', 'churchtools-suite'), human_time_diff( $next, time() ) ); ?>)<?php endif; ?>
-							   <?php else : ?>
-								   <?php esc_html_e( 'Nicht geplant', 'churchtools-suite' ); ?>
-							   <?php endif; ?>
-							   </span>
-						   </div>
-						   <div style="font-size:12px; color:#888;">
-							   <?php echo esc_html( sprintf( _n( '%d Termin geplant', '%d Termine geplant', $count, 'churchtools-suite' ), $count ) ); ?>
-						   </div>
-					   </div>
-					   <?php endforeach; ?>
-					   </div>
-				   <?php endif; ?>
-				   <p class="cts-card-meta" style="margin-top: 10px; padding-top: 10px; border-top: 1px solid #f0f0f1;">
-					   <small>
-					   <?php
-					   // Prüfen ob manueller Trigger im Debug-Tab verfügbar ist
-					   $debug_tab_has_trigger = true; // Immer vorhanden ab v0.9.2.x
-					   if ( $debug_tab_has_trigger ) {
-						   printf(
-							   esc_html__('Manueller Trigger im %sDebug-Tab%s verfügbar', 'churchtools-suite'),
-							   '<a href="?page=churchtools-suite&tab=debug">',
-							   '</a>'
-						   );
-					   } else {
-						   esc_html_e('Kein manueller Trigger verfügbar.', 'churchtools-suite');
-					   }
-					   ?>
-					   </small>
-				   </p>
+					if ( empty( $relevant_hooks ) ) :
+						?>
+						<p class="cts-card-meta"><?php esc_html_e( 'Keine automatischen Cron-Jobs für dieses Plugin gefunden.', 'churchtools-suite' ); ?></p>
+					<?php else : ?>
+						<div class="cts-cronjob-list" style="display: flex; flex-wrap: wrap; gap: 18px;">
+						<?php
+						foreach ( $relevant_hooks as $hook_name => $timestamps ) :
+							if ( ! empty( $timestamps ) ) {
+								sort( $timestamps );
+							}
+							$next    = ! empty( $timestamps ) ? (int) $timestamps[0] : 0;
+							$count   = count( $timestamps );
+							$overdue = $next > 0 && $next < time();
+
+							// Use ChurchTools_Suite_Cron_Display helper for consistent labels.
+							$label = class_exists( 'ChurchTools_Suite_Cron_Display' )
+							? ChurchTools_Suite_Cron_Display::get_cron_display_name( $hook_name )
+							: $hook_name;
+							$desc  = class_exists( 'ChurchTools_Suite_Cron_Display' )
+							? ChurchTools_Suite_Cron_Display::get_cron_description( $hook_name )
+							: '';
+							?>
+						<div class="cts-cronjob-card" style="background:#f8f9fa; border:1px solid #e0e0e0; border-radius:7px; padding:16px; min-width:220px; max-width:320px; flex:1 1 220px; box-shadow:0 1px 2px rgba(0,0,0,0.03);">
+							<div style="font-weight:600; font-size:16px; margin-bottom:4px; color:#2271b1; display:flex; align-items:center; gap:6px;">
+								<span style="font-size:18px;">⏰</span> <?php echo esc_html( $label ); ?>
+							</div>
+							<div style="font-size:13px; color:#666; margin-bottom:8px; min-height:18px;">
+								<?php echo esc_html( $desc ); ?>
+							</div>
+							<div style="font-size:13px; margin-bottom:6px;">
+								<strong><?php esc_html_e( 'Nächste Ausführung:', 'churchtools-suite' ); ?></strong> <span style="color:<?php echo $overdue ? '#d66' : '#2271b1'; ?>;">
+								<?php if ( $next > 0 ) : ?>
+									<?php echo esc_html( date_i18n( get_option( 'date_format' ) . ' ' . get_option( 'time_format' ), $next ) ); ?>
+									<?php
+									if ( $overdue ) :
+										?>
+										(<?php printf( /* translators: %s: Human-readable time since the scheduled run. */ esc_html__( 'überfällig seit %s', 'churchtools-suite' ), esc_html( human_time_diff( $next, time() ) ) ); ?>)<?php endif; ?>
+								<?php else : ?>
+									<?php esc_html_e( 'Nicht geplant', 'churchtools-suite' ); ?>
+								<?php endif; ?>
+								</span>
+							</div>
+							<div style="font-size:12px; color:#888;">
+								<?php echo esc_html( sprintf( /* translators: %d: Number of scheduled runs. */ _n( '%d Termin geplant', '%d Termine geplant', $count, 'churchtools-suite' ), $count ) ); ?>
+							</div>
+						</div>
+						<?php endforeach; ?>
+						</div>
+					<?php endif; ?>
+					<p class="cts-card-meta" style="margin-top: 10px; padding-top: 10px; border-top: 1px solid #f0f0f1;">
+						<small>
+						<?php
+						// Prüfen ob manueller Trigger im Debug-Tab verfügbar ist.
+						$debug_tab_has_trigger = true; // Immer vorhanden ab v0.9.2.x.
+						if ( $debug_tab_has_trigger ) {
+							printf(
+								/* translators: 1: Opening debug link, 2: Closing link tag. */                                esc_html__( 'Manueller Trigger im %1$sDebug-Tab%2$s verfügbar', 'churchtools-suite' ),
+								'<a href="?page=churchtools-suite&tab=debug">',
+								'</a>'
+							);
+						} else {
+							esc_html_e( 'Kein manueller Trigger verfügbar.', 'churchtools-suite' );
+						}
+						?>
+						</small>
+					</p>
 			</div>
 			<div class="cts-card-footer">
 				<a href="?page=churchtools-suite&tab=settings#auto-sync" class="cts-button cts-button-secondary">
@@ -394,8 +414,8 @@ $tables_missing = ( $wpdb->last_error !== '' );
 				<p class="cts-card-detail">
 					<?php
 					printf(
-						esc_html__( 'Termine gesamt, %s Kalender ausgewählt', 'churchtools-suite' ),
-						esc_html( $calendars_count )
+						/* translators: %s: Number of selected calendars. */                        esc_html__( 'Termine gesamt, %s Kalender ausgewählt', 'churchtools-suite' ),
+						esc_html( (string) ( $calendars_count ) )
 					);
 					?>
 				</p>
@@ -458,7 +478,7 @@ $tables_missing = ( $wpdb->last_error !== '' );
 	<div class="cts-card cts-quick-start">
 		<h3><?php esc_html_e( 'Quick Start', 'churchtools-suite' ); ?></h3>
 		<ol>
-			<li><?php printf( esc_html__( 'ChurchTools-URL und Zugangsdaten (API-Token oder Benutzername/Passwort) in den %sEinstellungen%s hinterlegen', 'churchtools-suite' ), '<a href="?page=churchtools-suite&tab=settings">', '</a>' ); ?></li>
+			<li><?php printf( /* translators: 1: Opening settings link, 2: Closing link tag. */ esc_html__( 'ChurchTools-URL und Zugangsdaten (API-Token oder Benutzername/Passwort) in den %1$sEinstellungen%2$s hinterlegen', 'churchtools-suite' ), '<a href="?page=churchtools-suite&tab=settings">', '</a>' ); ?></li>
 			<li><?php esc_html_e( 'Kalender auswählen und synchronisieren', 'churchtools-suite' ); ?></li>
 			<li><?php esc_html_e( 'Events per Shortcode im Frontend anzeigen', 'churchtools-suite' ); ?></li>
 		</ol>

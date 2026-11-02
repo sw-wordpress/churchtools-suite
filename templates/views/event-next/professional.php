@@ -16,7 +16,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-// Display options
+// Display options.
 $show_event_description       = isset( $args['show_event_description'] ) ? ChurchTools_Suite_Shortcodes::parse_boolean( $args['show_event_description'] ) : true;
 $show_appointment_description = isset( $args['show_appointment_description'] ) ? ChurchTools_Suite_Shortcodes::parse_boolean( $args['show_appointment_description'] ) : true;
 $show_location                = isset( $args['show_location'] ) ? ChurchTools_Suite_Shortcodes::parse_boolean( $args['show_location'] ) : true;
@@ -28,10 +28,10 @@ $show_images                  = isset( $args['show_images'] ) ? ChurchTools_Suit
 $image_fit                    = isset( $args['image_fit'] ) ? ChurchTools_Suite_Shortcodes::sanitize_image_fit( $args['image_fit'] ) : 'cover';
 $use_calendar_colors          = isset( $args['use_calendar_colors'] ) ? ChurchTools_Suite_Shortcodes::parse_boolean( $args['use_calendar_colors'] ) : true;
 
-// Header label
+// Header label.
 $heading = __( 'Nächster Termin', 'churchtools-suite' );
 
-// Next upcoming event (events are returned ordered ascending, future-only)
+// Next upcoming event (events are returned ordered ascending, future-only).
 $next_event = ! empty( $events ) ? $events[0] : null;
 
 if ( ! $next_event ) {
@@ -53,12 +53,12 @@ if ( ! $next_event ) {
 	return;
 }
 
-// Event-Action (default: none — alle Details sind bereits sichtbar)
+// Event-Action (default: none — alle Details sind bereits sichtbar).
 $event_action          = $args['event_action'] ?? 'none';
 $single_event_base     = apply_filters( 'churchtools_suite_single_event_base_url', home_url( '/events/' ) );
 $single_event_template = get_option( 'churchtools_suite_single_template', 'professional' );
 
-// Event data
+// Event data.
 $event_id                = $next_event['id'] ?? $next_event['event_id'] ?? $next_event['appointment_id'] ?? 0;
 $event_title             = $next_event['title'] ?? '';
 $event_description       = $next_event['event_description'] ?? '';
@@ -68,14 +68,14 @@ $end_datetime            = $next_event['end_datetime'] ?? '';
 $calendar_name           = $next_event['calendar_name'] ?? '';
 $calendar_color          = $next_event['calendar_color'] ?? '#2563eb';
 $location                = $next_event['location_name'] ?? '';
-$tags                    = $next_event['tags_array'] ?? [];
-$services                = $next_event['services'] ?? [];
+$tags                    = $next_event['tags_array'] ?? array();
+$services                = $next_event['services'] ?? array();
 
-// Image (Event → Calendar fallback via Image Helper)
+// Image (Event → Calendar fallback via Image Helper).
 $hero_image = null;
 if ( class_exists( 'ChurchTools_Suite_Image_Helper' ) ) {
 	$event_arr          = is_array( $next_event ) ? $next_event : (array) $next_event;
-	$calendar_for_image = ! empty( $event_arr['calendar_image_id'] ) ? [ 'calendar_image_id' => $event_arr['calendar_image_id'] ] : null;
+	$calendar_for_image = ! empty( $event_arr['calendar_image_id'] ) ? array( 'calendar_image_id' => $event_arr['calendar_image_id'] ) : null;
 	$hero_image         = ChurchTools_Suite_Image_Helper::get_image_url( $event_arr, $calendar_for_image );
 }
 if ( empty( $hero_image ) ) {
@@ -86,7 +86,7 @@ if ( empty( $hero_image ) ) {
 	}
 }
 
-// Date / time (DB is UTC → convert to site timezone)
+// Date / time (DB is UTC → convert to site timezone).
 $wp_timezone = wp_timezone();
 $date_obj    = null;
 if ( ! empty( $start_datetime ) ) {
@@ -113,7 +113,7 @@ if ( ! $has_ampm && $start_time_display ) {
 $end_time_display = '';
 if ( ! empty( $end_datetime ) ) {
 	try {
-		$end_obj          = new DateTime( $end_datetime, new DateTimeZone( 'UTC' ) );
+		$end_obj = new DateTime( $end_datetime, new DateTimeZone( 'UTC' ) );
 		$end_obj->setTimezone( $wp_timezone );
 		$end_time_display = wp_date( $time_format, $end_obj->getTimestamp(), $wp_timezone );
 		if ( ! $has_ampm ) {
@@ -124,41 +124,41 @@ if ( ! empty( $end_datetime ) ) {
 	}
 }
 
-// Click behaviour
+// Click behaviour.
 $click_class = '';
 $click_attrs = '';
-if ( $event_action === 'modal' ) {
+if ( 'modal' === $event_action ) {
 	$click_class = ' cts-event-clickable';
 	$click_attrs = sprintf(
 		' data-event-id="%s" data-template="%s" role="button" tabindex="0" aria-label="%s"',
 		esc_attr( $event_id ),
 		esc_attr( $single_event_template ),
-		esc_attr( sprintf( __( 'Details für %s anzeigen', 'churchtools-suite' ), $event_title ) )
+		esc_attr( sprintf( /* translators: %s: Event title. */ __( 'Details für %s anzeigen', 'churchtools-suite' ), $event_title ) )
 	);
-} elseif ( $event_action === 'page' ) {
+} elseif ( 'page' === $event_action ) {
 	$click_class = ' cts-event-page-link';
 	$page_url    = add_query_arg(
-		[
+		array(
 			'event_id' => $event_id,
 			'template' => $single_event_template,
-		],
+		),
 		$single_event_base
 	);
 	$click_attrs = sprintf(
 		' data-event-id="%s" data-event-url="%s" role="link" tabindex="0" aria-label="%s"',
 		esc_attr( $event_id ),
 		esc_url( $page_url ),
-		esc_attr( sprintf( __( 'Zu %s navigieren', 'churchtools-suite' ), $event_title ) )
+		esc_attr( sprintf( /* translators: %s: Event title. */ __( 'Zu %s navigieren', 'churchtools-suite' ), $event_title ) )
 	);
 }
 
-// Color CSS variable (only when calendar colors enabled)
+// Color CSS variable (only when calendar colors enabled).
 $style_attr = '';
 if ( $use_calendar_colors && ! empty( $calendar_color ) ) {
 	$style_attr = sprintf( ' style="--cts-calendar-color: %s;"', esc_attr( $calendar_color ) );
 }
 
-$has_sidebar = $hero_image && $show_images
+$has_sidebar = ( $hero_image && $show_images )
 	|| $date_display
 	|| ( $show_time && $start_time_display )
 	|| ( $show_tags && ! empty( $tags ) )
@@ -259,8 +259,8 @@ $has_sidebar = $hero_image && $show_images
 					</div>
 					<div class="cts-next-event-sidebar-content">
 						<div class="cts-next-event-tags">
-							<?php foreach ( $tags as $tag ) : ?>
-								<?php $tag_name = is_array( $tag ) ? ( $tag['name'] ?? '' ) : $tag; ?>
+							<?php foreach ( $tags as $cts_tag ) : ?>
+								<?php $tag_name = is_array( $cts_tag ) ? ( $cts_tag['name'] ?? '' ) : $cts_tag; ?>
 								<?php if ( ! empty( $tag_name ) ) : ?>
 									<span class="cts-next-event-tag"><?php echo esc_html( $tag_name ); ?></span>
 								<?php endif; ?>

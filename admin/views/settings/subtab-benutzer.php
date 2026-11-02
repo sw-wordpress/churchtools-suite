@@ -1,9 +1,9 @@
 <?php
 /**
  * Settings Subtab: CTS Managers / Benutzer
- * 
+ *
  * Zeigt Read-Only Liste aller Users mit cts_manager Rolle
- * 
+ *
  * @package ChurchTools_Suite
  * @since   1.0.2.0
  */
@@ -50,14 +50,14 @@ $cts_managers = ChurchTools_Suite_Roles::get_cts_managers();
 							<?php
 							$last_login = get_user_meta( $user->ID, 'last_login', true );
 							if ( $last_login ) {
-								echo esc_html( wp_date( get_option( 'date_format' ) . ' ' . get_option( 'time_format' ), $last_login ) );
+								echo esc_html( (string) ( wp_date( get_option( 'date_format' ) . ' ' . get_option( 'time_format' ), $last_login ) ) );
 							} else {
 								esc_html_e( 'Nie', 'churchtools-suite' );
 							}
 							?>
 						</td>
 						<td>
-							<a href="<?php echo esc_url( add_query_arg( [ 'user_id' => $user->ID ], admin_url( 'user-edit.php' ) ) ); ?>" class="button button-small">
+							<a href="<?php echo esc_url( add_query_arg( array( 'user_id' => $user->ID ), admin_url( 'user-edit.php' ) ) ); ?>" class="button button-small">
 								<?php esc_html_e( 'Bearbeiten', 'churchtools-suite' ); ?>
 							</a>
 						</td>

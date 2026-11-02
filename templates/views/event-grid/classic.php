@@ -1,10 +1,17 @@
 <?php
 /**
+ * Classic.
+ *
+ * @package ChurchTools_Suite
+ */
+
+/**
  * Legacy Template Redirect (v1.1.4.4)
- * 
+ *
  * This file provides backward compatibility for old shortcodes.
  * It redirects to the new template name: grid-classic.php
- * 
+ *
  * @deprecated Use grid-classic.php instead
  */
+
 require_once __DIR__ . '/grid-classic.php';

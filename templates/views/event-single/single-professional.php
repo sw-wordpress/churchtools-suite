@@ -6,35 +6,37 @@
  * @since   0.9.9.91
  */
 
-if ( ! defined( 'ABSPATH' ) ) exit;
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
 
-// DEBUG: Verify template loaded
+// DEBUG: Verify template loaded.
 echo '<!-- Integration Suite Professional Template v0.9.9.91 LOADED -->';
 
-// Timezone & formatting
-$timezone = ! empty( get_option( 'timezone_string' ) )
+// Timezone & formatting.
+$timezone    = ! empty( get_option( 'timezone_string' ) )
 	? new DateTimeZone( get_option( 'timezone_string' ) )
 	: wp_timezone();
 $date_format = get_option( 'date_format', 'd.m.Y' );
 $time_format = get_option( 'time_format', 'H:i' );
-$is_24h = ( strpos( $time_format, 'a' ) === false && strpos( $time_format, 'A' ) === false );
+$is_24h      = ( strpos( $time_format, 'a' ) === false && strpos( $time_format, 'A' ) === false );
 $time_suffix = $is_24h ? ' Uhr' : '';
-$tz_label = ! empty( get_option( 'timezone_string' ) ) ? str_replace( '_', ' ', get_option( 'timezone_string' ) ) : $timezone->getName();
+$tz_label    = ! empty( get_option( 'timezone_string' ) ) ? str_replace( '_', ' ', get_option( 'timezone_string' ) ) : $timezone->getName();
 
-// Format dates
+// Format dates.
 $start_date_short = '';
-$start_date_long = '';
-$start_time = '';
-$end_time = '';
-$start_date_full = '';
+$start_date_long  = '';
+$start_time       = '';
+$end_time         = '';
+$start_date_full  = '';
 
 if ( ! empty( $event->start_datetime ) ) {
 	$start_dt = new DateTime( $event->start_datetime, new DateTimeZone( 'UTC' ) );
 	$start_dt->setTimezone( $timezone );
 	$start_date_short = wp_date( $date_format, $start_dt->getTimestamp(), $timezone );
-	$start_date_long = wp_date( $date_format, $start_dt->getTimestamp(), $timezone );
-	$start_date_full = wp_date( 'l, j. F Y', $start_dt->getTimestamp(), $timezone );
-	$start_time = wp_date( $time_format, $start_dt->getTimestamp(), $timezone ) . $time_suffix;
+	$start_date_long  = wp_date( $date_format, $start_dt->getTimestamp(), $timezone );
+	$start_date_full  = wp_date( 'l, j. F Y', $start_dt->getTimestamp(), $timezone );
+	$start_time       = wp_date( $time_format, $start_dt->getTimestamp(), $timezone ) . $time_suffix;
 }
 
 if ( ! empty( $event->end_datetime ) ) {
@@ -43,33 +45,40 @@ if ( ! empty( $event->end_datetime ) ) {
 	$end_time = wp_date( $time_format, $end_dt->getTimestamp(), $timezone ) . $time_suffix;
 }
 
-// Coordinates
-$has_coords = isset( $event->address_latitude, $event->address_longitude )
-	&& $event->address_latitude !== ''
-	&& $event->address_longitude !== '';
+// Coordinates.
+$has_coords  = isset( $event->address_latitude, $event->address_longitude )
+	&& '' !== $event->address_latitude
+	&& '' !== $event->address_longitude;
 $coords_text = $has_coords ? $event->address_latitude . ', ' . $event->address_longitude : '';
 
 $map_embed = '';
-$map_link = '';
+$map_link  = '';
 if ( $has_coords ) {
-	$lat = (float) $event->address_latitude;
-	$lng = (float) $event->address_longitude;
-	$delta = 0.01;
-	$bbox = [ $lng - $delta, $lat - $delta, $lng + $delta, $lat + $delta ];
+	$lat       = (float) $event->address_latitude;
+	$lng       = (float) $event->address_longitude;
+	$delta     = 0.01;
+	$bbox      = array( $lng - $delta, $lat - $delta, $lng + $delta, $lat + $delta );
 	$map_embed = sprintf(
 		'https://www.openstreetmap.org/export/embed.html?bbox=%1$f,%2$f,%3$f,%4$f&layer=mapnik&marker=%5$f,%6$f',
-		$bbox[0], $bbox[1], $bbox[2], $bbox[3], $lat, $lng
+		$bbox[0],
+		$bbox[1],
+		$bbox[2],
+		$bbox[3],
+		$lat,
+		$lng
 	);
-	$map_link = sprintf( 'https://www.openstreetmap.org/?mlat=%1$f&mlon=%2$f#map=16/%1$f/%2$f', $lat, $lng );
+	$map_link  = sprintf( 'https://www.openstreetmap.org/?mlat=%1$f&mlon=%2$f#map=16/%1$f/%2$f', $lat, $lng );
 } elseif ( ! empty( $location_parts ) ) {
 	$map_link = 'https://www.google.com/maps/search/?api=1&query=' . rawurlencode( implode( ', ', $location_parts ) );
 }
 
-// Parse tags
-$tags = [];
+// Parse tags.
+$tags = array();
 if ( ! empty( $event->tags ) ) {
 	$tags_data = json_decode( $event->tags, true );
-	if ( is_array( $tags_data ) ) $tags = $tags_data;
+	if ( is_array( $tags_data ) ) {
+		$tags = $tags_data;
+	}
 }
 
 // Resolve image without dummy fallback: event image first, then calendar image, otherwise no image.
@@ -95,36 +104,69 @@ if ( empty( $image_url ) && ! empty( $calendar->calendar_image_id ) ) {
 	}
 }
 
-// Location
-$location_parts = [];
-if ( ! empty( $event->address_name ?? $event->location_name ) ) $location_parts[] = $event->address_name ?? $event->location_name;
-if ( ! empty( $event->address_street ) ) $location_parts[] = $event->address_street;
+// Location.
+$location_parts = array();
+if ( ! empty( $event->address_name ?? $event->location_name ) ) {
+	$location_parts[] = $event->address_name ?? $event->location_name;
+}
+if ( ! empty( $event->address_street ) ) {
+	$location_parts[] = $event->address_street;
+}
 if ( ! empty( $event->address_zip ) && ! empty( $event->address_city ) ) {
 	$location_parts[] = $event->address_zip . ', ' . $event->address_city;
 } elseif ( ! empty( $event->address_city ) ) {
 	$location_parts[] = $event->address_city;
 }
 
-// Description
+// Description.
 $full_description = '';
-if ( ! empty( $event->event_description ) ) $full_description = $event->event_description;
+if ( ! empty( $event->event_description ) ) {
+	$full_description = $event->event_description;
+}
 if ( ! empty( $event->appointment_description ) ) {
-	if ( ! empty( $full_description ) ) $full_description .= "\n\n";
+	if ( ! empty( $full_description ) ) {
+		$full_description .= "\n\n";
+	}
 	$full_description .= $event->appointment_description;
 }
 $full_description = wpautop( wp_kses_post( $full_description ) );
 
-// Meta block for "alle weiteren Felder"
-$meta_items = [];
-if ( ! empty( $calendar->name ) ) $meta_items[] = [ 'label' => __( 'Kalender', 'churchtools-suite' ), 'value' => $calendar->name ];
-if ( ! empty( $event->status ) ) $meta_items[] = [ 'label' => __( 'Status', 'churchtools-suite' ), 'value' => $event->status ];
-if ( ! empty( $event->event_id ) ) $meta_items[] = [ 'label' => 'Event-ID', 'value' => $event->event_id ];
-if ( ! empty( $event->appointment_id ) ) $meta_items[] = [ 'label' => 'Appointment-ID', 'value' => $event->appointment_id ];
-if ( ! empty( $event->calendar_id ) ) $meta_items[] = [ 'label' => __( 'Kalender-ID', 'churchtools-suite' ), 'value' => $event->calendar_id ];
+// Meta block for "alle weiteren Felder".
+$meta_items = array();
+if ( ! empty( $calendar->name ) ) {
+	$meta_items[] = array(
+		'label' => __( 'Kalender', 'churchtools-suite' ),
+		'value' => $calendar->name,
+	);
+}
+if ( ! empty( $event->status ) ) {
+	$meta_items[] = array(
+		'label' => __( 'Status', 'churchtools-suite' ),
+		'value' => $event->status,
+	);
+}
+if ( ! empty( $event->event_id ) ) {
+	$meta_items[] = array(
+		'label' => 'Event-ID',
+		'value' => $event->event_id,
+	);
+}
+if ( ! empty( $event->appointment_id ) ) {
+	$meta_items[] = array(
+		'label' => 'Appointment-ID',
+		'value' => $event->appointment_id,
+	);
+}
+if ( ! empty( $event->calendar_id ) ) {
+	$meta_items[] = array(
+		'label' => __( 'Kalender-ID', 'churchtools-suite' ),
+		'value' => $event->calendar_id,
+	);
+}
 
-// Kalenderfarben-Unterstützung (v1.1.4.4)
-$calendar_color = ( $calendar && ! empty( $calendar->color ) ) ? $calendar->color : '#3498db';
-$container_style = sprintf( 
+// Kalenderfarben-Unterstützung (v1.1.4.4).
+$calendar_color  = ( $calendar && ! empty( $calendar->color ) ) ? $calendar->color : '#3498db';
+$container_style = sprintf(
 	'--cts-calendar-color: %s; --cts-primary-color: %s;',
 	esc_attr( $calendar_color ),
 	esc_attr( $calendar_color )
@@ -133,12 +175,12 @@ $container_style = sprintf(
 $resolved_back_link = '';
 if ( ! empty( $back_link ) ) {
 	$resolved_back_link = (string) $back_link;
-} elseif ( isset( $_GET['event_id'] ) && absint( $_GET['event_id'] ) > 0 ) {
-	$resolved_back_link = remove_query_arg( [ 'event_id', 'template', 'ctse_context' ] );
-}
-?>
+	/* phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only navigation, display filters, or status messages; no state is changed by these query arguments. */ } elseif ( isset( $_GET['event_id'] ) && absint( $_GET['event_id'] ) > 0 ) {
+	$resolved_back_link = remove_query_arg( array( 'event_id', 'template', 'ctse_context' ) );
+	}
+	?>
 
-<div class="cts-single-pro" style="<?php echo $container_style; ?>">
+<div class="cts-single-pro" style="<?php echo esc_attr( $container_style ); ?>">
 	<?php if ( ! empty( $include_back_button ) && ! empty( $resolved_back_link ) ) : ?>
 		<div class="cts-back-button-wrapper"><a href="<?php echo esc_url( $resolved_back_link ); ?>" class="cts-back-button">&larr; <?php esc_html_e( 'Zurück zur Übersicht', 'churchtools-suite' ); ?></a></div>
 	<?php endif; ?>
@@ -182,10 +224,16 @@ if ( ! empty( $back_link ) ) {
 						<div class="cts-pro-val"><?php echo esc_html( $start_date_full ); ?></div>
 					<?php endif; ?>
 					<?php if ( ! empty( $start_time ) ) : ?>
-						<div class="cts-pro-sub"><?php echo esc_html( $start_time ); if ( ! empty( $end_time ) ) echo ' - ' . esc_html( $end_time ); ?></div>
+						<div class="cts-pro-sub">
+						<?php
+						echo esc_html( $start_time );
+						if ( ! empty( $end_time ) ) {
+							echo ' - ' . esc_html( $end_time );}
+						?>
+						</div>
 					<?php endif; ?>
 					<?php if ( ! empty( $tz_label ) ) : ?>
-						<div class="cts-pro-sub"><?php printf( esc_html__( 'Zeitzone: %s', 'churchtools-suite' ), esc_html( $tz_label ) ); ?></div>
+						<div class="cts-pro-sub"><?php printf( /* translators: %s: Timezone label. */ esc_html__( 'Zeitzone: %s', 'churchtools-suite' ), esc_html( $tz_label ) ); ?></div>
 					<?php endif; ?>
 				</div>
 			</div>
@@ -199,9 +247,9 @@ if ( ! empty( $back_link ) ) {
 				<div class="cts-pro-txt">
 					<div class="cts-pro-lbl">LABELS</div>
 					<div class="cts-pro-tags">
-						<?php foreach ( $tags as $tag ) : ?>
-							<span class="cts-pro-tag" style="background:<?php echo esc_attr( $tag['color'] ?? '#6b7280' ); ?>20;color:<?php echo esc_attr( $tag['color'] ?? '#6b7280' ); ?>">
-								<?php echo esc_html( $tag['name'] ?? '' ); ?>
+						<?php foreach ( $tags as $cts_tag ) : ?>
+							<span class="cts-pro-tag" style="background:<?php echo esc_attr( $cts_tag['color'] ?? '#6b7280' ); ?>20;color:<?php echo esc_attr( $cts_tag['color'] ?? '#6b7280' ); ?>">
+								<?php echo esc_html( $cts_tag['name'] ?? '' ); ?>
 							</span>
 						<?php endforeach; ?>
 					</div>
@@ -227,7 +275,7 @@ if ( ! empty( $back_link ) ) {
 				</div>
 			</div>
 
-			<?php if ( $has_coords && ! empty( $map_embed ) ) : ?>
+				<?php if ( $has_coords && ! empty( $map_embed ) ) : ?>
 				<div class="cts-pro-map">
 					<iframe src="<?php echo esc_url( $map_embed ); ?>" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
 				</div>

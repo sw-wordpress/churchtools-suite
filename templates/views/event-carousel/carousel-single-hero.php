@@ -11,41 +11,41 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-$autoplay = isset( $args['autoplay'] ) ? ChurchTools_Suite_Shortcodes::parse_boolean( $args['autoplay'] ) : false;
+$autoplay       = isset( $args['autoplay'] ) ? ChurchTools_Suite_Shortcodes::parse_boolean( $args['autoplay'] ) : false;
 $autoplay_delay = isset( $args['autoplay_delay'] ) ? intval( $args['autoplay_delay'] ) : 7000;
 $autoplay_delay = max( 1000, min( 10000, $autoplay_delay ) );
-$loop = isset( $args['loop'] ) ? ChurchTools_Suite_Shortcodes::parse_boolean( $args['loop'] ) : true;
+$loop           = isset( $args['loop'] ) ? ChurchTools_Suite_Shortcodes::parse_boolean( $args['loop'] ) : true;
 
-$show_time = isset( $args['show_time'] ) ? ChurchTools_Suite_Shortcodes::parse_boolean( $args['show_time'] ) : true;
-$show_location = isset( $args['show_location'] ) ? ChurchTools_Suite_Shortcodes::parse_boolean( $args['show_location'] ) : true;
-$show_calendar_name = isset( $args['show_calendar_name'] ) ? ChurchTools_Suite_Shortcodes::parse_boolean( $args['show_calendar_name'] ) : true;
-$show_images = isset( $args['show_images'] ) ? ChurchTools_Suite_Shortcodes::parse_boolean( $args['show_images'] ) : true;
-$show_event_description = isset( $args['show_event_description'] ) ? ChurchTools_Suite_Shortcodes::parse_boolean( $args['show_event_description'] ) : true;
+$show_time                    = isset( $args['show_time'] ) ? ChurchTools_Suite_Shortcodes::parse_boolean( $args['show_time'] ) : true;
+$show_location                = isset( $args['show_location'] ) ? ChurchTools_Suite_Shortcodes::parse_boolean( $args['show_location'] ) : true;
+$show_calendar_name           = isset( $args['show_calendar_name'] ) ? ChurchTools_Suite_Shortcodes::parse_boolean( $args['show_calendar_name'] ) : true;
+$show_images                  = isset( $args['show_images'] ) ? ChurchTools_Suite_Shortcodes::parse_boolean( $args['show_images'] ) : true;
+$show_event_description       = isset( $args['show_event_description'] ) ? ChurchTools_Suite_Shortcodes::parse_boolean( $args['show_event_description'] ) : true;
 $show_appointment_description = isset( $args['show_appointment_description'] ) ? ChurchTools_Suite_Shortcodes::parse_boolean( $args['show_appointment_description'] ) : true;
-$show_tags = isset( $args['show_tags'] ) ? ChurchTools_Suite_Shortcodes::parse_boolean( $args['show_tags'] ) : true;
-$show_services = isset( $args['show_services'] ) ? ChurchTools_Suite_Shortcodes::parse_boolean( $args['show_services'] ) : false;
-$show_title = isset( $args['show_title'] ) ? ChurchTools_Suite_Shortcodes::parse_boolean( $args['show_title'] ) : true;
-$image_fit = isset( $args['image_fit'] ) ? ChurchTools_Suite_Shortcodes::sanitize_image_fit( $args['image_fit'] ) : 'contain';
-$hero_title_font_size = isset( $args['hero_title_font_size'] ) ? max( 0, min( 120, intval( $args['hero_title_font_size'] ) ) ) : 0;
-$hero_layout_preset = isset( $args['hero_layout_preset'] ) && in_array( $args['hero_layout_preset'], [ 'compact', 'standard', 'hero' ], true ) ? $args['hero_layout_preset'] : 'standard';
-$hero_mobile_optimize = isset( $args['hero_mobile_optimize'] ) ? ChurchTools_Suite_Shortcodes::parse_boolean( $args['hero_mobile_optimize'] ) : true;
-$event_action = $args['event_action'] ?? 'modal';
-$single_event_base = apply_filters( 'churchtools_suite_single_event_base_url', home_url( '/events/' ) );
-$single_event_template = get_option( 'churchtools_suite_single_template', 'professional' );
-$wp_timezone = wp_timezone();
+$show_tags                    = isset( $args['show_tags'] ) ? ChurchTools_Suite_Shortcodes::parse_boolean( $args['show_tags'] ) : true;
+$show_services                = isset( $args['show_services'] ) ? ChurchTools_Suite_Shortcodes::parse_boolean( $args['show_services'] ) : false;
+$show_title                   = isset( $args['show_title'] ) ? ChurchTools_Suite_Shortcodes::parse_boolean( $args['show_title'] ) : true;
+$image_fit                    = isset( $args['image_fit'] ) ? ChurchTools_Suite_Shortcodes::sanitize_image_fit( $args['image_fit'] ) : 'contain';
+$hero_title_font_size         = isset( $args['hero_title_font_size'] ) ? max( 0, min( 120, intval( $args['hero_title_font_size'] ) ) ) : 0;
+$hero_layout_preset           = isset( $args['hero_layout_preset'] ) && in_array( $args['hero_layout_preset'], array( 'compact', 'standard', 'hero' ), true ) ? $args['hero_layout_preset'] : 'standard';
+$hero_mobile_optimize         = isset( $args['hero_mobile_optimize'] ) ? ChurchTools_Suite_Shortcodes::parse_boolean( $args['hero_mobile_optimize'] ) : true;
+$event_action                 = $args['event_action'] ?? 'modal';
+$single_event_base            = apply_filters( 'churchtools_suite_single_event_base_url', home_url( '/events/' ) );
+$single_event_template        = get_option( 'churchtools_suite_single_template', 'professional' );
+$wp_timezone                  = wp_timezone();
 
 $event_class = '';
-if ( $event_action === 'modal' ) {
+if ( 'modal' === $event_action ) {
 	$event_class = 'cts-event-clickable';
-} elseif ( $event_action === 'page' ) {
+} elseif ( 'page' === $event_action ) {
 	$event_class = 'cts-event-page-link';
 }
 
-$wrapper_classes = [
+$wrapper_classes = array(
 	'churchtools-suite-wrapper',
 	'cts-carousel-classic',
 	'cts-carousel-single-hero',
-];
+);
 
 if ( ! empty( $args['class'] ) ) {
 	$wrapper_classes[] = esc_attr( $args['class'] );
@@ -71,20 +71,20 @@ if ( ! function_exists( 'cts_carousel_single_hero_image_url' ) ) {
 }
 
 $hero_height_desktop = 'clamp(380px, 64vh, 760px)';
-$hero_height_mobile = '70vh';
-$hero_content_width = '840px';
-$hero_title_default = 'clamp(1.9rem, 4.1vw, 3.8rem)';
+$hero_height_mobile  = '70vh';
+$hero_content_width  = '840px';
+$hero_title_default  = 'clamp(1.9rem, 4.1vw, 3.8rem)';
 
-if ( $hero_layout_preset === 'compact' ) {
+if ( 'compact' === $hero_layout_preset ) {
 	$hero_height_desktop = 'clamp(320px, 56vh, 620px)';
-	$hero_height_mobile = '62vh';
-	$hero_content_width = '760px';
-	$hero_title_default = 'clamp(1.6rem, 3.2vw, 3rem)';
-} elseif ( $hero_layout_preset === 'hero' ) {
+	$hero_height_mobile  = '62vh';
+	$hero_content_width  = '760px';
+	$hero_title_default  = 'clamp(1.6rem, 3.2vw, 3rem)';
+} elseif ( 'hero' === $hero_layout_preset ) {
 	$hero_height_desktop = 'clamp(460px, 76vh, 920px)';
-	$hero_height_mobile = '78vh';
-	$hero_content_width = '960px';
-	$hero_title_default = 'clamp(2.1rem, 4.8vw, 4.5rem)';
+	$hero_height_mobile  = '78vh';
+	$hero_content_width  = '960px';
+	$hero_title_default  = 'clamp(2.1rem, 4.8vw, 4.5rem)';
 }
 ?>
 
@@ -259,19 +259,20 @@ if ( $hero_layout_preset === 'compact' ) {
 		<?php $has_multiple_events = count( $events ) > 1; ?>
 		<div class="cts-carousel-container">
 			<div class="cts-carousel-track">
-				<?php foreach ( $events as $event ) :
-					$start_ts = current_time( 'timestamp' );
+				<?php
+				foreach ( $events as $event ) :
+					$start_ts = time();
 					if ( ! empty( $event['start_datetime'] ) ) {
 						try {
 							$dt = new DateTime( $event['start_datetime'], new DateTimeZone( 'UTC' ) );
 							$dt->setTimezone( $wp_timezone );
 							$start_ts = $dt->getTimestamp();
 						} catch ( Exception $e ) {
-							$start_ts = current_time( 'timestamp' );
+							$start_ts = time();
 						}
 					}
-					$time_format = get_option( 'time_format' );
-					$has_ampm = ( strpos( $time_format, 'a' ) !== false || strpos( $time_format, 'A' ) !== false );
+					$time_format        = get_option( 'time_format' );
+					$has_ampm           = ( strpos( $time_format, 'a' ) !== false || strpos( $time_format, 'A' ) !== false );
 					$start_time_display = wp_date( $time_format, $start_ts, $wp_timezone );
 					if ( ! $has_ampm ) {
 						$start_time_display .= ' Uhr';
@@ -281,7 +282,7 @@ if ( $hero_layout_preset === 'compact' ) {
 						try {
 							$dt_end = new DateTime( $event['end_datetime'], new DateTimeZone( 'UTC' ) );
 							$dt_end->setTimezone( $wp_timezone );
-							$end_ts = $dt_end->getTimestamp();
+							$end_ts           = $dt_end->getTimestamp();
 							$end_time_display = wp_date( $time_format, $end_ts, $wp_timezone );
 							if ( ! $has_ampm ) {
 								$end_time_display .= ' Uhr';
@@ -290,21 +291,21 @@ if ( $hero_layout_preset === 'compact' ) {
 							$end_time_display = '';
 						}
 					}
-					$calendar_color = $event['calendar_color'] ?? '#2563eb';
-					$image_url = $show_images ? cts_carousel_single_hero_image_url( $event ) : '';
+					$calendar_color   = $event['calendar_color'] ?? '#2563eb';
+					$image_url        = $show_images ? cts_carousel_single_hero_image_url( $event ) : '';
 					$description_html = '';
 					if ( $show_event_description && ! empty( $event['event_description'] ) ) {
 						$description_html .= wpautop( wp_trim_words( wp_strip_all_tags( $event['event_description'] ), 42 ) );
 					}
 					if ( $show_appointment_description && ! empty( $event['appointment_description'] ) ) {
-						if ( $description_html !== '' ) {
+						if ( '' !== $description_html ) {
 							$description_html .= wpautop( wp_trim_words( wp_strip_all_tags( $event['appointment_description'] ), 24 ) );
 						} else {
 							$description_html = wpautop( wp_trim_words( wp_strip_all_tags( $event['appointment_description'] ), 42 ) );
 						}
 					}
 					$event_attrs = '';
-					if ( $event_action === 'modal' ) {
+					if ( 'modal' === $event_action ) {
 						$event_attrs = sprintf(
 							'data-event-id="%s" data-event-title="%s" data-event-start="%s" data-event-location="%s" data-event-description="%s"',
 							esc_attr( $event['id'] ),
@@ -313,12 +314,12 @@ if ( $hero_layout_preset === 'compact' ) {
 							esc_attr( $event['location_name'] ?? '' ),
 							esc_attr( wp_trim_words( $event['event_description'] ?? '', 50 ) )
 						);
-					} elseif ( $event_action === 'page' ) {
-						$click_url = add_query_arg(
-							[
+					} elseif ( 'page' === $event_action ) {
+						$click_url   = add_query_arg(
+							array(
 								'event_id' => $event['id'],
 								'template' => $single_event_template,
-							],
+							),
 							$single_event_base
 						);
 						$event_attrs = sprintf(
@@ -327,9 +328,9 @@ if ( $hero_layout_preset === 'compact' ) {
 							esc_url( $click_url )
 						);
 					}
-					$tags = ! empty( $event['tags'] ) ? json_decode( $event['tags'], true ) : [];
-				?>
-				<div class="cts-carousel-slide <?php echo esc_attr( $event_class ); ?>" <?php echo $event_attrs; ?> style="--calendar-color: <?php echo esc_attr( $calendar_color ); ?>;">
+					$tags = ! empty( $event['tags'] ) ? json_decode( $event['tags'], true ) : array();
+					?>
+				<div class="cts-carousel-slide <?php /* phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Attribute markup is assembled above with individually escaped values. */  echo esc_attr( $event_class ); ?>" <?php echo $event_attrs; ?> style="--calendar-color: <?php echo esc_attr( $calendar_color ); ?>;">
 					<?php if ( ! empty( $image_url ) ) : ?>
 						<div class="cts-carousel-single-hero-media"><img class="cts-carousel-single-hero-img" src="<?php echo esc_url( $image_url ); ?>" alt="<?php echo esc_attr( $event['title'] ); ?>"></div>
 					<?php else : ?>
@@ -339,7 +340,7 @@ if ( $hero_layout_preset === 'compact' ) {
 					<div class="cts-carousel-single-hero-inner">
 						<div class="cts-carousel-single-hero-content">
 							<div class="cts-carousel-single-hero-badges">
-								<div class="cts-carousel-single-hero-badge"><?php echo esc_html( wp_date( 'l, j. F Y', $start_ts, $wp_timezone ) ); ?></div>
+								<div class="cts-carousel-single-hero-badge"><?php echo esc_html( (string) ( wp_date( 'l, j. F Y', $start_ts, $wp_timezone ) ) ); ?></div>
 								<?php if ( $show_calendar_name && ! empty( $event['calendar_name'] ) ) : ?>
 									<div class="cts-carousel-single-hero-badge"><?php echo esc_html( $event['calendar_name'] ); ?></div>
 								<?php endif; ?>
@@ -349,26 +350,30 @@ if ( $hero_layout_preset === 'compact' ) {
 							<?php endif; ?>
 							<div class="cts-carousel-single-hero-meta">
 								<?php if ( $show_time ) : ?>
-									<div class="cts-carousel-single-hero-meta-item"><span class="dashicons dashicons-clock"></span><span><?php echo esc_html( $end_time_display ? $start_time_display . ' - ' . $end_time_display : $start_time_display ); ?></span></div>
+									<div class="cts-carousel-single-hero-meta-item"><span class="dashicons dashicons-clock"></span><span><?php echo esc_html( (string) ( $end_time_display ? $start_time_display . ' - ' . $end_time_display : $start_time_display ) ); ?></span></div>
 								<?php endif; ?>
 								<?php if ( $show_location && ! empty( $event['location_name'] ) ) : ?>
 									<div class="cts-carousel-single-hero-meta-item"><span class="dashicons dashicons-location"></span><span><?php echo esc_html( $event['location_name'] ); ?></span></div>
 								<?php endif; ?>
 							</div>
-							<?php if ( $description_html !== '' ) : ?>
+							<?php if ( '' !== $description_html ) : ?>
 								<div class="cts-carousel-single-hero-copy"><?php echo wp_kses_post( $description_html ); ?></div>
 							<?php endif; ?>
 							<?php if ( $show_tags && is_array( $tags ) && ! empty( $tags ) ) : ?>
 								<div class="cts-carousel-single-hero-tags">
-									<?php foreach ( $tags as $tag ) : ?>
-										<span class="cts-carousel-single-hero-chip"><?php echo esc_html( $tag['name'] ?? '' ); ?></span>
+									<?php foreach ( $tags as $cts_tag ) : ?>
+										<span class="cts-carousel-single-hero-chip"><?php echo esc_html( $cts_tag['name'] ?? '' ); ?></span>
 									<?php endforeach; ?>
 								</div>
 							<?php endif; ?>
 							<?php if ( $show_services && ! empty( $event['services'] ) ) : ?>
 								<div class="cts-carousel-single-hero-services">
 									<?php foreach ( $event['services'] as $service ) : ?>
-										<span class="cts-carousel-single-hero-chip"><?php echo esc_html( $service['service_name'] ?? '' ); ?><?php if ( ! empty( $service['person_name'] ) ) : ?>: <?php echo esc_html( $service['person_name'] ); ?><?php endif; ?></span>
+										<span class="cts-carousel-single-hero-chip"><?php echo esc_html( $service['service_name'] ?? '' ); ?>
+										<?php
+										if ( ! empty( $service['person_name'] ) ) :
+											?>
+											: <?php echo esc_html( $service['person_name'] ); ?><?php endif; ?></span>
 									<?php endforeach; ?>
 								</div>
 							<?php endif; ?>

@@ -13,29 +13,29 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 class ChurchTools_Suite_Posts_Sync_Service {
 
-	const META_CT_POST_ID = '_cts_ct_post_id';
-	const META_CT_POST_HASH = '_cts_ct_post_hash';
-	const META_CT_POST_GUID = '_cts_ct_post_guid';
-	const META_CT_GROUP_ID = '_cts_ct_group_id';
-	const META_CT_GROUP_TITLE = '_cts_ct_group_title';
-	const META_CT_GROUP_VISIBILITY = '_cts_ct_group_visibility';
-	const META_CT_POST_VISIBILITY = '_cts_ct_post_visibility';
-	const META_CT_COMMENTS_ACTIVE = '_cts_ct_comments_active';
-	const META_CT_IMAGES = '_cts_ct_images';
-	const META_CT_PUBLICATION_DATE = '_cts_ct_publication_date';
-	const META_CT_EXPIRATION_DATE = '_cts_ct_expiration_date';
-	const META_CT_PUBLISHED_DATE = '_cts_ct_published_date';
-	const META_CT_LAST_EDITED_DATE = '_cts_ct_last_edited_date';
-	const META_CT_IS_BANNED = '_cts_ct_is_banned';
-	const META_CT_ACTOR_ID = '_cts_ct_actor_id';
-	const META_CT_ACTOR_NAME = '_cts_ct_actor_name';
-	const META_CT_ACTOR_IMAGE = '_cts_ct_actor_image';
-	const META_CT_CREATED_DATE = '_cts_ct_created_date';
-	const META_CT_MODIFIED_DATE = '_cts_ct_modified_date';
-	const META_CT_CREATED_PERSON_ID = '_cts_ct_created_person_id';
+	const META_CT_POST_ID            = '_cts_ct_post_id';
+	const META_CT_POST_HASH          = '_cts_ct_post_hash';
+	const META_CT_POST_GUID          = '_cts_ct_post_guid';
+	const META_CT_GROUP_ID           = '_cts_ct_group_id';
+	const META_CT_GROUP_TITLE        = '_cts_ct_group_title';
+	const META_CT_GROUP_VISIBILITY   = '_cts_ct_group_visibility';
+	const META_CT_POST_VISIBILITY    = '_cts_ct_post_visibility';
+	const META_CT_COMMENTS_ACTIVE    = '_cts_ct_comments_active';
+	const META_CT_IMAGES             = '_cts_ct_images';
+	const META_CT_PUBLICATION_DATE   = '_cts_ct_publication_date';
+	const META_CT_EXPIRATION_DATE    = '_cts_ct_expiration_date';
+	const META_CT_PUBLISHED_DATE     = '_cts_ct_published_date';
+	const META_CT_LAST_EDITED_DATE   = '_cts_ct_last_edited_date';
+	const META_CT_IS_BANNED          = '_cts_ct_is_banned';
+	const META_CT_ACTOR_ID           = '_cts_ct_actor_id';
+	const META_CT_ACTOR_NAME         = '_cts_ct_actor_name';
+	const META_CT_ACTOR_IMAGE        = '_cts_ct_actor_image';
+	const META_CT_CREATED_DATE       = '_cts_ct_created_date';
+	const META_CT_MODIFIED_DATE      = '_cts_ct_modified_date';
+	const META_CT_CREATED_PERSON_ID  = '_cts_ct_created_person_id';
 	const META_CT_MODIFIED_PERSON_ID = '_cts_ct_modified_person_id';
-	const META_CT_RAW_PAYLOAD = '_cts_ct_raw_payload';
-	const META_CT_GROUP_TERM_ID = '_cts_ct_group_term_id';
+	const META_CT_RAW_PAYLOAD        = '_cts_ct_raw_payload';
+	const META_CT_GROUP_TERM_ID      = '_cts_ct_group_term_id';
 
 	/**
 	 * @var ChurchTools_Suite_CT_Client
@@ -46,17 +46,17 @@ class ChurchTools_Suite_Posts_Sync_Service {
 		$this->client = $client;
 	}
 
-	public function sync_posts( array $args = [] ) {
-		require_once CHURCHTOOLS_SUITE_PATH . 'includes/class-churchtools-suite-parsedown.php';		
+	public function sync_posts( array $args = array() ) {
+		require_once CHURCHTOOLS_SUITE_PATH . 'includes/class-churchtools-suite-parsedown.php';
 
-		$target_type = get_option( 'churchtools_suite_ct_posts_target_type', 'post' );
+		$target_type            = get_option( 'churchtools_suite_ct_posts_target_type', 'post' );
 		$supported_target_types = $this->get_supported_target_types();
 		if ( ! in_array( $target_type, $supported_target_types, true ) ) {
 			$target_type = in_array( CTS_POSTS_SYNC_CPT, $supported_target_types, true ) ? CTS_POSTS_SYNC_CPT : 'post';
 		}
 
 		$target_status = get_option( 'churchtools_suite_ct_posts_target_status', 'draft' );
-		if ( ! in_array( $target_status, [ 'draft', 'publish', 'private' ], true ) ) {
+		if ( ! in_array( $target_status, array( 'draft', 'publish', 'private' ), true ) ) {
 			$target_status = 'draft';
 		}
 
@@ -68,7 +68,7 @@ class ChurchTools_Suite_Posts_Sync_Service {
 			$limit = 1000;
 		}
 
-		$query_params = $this->get_sync_query_params( $args );
+		$query_params          = $this->get_sync_query_params( $args );
 		$query_params['limit'] = $limit;
 
 		$response = $this->client->api_request( 'posts', 'GET', $query_params );
@@ -78,19 +78,19 @@ class ChurchTools_Suite_Posts_Sync_Service {
 
 		$items = $this->extract_posts_from_response( $response );
 
-		$stats = [
-			'posts_found' => count( $items ),
-			'posts_created' => 0,
-			'posts_updated' => 0,
-			'posts_skipped' => 0,
+		$stats             = array(
+			'posts_found'           => count( $items ),
+			'posts_created'         => 0,
+			'posts_updated'         => 0,
+			'posts_skipped'         => 0,
 			'posts_missing_checked' => 0,
-			'posts_privated' => 0,
-			'errors' => 0,
-			'target_type' => $target_type,
-			'target_status' => $target_status,
-			'query' => $query_params,
-		];
-		$response_post_ids = [];
+			'posts_privated'        => 0,
+			'errors'                => 0,
+			'target_type'           => $target_type,
+			'target_status'         => $target_status,
+			'query'                 => $query_params,
+		);
+		$response_post_ids = array();
 
 		foreach ( $items as $item ) {
 			$normalized = $this->normalize_ct_post( $item );
@@ -99,67 +99,71 @@ class ChurchTools_Suite_Posts_Sync_Service {
 			}
 
 			if ( empty( $normalized['ct_id'] ) || empty( $normalized['title'] ) ) {
-				$stats['errors']++;
+				++$stats['errors'];
 				continue;
 			}
 
 			$existing_post_id = $this->find_existing_post_id( $normalized['ct_id'] );
 
-			$payload_hash = md5( (string) wp_json_encode( [
-				'normalized' => $normalized,
-				'target_type' => $target_type,
-				'target_status' => $target_status,
-			] ) );
+			$payload_hash = md5(
+				(string) wp_json_encode(
+					array(
+						'normalized'    => $normalized,
+						'target_type'   => $target_type,
+						'target_status' => $target_status,
+					)
+				)
+			);
 
 			if ( $existing_post_id > 0 ) {
 				$current_hash = (string) get_post_meta( $existing_post_id, self::META_CT_POST_HASH, true );
 				$current_post = get_post( $existing_post_id );
 				if ( $current_post && $current_hash === $payload_hash && $current_post->post_type === $target_type && $current_post->post_status === $target_status ) {
-					$stats['posts_skipped']++;
+					++$stats['posts_skipped'];
 					continue;
 				}
 
 				$update_result = wp_update_post(
-					[
-						'ID' => $existing_post_id,
-						'post_type' => $target_type,
-						'post_status' => $target_status,
-						'post_title' => $normalized['title'],
+					array(
+						'ID'           => $existing_post_id,
+						'post_type'    => $target_type,
+						'post_status'  => $target_status,
+						'post_title'   => $normalized['title'],
 						'post_content' => $normalized['content'],
 						'post_excerpt' => $normalized['excerpt'],
-						'post_name' => $normalized['slug'],
-						'post_date' => $normalized['date'],
-					],
+						'post_name'    => $normalized['slug'],
+						'post_date'    => $normalized['date'],
+					),
 					true
 				);
 
 				if ( is_wp_error( $update_result ) ) {
-					$stats['errors']++;
+					++$stats['errors'];
 					continue;
 				}
 
 				update_post_meta( $existing_post_id, self::META_CT_POST_HASH, $payload_hash );
 				$this->update_ct_post_meta( $existing_post_id, $normalized );
 				$this->assign_group_category( $existing_post_id, $normalized, $target_type );
-				$stats['posts_updated']++;
+				++$stats['posts_updated'];
 				continue;
 			}
 
 			$insert_result = wp_insert_post(
-				[
-					'post_type' => $target_type,
-					'post_status' => $target_status,
-					'post_title' => $normalized['title'],
+				array(
+					'post_type'    => $target_type,
+					'post_status'  => $target_status,
+					'post_title'   => $normalized['title'],
 					'post_content' => $normalized['content'],
 					'post_excerpt' => $normalized['excerpt'],
-					'post_name' => $normalized['slug'],
-					'post_date' => $normalized['date'],
-				],
+					'post_name'    => $normalized['slug'],
+					'post_date'    => $normalized['date'],
+				),
 				true
 			);
 
 			if ( is_wp_error( $insert_result ) ) {
-				$stats['errors']++;
+				++$stats['errors'];
 				continue;
 			}
 
@@ -168,7 +172,7 @@ class ChurchTools_Suite_Posts_Sync_Service {
 			update_post_meta( $new_post_id, self::META_CT_POST_HASH, $payload_hash );
 			$this->update_ct_post_meta( $new_post_id, $normalized );
 			$this->assign_group_category( $new_post_id, $normalized, $target_type );
-			$stats['posts_created']++;
+			++$stats['posts_created'];
 		}
 
 		$response_post_ids = array_values( array_unique( $response_post_ids ) );
@@ -176,10 +180,10 @@ class ChurchTools_Suite_Posts_Sync_Service {
 
 		update_option(
 			'churchtools_suite_posts_sync_last_result',
-			[
+			array(
 				'run_at' => current_time( 'mysql' ),
-				'stats' => $stats,
-			],
+				'stats'  => $stats,
+			),
 			false
 		);
 
@@ -193,57 +197,57 @@ class ChurchTools_Suite_Posts_Sync_Service {
 	 * ChurchTools post no longer exists (HTTP 404) or returns no usable data.
 	 * Other API errors are counted but do not change the WordPress post status.
 	 *
-	 * @param array<int, string>  $response_post_ids ChurchTools IDs from the list response.
-	 * @param string              $target_type       Configured WordPress target post type.
+	 * @param array<int, string>   $response_post_ids ChurchTools IDs from the list response.
+	 * @param string               $target_type       Configured WordPress target post type.
 	 * @param array<string, mixed> $stats             Sync statistics, updated by reference.
 	 */
 	private function privatize_missing_ct_posts( array $response_post_ids, string $target_type, array &$stats ): void {
 		$published_posts = get_posts(
-			[
-				'post_type' => $target_type,
-				'post_status' => 'publish',
-				'numberposts' => -1,
-				'fields' => 'ids',
-				'meta_query' => [
-					[
-						'key' => self::META_CT_POST_ID,
+			array(
+				'post_type'        => $target_type,
+				'post_status'      => 'publish',
+				'numberposts'      => -1,
+				'fields'           => 'ids',
+				/* phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query -- Metadata lookup is required to match imported ChurchTools records to their existing WordPress posts. */ 'meta_query' => array(
+					array(
+						'key'     => self::META_CT_POST_ID,
 						'compare' => 'EXISTS',
-					],
-				],
+					),
+				),
 				'suppress_filters' => true,
-			]
+			)
 		);
 
 		foreach ( $published_posts as $post_id ) {
 			$ct_post_id = trim( (string) get_post_meta( (int) $post_id, self::META_CT_POST_ID, true ) );
-			if ( $ct_post_id === '' || in_array( $ct_post_id, $response_post_ids, true ) ) {
+			if ( '' === $ct_post_id || in_array( $ct_post_id, $response_post_ids, true ) ) {
 				continue;
 			}
 
-			$stats['posts_missing_checked']++;
+			++$stats['posts_missing_checked'];
 			$detail_response = $this->client->api_request( 'posts/' . rawurlencode( $ct_post_id ), 'GET' );
 
 			if ( ! $this->is_missing_ct_post_response( $detail_response ) ) {
 				if ( is_wp_error( $detail_response ) ) {
-					$stats['errors']++;
+					++$stats['errors'];
 				}
 				continue;
 			}
 
 			$update_result = wp_update_post(
-				[
-					'ID' => (int) $post_id,
+				array(
+					'ID'          => (int) $post_id,
 					'post_status' => 'private',
-				],
+				),
 				true
 			);
 
 			if ( is_wp_error( $update_result ) ) {
-				$stats['errors']++;
+				++$stats['errors'];
 				continue;
 			}
 
-			$stats['posts_privated']++;
+			++$stats['posts_privated'];
 		}
 	}
 
@@ -275,64 +279,64 @@ class ChurchTools_Suite_Posts_Sync_Service {
 			if ( $this->is_numeric_array( $data ) ) {
 				return $data;
 			}
-			foreach ( [ 'posts', 'items', 'results' ] as $key ) {
+			foreach ( array( 'posts', 'items', 'results' ) as $key ) {
 				if ( isset( $data[ $key ] ) && is_array( $data[ $key ] ) ) {
 					return $data[ $key ];
 				}
 			}
 		}
 
-		foreach ( [ 'posts', 'items', 'results' ] as $key ) {
+		foreach ( array( 'posts', 'items', 'results' ) as $key ) {
 			if ( isset( $response[ $key ] ) && is_array( $response[ $key ] ) ) {
 				return $response[ $key ];
 			}
 		}
 
 		if ( isset( $response['id'] ) ) {
-			return [ $response ];
+			return array( $response );
 		}
 
-		return [];
+		return array();
 	}
 
 	private function is_numeric_array( array $array ): bool {
-		if ( $array === [] ) {
+		if ( array() === $array ) {
 			return true;
 		}
 		return array_keys( $array ) === range( 0, count( $array ) - 1 );
 	}
 
 	private function normalize_ct_post( $item ): array {
-		$ct_id = (string) ( $item['id'] ?? $item['postId'] ?? $item['uid'] ?? '' );
+		$ct_id   = (string) ( $item['id'] ?? $item['postId'] ?? $item['uid'] ?? '' );
 		$ct_guid = (string) ( $item['guid'] ?? '' );
-		$title = trim( (string) ( $item['title'] ?? $item['name'] ?? $item['headline'] ?? '' ) );
-		if ( $title === '' && $ct_id !== '' ) {
+		$title   = trim( (string) ( $item['title'] ?? $item['name'] ?? $item['headline'] ?? '' ) );
+		if ( '' === $title && '' !== $ct_id ) {
 			$title = sprintf( 'ChurchTools Post %s', $ct_id );
 		}
 
 		$content_raw = (string) ( $item['content'] ?? $item['body'] ?? $item['text'] ?? $item['description'] ?? '' );
-		$excerpt = (string) ( $item['excerpt'] ?? $item['summary'] ?? $item['teaser'] ?? '' );
+		$excerpt     = (string) ( $item['excerpt'] ?? $item['summary'] ?? $item['teaser'] ?? '' );
 
 		$slug = (string) ( $item['slug'] ?? '' );
-		if ( $slug === '' ) {
+		if ( '' === $slug ) {
 			$slug = sanitize_title( $title );
 		}
 
 		$date_source = (string) ( $item['publishedDate'] ?? $item['publicationDate'] ?? $item['publishedAt'] ?? $item['publishDate'] ?? $item['date'] ?? ( $item['meta']['createdDate'] ?? $item['createdDate'] ?? '' ) );
-		$date = current_time( 'mysql' );
-		if ( $date_source !== '' ) {
+		$date        = current_time( 'mysql' );
+		if ( '' !== $date_source ) {
 			$timestamp = strtotime( $date_source );
 			if ( $timestamp ) {
-				$date = date( 'Y-m-d H:i:s', $timestamp );
+				$date = gmdate( 'Y-m-d H:i:s', $timestamp );
 			}
 		}
 
-		$group_id = (string) ( $item['group']['domainIdentifier'] ?? $item['groupId'] ?? '' );
-		$group_title = (string) ( $item['group']['title'] ?? '' );
+		$group_id         = (string) ( $item['group']['domainIdentifier'] ?? $item['groupId'] ?? '' );
+		$group_title      = (string) ( $item['group']['title'] ?? '' );
 		$group_visibility = (string) ( $item['groupVisibility'] ?? $item['group']['domainAttributes']['visibility'] ?? '' );
-		$post_visibility = (string) ( $item['visibility'] ?? '' );
-		$comments_active = ! empty( $item['commentsActive'] ) ? 1 : 0;
-		$image_candidates = [];
+		$post_visibility  = (string) ( $item['visibility'] ?? '' );
+		$comments_active  = ! empty( $item['commentsActive'] ) ? 1 : 0;
+		$image_candidates = array();
 		if ( isset( $item['images'] ) && is_array( $item['images'] ) ) {
 			$image_candidates = array_merge( $image_candidates, $item['images'] );
 		}
@@ -343,70 +347,70 @@ class ChurchTools_Suite_Posts_Sync_Service {
 			$image_candidates[] = $item['imageUrl'];
 		}
 
-		$parseDown = new ChurchTools_Suite_Parsedown();
-		$images = $this->extract_image_urls( $image_candidates );
-		$content = $this->normalize_content_with_images( $content_raw, $images );
-		$content = $parseDown->text($content);
+		$parse_down = new ChurchTools_Suite_Parsedown();
+		$images     = $this->extract_image_urls( $image_candidates );
+		$content    = $this->normalize_content_with_images( $content_raw, $images );
+		$content    = $parse_down->text( $content );
 
-		$publication_date = (string) ( $item['publicationDate'] ?? '' );
-		$expiration_date = (string) ( $item['expirationDate'] ?? '' );
-		$published_date = (string) ( $item['publishedDate'] ?? '' );
-		$last_edited_date = (string) ( $item['lastEditedDate'] ?? '' );
-		$is_banned = ! empty( $item['isBanned'] ) ? 1 : 0;
-		$actor_id = (string) ( $item['actor']['domainIdentifier'] ?? $item['actorId'] ?? '' );
-		$actor_name = (string) ( $item['actor']['title'] ?? '' );
-		$actor_image = (string) ( $item['actor']['imageUrl'] ?? '' );
-		$created_date = (string) ( $item['meta']['createdDate'] ?? '' );
-		$modified_date = (string) ( $item['meta']['modifiedDate'] ?? '' );
-		$created_person_id = (string) ( $item['meta']['createdPerson']['id'] ?? '' );
+		$publication_date   = (string) ( $item['publicationDate'] ?? '' );
+		$expiration_date    = (string) ( $item['expirationDate'] ?? '' );
+		$published_date     = (string) ( $item['publishedDate'] ?? '' );
+		$last_edited_date   = (string) ( $item['lastEditedDate'] ?? '' );
+		$is_banned          = ! empty( $item['isBanned'] ) ? 1 : 0;
+		$actor_id           = (string) ( $item['actor']['domainIdentifier'] ?? $item['actorId'] ?? '' );
+		$actor_name         = (string) ( $item['actor']['title'] ?? '' );
+		$actor_image        = (string) ( $item['actor']['imageUrl'] ?? '' );
+		$created_date       = (string) ( $item['meta']['createdDate'] ?? '' );
+		$modified_date      = (string) ( $item['meta']['modifiedDate'] ?? '' );
+		$created_person_id  = (string) ( $item['meta']['createdPerson']['id'] ?? '' );
 		$modified_person_id = (string) ( $item['meta']['modifiedPerson']['id'] ?? '' );
-		$raw_payload = (string) wp_json_encode( $item );
+		$raw_payload        = (string) wp_json_encode( $item );
 
-		return [
-			'ct_id' => $ct_id,
-			'ct_guid' => $ct_guid,
-			'title' => wp_strip_all_tags( $title ),
-			'content' => $content,
-			'excerpt' => wp_strip_all_tags( $excerpt ),
-			'slug' => $slug,
-			'date' => $date,
-			'group_id' => $group_id,
-			'group_title' => $group_title,
-			'group_visibility' => $group_visibility,
-			'post_visibility' => $post_visibility,
-			'comments_active' => $comments_active,
-			'images' => $images,
-			'publication_date' => $publication_date,
-			'expiration_date' => $expiration_date,
-			'published_date' => $published_date,
-			'last_edited_date' => $last_edited_date,
-			'is_banned' => $is_banned,
-			'actor_id' => $actor_id,
-			'actor_name' => $actor_name,
-			'actor_image' => $actor_image,
-			'created_date' => $created_date,
-			'modified_date' => $modified_date,
-			'created_person_id' => $created_person_id,
+		return array(
+			'ct_id'              => $ct_id,
+			'ct_guid'            => $ct_guid,
+			'title'              => wp_strip_all_tags( $title ),
+			'content'            => $content,
+			'excerpt'            => wp_strip_all_tags( $excerpt ),
+			'slug'               => $slug,
+			'date'               => $date,
+			'group_id'           => $group_id,
+			'group_title'        => $group_title,
+			'group_visibility'   => $group_visibility,
+			'post_visibility'    => $post_visibility,
+			'comments_active'    => $comments_active,
+			'images'             => $images,
+			'publication_date'   => $publication_date,
+			'expiration_date'    => $expiration_date,
+			'published_date'     => $published_date,
+			'last_edited_date'   => $last_edited_date,
+			'is_banned'          => $is_banned,
+			'actor_id'           => $actor_id,
+			'actor_name'         => $actor_name,
+			'actor_image'        => $actor_image,
+			'created_date'       => $created_date,
+			'modified_date'      => $modified_date,
+			'created_person_id'  => $created_person_id,
 			'modified_person_id' => $modified_person_id,
-			'raw_payload' => $raw_payload,
-		];
+			'raw_payload'        => $raw_payload,
+		);
 	}
 
 	private function find_existing_post_id( string $ct_post_id ): int {
-		if ( $ct_post_id === '' ) {
+		if ( '' === $ct_post_id ) {
 			return 0;
 		}
 
 		$existing_posts = get_posts(
-			[
-				'post_type' => $this->get_supported_target_types(),
-				'post_status' => 'any',
-				'numberposts' => 1,
-				'fields' => 'ids',
-				'meta_key' => self::META_CT_POST_ID,
-				'meta_value' => $ct_post_id,
+			array(
+				'post_type'        => $this->get_supported_target_types(),
+				'post_status'      => 'any',
+				'numberposts'      => 1,
+				'fields'           => 'ids',
+				/* phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key -- Metadata lookup is required to match imported ChurchTools records to their existing WordPress posts. */ 'meta_key' => self::META_CT_POST_ID,
+				/* phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_value -- Metadata lookup is required to match imported ChurchTools records to their existing WordPress posts. */ 'meta_value' => $ct_post_id,
 				'suppress_filters' => true,
-			]
+			)
 		);
 
 		if ( ! empty( $existing_posts ) ) {
@@ -421,19 +425,19 @@ class ChurchTools_Suite_Posts_Sync_Service {
 			return ChurchTools_Suite_Posts_Sync::get_supported_target_types();
 		}
 
-		return [ 'post', 'page', defined( 'CTS_POSTS_SYNC_CPT' ) ? CTS_POSTS_SYNC_CPT : 'ct_post' ];
+		return array( 'post', 'page', defined( 'CTS_POSTS_SYNC_CPT' ) ? CTS_POSTS_SYNC_CPT : 'ct_post' );
 	}
 
-	private function get_sync_query_params( array $args = [] ): array {
-		$params = [];
+	private function get_sync_query_params( array $args = array() ): array {
+		$params = array();
 
 		$after = isset( $args['after'] ) ? (string) $args['after'] : (string) get_option( 'churchtools_suite_ct_posts_after', '' );
-		if ( $after !== '' ) {
+		if ( '' !== $after ) {
 			$params['after'] = $after;
 		}
 
 		$before = isset( $args['before'] ) ? (string) $args['before'] : (string) get_option( 'churchtools_suite_ct_posts_before', '' );
-		if ( $before !== '' ) {
+		if ( '' !== $before ) {
 			$params['before'] = $before;
 		}
 
@@ -453,12 +457,12 @@ class ChurchTools_Suite_Posts_Sync_Service {
 		}
 
 		$group_visibility = isset( $args['group_visibility'] ) ? sanitize_key( (string) $args['group_visibility'] ) : sanitize_key( (string) get_option( 'churchtools_suite_ct_posts_group_visibility', '' ) );
-		if ( $group_visibility !== '' ) {
+		if ( '' !== $group_visibility ) {
 			$params['group_visibility'] = $group_visibility;
 		}
 
 		$post_visibility = isset( $args['post_visibility'] ) ? sanitize_key( (string) $args['post_visibility'] ) : sanitize_key( (string) get_option( 'churchtools_suite_ct_posts_post_visibility', '' ) );
-		if ( $post_visibility !== '' ) {
+		if ( '' !== $post_visibility ) {
 			$params['post_visibility'] = $post_visibility;
 		}
 
@@ -467,7 +471,7 @@ class ChurchTools_Suite_Posts_Sync_Service {
 			$params['only_my_groups'] = 'true';
 		}
 
-		$include = [];
+		$include = array();
 		if ( ! empty( $args['include'] ) && is_array( $args['include'] ) ) {
 			$include = array_values( array_map( 'sanitize_key', $args['include'] ) );
 		} else {
@@ -491,19 +495,19 @@ class ChurchTools_Suite_Posts_Sync_Service {
 
 	private function parse_id_list_option( string $option_name ): array {
 		$raw = (string) get_option( $option_name, '' );
-		if ( $raw === '' ) {
-			return [];
+		if ( '' === $raw ) {
+			return array();
 		}
 
 		$parts = preg_split( '/[^0-9]+/', $raw );
 		if ( ! is_array( $parts ) ) {
-			return [];
+			return array();
 		}
 
-		$ids = [];
+		$ids = array();
 		foreach ( $parts as $part ) {
 			$part = trim( (string) $part );
-			if ( $part === '' ) {
+			if ( '' === $part ) {
 				continue;
 			}
 			$ids[] = (int) $part;
@@ -514,7 +518,7 @@ class ChurchTools_Suite_Posts_Sync_Service {
 	}
 
 	private function extract_image_urls( array $images ): array {
-		$urls = [];
+		$urls = array();
 
 		foreach ( $images as $image ) {
 			$url = '';
@@ -522,13 +526,13 @@ class ChurchTools_Suite_Posts_Sync_Service {
 			if ( is_string( $image ) ) {
 				$url = $image;
 			} elseif ( is_array( $image ) ) {
-				$candidates = [
+				$candidates = array(
 					$image['url'] ?? '',
 					$image['imageUrl'] ?? '',
 					$image['src'] ?? '',
 					$image['href'] ?? '',
 					isset( $image['file'] ) && is_array( $image['file'] ) ? ( $image['file']['url'] ?? '' ) : '',
-				];
+				);
 
 				foreach ( $candidates as $candidate ) {
 					if ( is_string( $candidate ) && trim( $candidate ) !== '' ) {
@@ -539,7 +543,7 @@ class ChurchTools_Suite_Posts_Sync_Service {
 			}
 
 			$url = $this->normalize_possible_relative_url( $url );
-			if ( $url !== '' ) {
+			if ( '' !== $url ) {
 				$urls[] = $url;
 			}
 		}
@@ -550,16 +554,16 @@ class ChurchTools_Suite_Posts_Sync_Service {
 
 	private function normalize_content_with_images( string $content, array $images ): string {
 		$content = trim( $content );
-		
+
 		$post_image_orientation = sanitize_key( (string) get_option( 'churchtools_suite_post_img_orientation', 'vertical' ) );
 
-		if ( $content !== '' ) {
+		if ( '' !== $content ) {
 			$content = preg_replace_callback(
 				'/!\[([^\]]*)\]\(([^)\s]+)(?:\s+"[^"]*")?\)/',
 				function ( array $matches ): string {
 					$alt = isset( $matches[1] ) ? trim( (string) $matches[1] ) : '';
 					$src = isset( $matches[2] ) ? $this->normalize_possible_relative_url( (string) $matches[2] ) : '';
-					if ( $src === '' ) {
+					if ( '' === $src ) {
 						return '';
 					}
 
@@ -571,48 +575,51 @@ class ChurchTools_Suite_Posts_Sync_Service {
 			$content = $this->normalize_relative_urls_in_html( $content );
 		}
 
-		$missing_images_markup = [];
+		$missing_images_markup = array();
 
 		foreach ( $images as $image_url ) {
 			$image_url = (string) $image_url;
-			if ( $image_url === '' ) {
+			if ( '' === $image_url ) {
 				continue;
 			}
 
-			if ( $content !== '' && str_contains( $content, $image_url ) ) {
+			if ( '' !== $content && str_contains( $content, $image_url ) ) {
 				continue;
 			}
 
-			$image_url = esc_url( $image_url );
-			$image_data = apply_filters("churchtools_suite_image_posts", [
-				"link_url" =>  $image_url . '?w=auto&h=1080&fm=webp&crop=original',
-				"img_src" => $image_url . '?w=auto&h=480&fm=webp&crop=original',
+			$image_url  = esc_url( $image_url );
+			$image_data = apply_filters(
+				'churchtools_suite_image_posts',
+				array(
+					'link_url'   => $image_url . '?w=auto&h=1080&fm=webp&crop=original',
+					'img_src'    => $image_url . '?w=auto&h=480&fm=webp&crop=original',
 
-				'link_class' => '',
-				'img_class' => '',
-			]);
+					'link_class' => '',
+					'img_class'  => '',
+				)
+			);
 
-			$missing_images_markup[] = '<a href="' . $image_data["link_url"] .'" class="' . $image_data["link_class"] . '"><img src="' . $image_data["img_src"] .'" class="' . $image_data["img_class"] . '" alt="" /></a>';
+			$missing_images_markup[] = '<a href="' . $image_data['link_url'] . '" class="' . $image_data['link_class'] . '"><img src="' . $image_data['img_src'] . '" class="' . $image_data['img_class'] . '" alt="" /></a>';
 		}
 
 		if ( ! empty( $missing_images_markup ) ) {
 
-			if ( $post_image_orientation == 'horizontal' ) {
+			if ( 'horizontal' === $post_image_orientation ) {
 				$image_html = "<div style='display:flex;gap:10px;'>";
 			} else {
-				$image_html = "";
+				$image_html = '';
 			}
 
-			foreach($missing_images_markup as $image) {
-				if ( $post_image_orientation == 'horizontal') {
+			foreach ( $missing_images_markup as $image ) {
+				if ( 'horizontal' === $post_image_orientation ) {
 					$image_html .= $image;
 				} else {
-					$image_html .= "<p>" . $image . "</p>\n";
+					$image_html .= '<p>' . $image . "</p>\n";
 				}
 			}
 
-			if ( $post_image_orientation == 'horizontal' ) {
-				$image_html .= "</div>";
+			if ( 'horizontal' === $post_image_orientation ) {
+				$image_html .= '</div>';
 			}
 
 			$content = trim( $content . "\n\n" . $image_html );
@@ -622,19 +629,19 @@ class ChurchTools_Suite_Posts_Sync_Service {
 	}
 
 	private function normalize_relative_urls_in_html( string $html ): string {
-		if ( $html === '' ) {
+		if ( '' === $html ) {
 			return $html;
 		}
 
-		$pattern = '/(src|href)\s*=\s*(["\'])\/(.*?)\2/i';
+		$pattern    = '/(src|href)\s*=\s*(["\'])\/(.*?)\2/i';
 		$normalized = preg_replace_callback(
 			$pattern,
 			function ( array $matches ): string {
-				$attr = isset( $matches[1] ) ? (string) $matches[1] : 'src';
+				$attr  = isset( $matches[1] ) ? (string) $matches[1] : 'src';
 				$quote = isset( $matches[2] ) ? (string) $matches[2] : '"';
-				$path = isset( $matches[3] ) ? (string) $matches[3] : '';
-				$url = $this->normalize_possible_relative_url( '/' . ltrim( $path, '/' ) );
-				if ( $url === '' ) {
+				$path  = isset( $matches[3] ) ? (string) $matches[3] : '';
+				$url   = $this->normalize_possible_relative_url( '/' . ltrim( $path, '/' ) );
+				if ( '' === $url ) {
 					return $matches[0];
 				}
 
@@ -648,7 +655,7 @@ class ChurchTools_Suite_Posts_Sync_Service {
 
 	private function normalize_possible_relative_url( string $url ): string {
 		$url = trim( $url );
-		if ( $url === '' ) {
+		if ( '' === $url ) {
 			return '';
 		}
 
@@ -657,9 +664,9 @@ class ChurchTools_Suite_Posts_Sync_Service {
 		}
 
 		if ( str_starts_with( $url, '//' ) ) {
-			$base = (string) get_option( 'churchtools_suite_ct_url', '' );
-			$base_scheme = (string) parse_url( $base, PHP_URL_SCHEME );
-			if ( $base_scheme === '' ) {
+			$base        = (string) get_option( 'churchtools_suite_ct_url', '' );
+			$base_scheme = (string) wp_parse_url( $base, PHP_URL_SCHEME );
+			if ( '' === $base_scheme ) {
 				$base_scheme = 'https';
 			}
 
@@ -669,7 +676,7 @@ class ChurchTools_Suite_Posts_Sync_Service {
 		if ( str_starts_with( $url, '/' ) ) {
 			$base = (string) get_option( 'churchtools_suite_ct_url', '' );
 			$base = trim( $base );
-			if ( $base === '' ) {
+			if ( '' === $base ) {
 				return '';
 			}
 
@@ -684,9 +691,9 @@ class ChurchTools_Suite_Posts_Sync_Service {
 			return;
 		}
 
-		$group_id = (string) ( $normalized['group_id'] ?? '' );
+		$group_id    = (string) ( $normalized['group_id'] ?? '' );
 		$group_title = (string) ( $normalized['group_title'] ?? '' );
-		if ( $group_title === '' ) {
+		if ( '' === $group_title ) {
 			return;
 		}
 
@@ -695,9 +702,9 @@ class ChurchTools_Suite_Posts_Sync_Service {
 			return;
 		}
 
-		$current_term_ids = wp_get_post_terms( $post_id, 'category', [ 'fields' => 'ids' ] );
+		$current_term_ids = wp_get_post_terms( $post_id, 'category', array( 'fields' => 'ids' ) );
 		if ( is_wp_error( $current_term_ids ) || ! is_array( $current_term_ids ) ) {
-			$current_term_ids = [];
+			$current_term_ids = array();
 		}
 
 		$previous_ct_term_id = (int) get_post_meta( $post_id, self::META_CT_GROUP_TERM_ID, true );
@@ -711,7 +718,7 @@ class ChurchTools_Suite_Posts_Sync_Service {
 		}
 
 		$current_term_ids[] = $term_id;
-		$current_term_ids = array_values( array_unique( array_map( 'intval', $current_term_ids ) ) );
+		$current_term_ids   = array_values( array_unique( array_map( 'intval', $current_term_ids ) ) );
 
 		$result = wp_set_post_terms( $post_id, $current_term_ids, 'category', false );
 		if ( is_wp_error( $result ) ) {
@@ -723,23 +730,23 @@ class ChurchTools_Suite_Posts_Sync_Service {
 
 	public static function ensure_group_category_term( string $group_id, string $group_title ): int {
 		$group_title = trim( $group_title );
-		if ( $group_title === '' ) {
+		if ( '' === $group_title ) {
 			return 0;
 		}
 
-		$group_id = trim( $group_id );
+		$group_id         = trim( $group_id );
 		$existing_term_id = 0;
 
-		if ( $group_id !== '' ) {
+		if ( '' !== $group_id ) {
 			$terms = get_terms(
-				[
-					'taxonomy' => 'category',
+				array(
+					'taxonomy'   => 'category',
 					'hide_empty' => false,
-					'number' => 1,
-					'fields' => 'ids',
-					'meta_key' => '_cts_ct_group_id',
-					'meta_value' => $group_id,
-				]
+					'number'     => 1,
+					'fields'     => 'ids',
+					/* phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key -- Metadata lookup is required to match imported ChurchTools records to their existing WordPress posts. */ 'meta_key' => '_cts_ct_group_id',
+					/* phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_value -- Metadata lookup is required to match imported ChurchTools records to their existing WordPress posts. */ 'meta_value' => $group_id,
+				)
 			);
 
 			if ( ! is_wp_error( $terms ) && is_array( $terms ) && ! empty( $terms ) ) {
@@ -751,12 +758,12 @@ class ChurchTools_Suite_Posts_Sync_Service {
 			wp_update_term(
 				$existing_term_id,
 				'category',
-				[
+				array(
 					'name' => $group_title,
-				]
+				)
 			);
 
-			if ( $group_id !== '' ) {
+			if ( '' !== $group_id ) {
 				update_term_meta( $existing_term_id, '_cts_ct_group_id', $group_id );
 			}
 			update_term_meta( $existing_term_id, '_cts_ct_group_title', $group_title );
@@ -764,20 +771,20 @@ class ChurchTools_Suite_Posts_Sync_Service {
 			return $existing_term_id;
 		}
 
-		$slug = 'ct-group-' . ( $group_id !== '' ? $group_id . '-' : '' ) . sanitize_title( $group_title );
+		$slug   = 'ct-group-' . ( '' !== $group_id ? $group_id . '-' : '' ) . sanitize_title( $group_title );
 		$insert = wp_insert_term(
 			$group_title,
 			'category',
-			[
+			array(
 				'slug' => sanitize_title( $slug ),
-			]
+			)
 		);
 
 		if ( is_wp_error( $insert ) ) {
 			$fallback = get_term_by( 'name', $group_title, 'category' );
 			if ( $fallback instanceof WP_Term ) {
 				$term_id = (int) $fallback->term_id;
-				if ( $group_id !== '' ) {
+				if ( '' !== $group_id ) {
 					update_term_meta( $term_id, '_cts_ct_group_id', $group_id );
 				}
 				update_term_meta( $term_id, '_cts_ct_group_title', $group_title );
@@ -789,7 +796,7 @@ class ChurchTools_Suite_Posts_Sync_Service {
 
 		$term_id = (int) ( $insert['term_id'] ?? 0 );
 		if ( $term_id > 0 ) {
-			if ( $group_id !== '' ) {
+			if ( '' !== $group_id ) {
 				update_term_meta( $term_id, '_cts_ct_group_id', $group_id );
 			}
 			update_term_meta( $term_id, '_cts_ct_group_title', $group_title );
@@ -805,7 +812,7 @@ class ChurchTools_Suite_Posts_Sync_Service {
 		update_post_meta( $post_id, self::META_CT_GROUP_VISIBILITY, (string) ( $normalized['group_visibility'] ?? '' ) );
 		update_post_meta( $post_id, self::META_CT_POST_VISIBILITY, (string) ( $normalized['post_visibility'] ?? '' ) );
 		update_post_meta( $post_id, self::META_CT_COMMENTS_ACTIVE, (int) ( $normalized['comments_active'] ?? 0 ) );
-		update_post_meta( $post_id, self::META_CT_IMAGES, wp_json_encode( $normalized['images'] ?? [] ) );
+		update_post_meta( $post_id, self::META_CT_IMAGES, wp_json_encode( $normalized['images'] ?? array() ) );
 		update_post_meta( $post_id, self::META_CT_PUBLICATION_DATE, (string) ( $normalized['publication_date'] ?? '' ) );
 		update_post_meta( $post_id, self::META_CT_EXPIRATION_DATE, (string) ( $normalized['expiration_date'] ?? '' ) );
 		update_post_meta( $post_id, self::META_CT_PUBLISHED_DATE, (string) ( $normalized['published_date'] ?? '' ) );

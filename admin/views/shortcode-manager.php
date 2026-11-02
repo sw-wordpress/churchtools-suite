@@ -1,12 +1,12 @@
 <?php
 /**
  * Enhanced Shortcode Manager Page
- * 
+ *
  * Verwaltung für ChurchTools Suite Shortcodes mit Preset-System:
  * - Übersicht aller Standard-Shortcodes
  * - Eigene Presets erstellen und speichern
  * - System-Presets für häufige Use Cases
- * 
+ *
  * @package ChurchTools_Suite
  * @since   0.5.10.0
  */
@@ -15,159 +15,504 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-// Load Presets Repository
+// Load Presets Repository.
 require_once CHURCHTOOLS_SUITE_PATH . 'includes/repositories/class-churchtools-suite-repository-base.php';
 require_once CHURCHTOOLS_SUITE_PATH . 'includes/repositories/class-churchtools-suite-shortcode-presets-repository.php';
 $presets_repo = new ChurchTools_Suite_Shortcode_Presets_Repository();
 
-// Get saved presets
-$all_presets = $presets_repo->get_all_presets();
-$saved_presets = array_filter( $all_presets, fn($p) => ! $p['is_system'] ); // Nur User-Presets
-$system_presets = array_filter( $all_presets, fn($p) => $p['is_system'] ); // System-Presets
+// Get saved presets.
+$all_presets    = $presets_repo->get_all_presets();
+$saved_presets  = array_filter( $all_presets, fn( $p ) => ! $p['is_system'] ); // Nur User-Presets.
+$system_presets = array_filter( $all_presets, fn( $p ) => $p['is_system'] ); // System-Presets.
 
-// Shortcode Definitions (nur getestete Views)
-$shortcodes = [
-	[
-		'tag' => 'cts_list',
-		'name' => 'List',
-		'icon' => '📋',
-		'category' => 'list',
+// Shortcode Definitions (nur getestete Views).
+$shortcodes = array(
+	array(
+		'tag'         => 'cts_list',
+		'name'        => 'List',
+		'icon'        => '📋',
+		'category'    => 'list',
 		'description' => 'Zeigt Events als Liste an',
-		'views' => ['classic', 'standard', 'modern', 'minimal', 'toggle', 'with-map', 'fluent', 'large-liquid', 'medium-liquid', 'small-liquid', 'medium'],
-		'params' => [
+		'views'       => array( 'classic', 'standard', 'modern', 'minimal', 'toggle', 'with-map', 'fluent', 'large-liquid', 'medium-liquid', 'small-liquid', 'medium' ),
+		'params'      => array(
 			// === Ansicht & Basis ===
-			'view' => ['type' => 'select', 'label' => 'View', 'options' => ['classic' => 'Klassisch', 'standard' => 'Standard', 'modern' => 'Modern', 'minimal' => 'Minimal', 'toggle' => 'Toggle', 'with-map' => 'Mit Karte', 'fluent' => 'Fluent', 'large-liquid' => 'Große Flüssig', 'medium-liquid' => 'Mittlere Flüssig', 'small-liquid' => 'Kleine Flüssig', 'medium' => 'Mittel'], 'section' => '📋 Ansicht & Basis'],
-			'calendar' => ['type' => 'checkboxes', 'label' => 'Kalender auswählen', 'section' => '📋 Ansicht & Basis'],
-			'limit' => ['type' => 'number', 'label' => 'Anzahl Events', 'default' => '20', 'section' => '⚙️ Basis-Einstellungen'],
+			'view'               => array(
+				'type'    => 'select',
+				'label'   => 'View',
+				'options' => array(
+					'classic'       => 'Klassisch',
+					'standard'      => 'Standard',
+					'modern'        => 'Modern',
+					'minimal'       => 'Minimal',
+					'toggle'        => 'Toggle',
+					'with-map'      => 'Mit Karte',
+					'fluent'        => 'Fluent',
+					'large-liquid'  => 'Große Flüssig',
+					'medium-liquid' => 'Mittlere Flüssig',
+					'small-liquid'  => 'Kleine Flüssig',
+					'medium'        => 'Mittel',
+				),
+				'section' => '📋 Ansicht & Basis',
+			),
+			'calendar'           => array(
+				'type'    => 'checkboxes',
+				'label'   => 'Kalender auswählen',
+				'section' => '📋 Ansicht & Basis',
+			),
+			'limit'              => array(
+				'type'    => 'number',
+				'label'   => 'Anzahl Events',
+				'default' => '20',
+				'section' => '⚙️ Basis-Einstellungen',
+			),
 			// === Anzeige-Optionen ===
-			'show_images' => ['type' => 'toggle', 'label' => 'Bilder anzeigen', 'default' => true, 'section' => '👁️ Anzeige-Optionen'],
-			'show_description' => ['type' => 'toggle', 'label' => 'Beschreibung anzeigen', 'default' => true, 'section' => '👁️ Anzeige-Optionen'],
-			'show_location' => ['type' => 'toggle', 'label' => 'Ort anzeigen', 'default' => true, 'section' => '👁️ Anzeige-Optionen'],
-			'show_services' => ['type' => 'toggle', 'label' => 'Services anzeigen', 'default' => true, 'section' => '👁️ Anzeige-Optionen'],
-			'show_calendar_name' => ['type' => 'toggle', 'label' => 'Kalender-Name anzeigen', 'default' => false, 'section' => '👁️ Anzeige-Optionen'],
-			'show_time' => ['type' => 'toggle', 'label' => 'Uhrzeit anzeigen', 'default' => true, 'section' => '👁️ Anzeige-Optionen'],
+			'show_images'        => array(
+				'type'    => 'toggle',
+				'label'   => 'Bilder anzeigen',
+				'default' => true,
+				'section' => '👁️ Anzeige-Optionen',
+			),
+			'show_description'   => array(
+				'type'    => 'toggle',
+				'label'   => 'Beschreibung anzeigen',
+				'default' => true,
+				'section' => '👁️ Anzeige-Optionen',
+			),
+			'show_location'      => array(
+				'type'    => 'toggle',
+				'label'   => 'Ort anzeigen',
+				'default' => true,
+				'section' => '👁️ Anzeige-Optionen',
+			),
+			'show_services'      => array(
+				'type'    => 'toggle',
+				'label'   => 'Services anzeigen',
+				'default' => true,
+				'section' => '👁️ Anzeige-Optionen',
+			),
+			'show_calendar_name' => array(
+				'type'    => 'toggle',
+				'label'   => 'Kalender-Name anzeigen',
+				'default' => false,
+				'section' => '👁️ Anzeige-Optionen',
+			),
+			'show_time'          => array(
+				'type'    => 'toggle',
+				'label'   => 'Uhrzeit anzeigen',
+				'default' => true,
+				'section' => '👁️ Anzeige-Optionen',
+			),
 			// === Filter & Sortierung ===
-			'order' => ['type' => 'select', 'label' => 'Sortierung', 'options' => ['asc' => 'Aufsteigend', 'desc' => 'Absteigend'], 'default' => 'asc', 'section' => '🔍 Filter & Sortierung'],
-			'date_from' => ['type' => 'date', 'label' => 'Datum von (YYYY-MM-DD)', 'section' => '🔍 Filter & Sortierung'],
-			'date_to' => ['type' => 'date', 'label' => 'Datum bis (YYYY-MM-DD)', 'section' => '🔍 Filter & Sortierung'],
+			'order'              => array(
+				'type'    => 'select',
+				'label'   => 'Sortierung',
+				'options' => array(
+					'asc'  => 'Aufsteigend',
+					'desc' => 'Absteigend',
+				),
+				'default' => 'asc',
+				'section' => '🔍 Filter & Sortierung',
+			),
+			'date_from'          => array(
+				'type'    => 'date',
+				'label'   => 'Datum von (YYYY-MM-DD)',
+				'section' => '🔍 Filter & Sortierung',
+			),
+			'date_to'            => array(
+				'type'    => 'date',
+				'label'   => 'Datum bis (YYYY-MM-DD)',
+				'section' => '🔍 Filter & Sortierung',
+			),
 			// === Legacy ===
-			'from' => ['type' => 'date', 'label' => 'Von Datum (Legacy)', 'section' => '📦 Legacy-Parameter'],
-			'to' => ['type' => 'date', 'label' => 'Bis Datum (Legacy)', 'section' => '📦 Legacy-Parameter'],
-			'class' => ['type' => 'text', 'label' => 'CSS Klasse', 'section' => '🎨 Styling'],
-		],
-		'example' => '[cts_list view="classic"]',
-	],
-	[
-		'tag' => 'cts_calendar',
-		'name' => 'Calendar',
-		'icon' => '📅',
-		'category' => 'calendar',
+			'from'               => array(
+				'type'    => 'date',
+				'label'   => 'Von Datum (Legacy)',
+				'section' => '📦 Legacy-Parameter',
+			),
+			'to'                 => array(
+				'type'    => 'date',
+				'label'   => 'Bis Datum (Legacy)',
+				'section' => '📦 Legacy-Parameter',
+			),
+			'class'              => array(
+				'type'    => 'text',
+				'label'   => 'CSS Klasse',
+				'section' => '🎨 Styling',
+			),
+		),
+		'example'     => '[cts_list view="classic"]',
+	),
+	array(
+		'tag'         => 'cts_calendar',
+		'name'        => 'Calendar',
+		'icon'        => '📅',
+		'category'    => 'calendar',
 		'description' => 'Zeigt Events in Kalender-Ansicht an',
-		'views' => ['monthly-modern', 'monthly-clean', 'monthly-classic', 'weekly-fluent', 'weekly-liquid', 'yearly', 'daily', 'daily-liquid'],
-		'params' => [
-			'view' => ['type' => 'select', 'label' => 'View', 'options' => ['monthly-modern' => 'Monatlich Modern', 'monthly-clean' => 'Monatlich Clean', 'monthly-classic' => 'Monatlich Klassisch', 'weekly-fluent' => 'Wöchentlich Fluent', 'weekly-liquid' => 'Wöchentlich Flüssig', 'yearly' => 'Jährlich', 'daily' => 'Täglich', 'daily-liquid' => 'Täglich Flüssig'], 'section' => '📋 Ansicht & Basis'],
-			'calendar' => ['type' => 'checkboxes', 'label' => 'Kalender auswählen', 'section' => '📋 Ansicht & Basis'],
-			'from' => ['type' => 'date', 'label' => 'Von Datum', 'section' => '🔍 Filter & Sortierung'],
-			'to' => ['type' => 'date', 'label' => 'Bis Datum', 'section' => '🔍 Filter & Sortierung'],
-			'class' => ['type' => 'text', 'label' => 'CSS Klasse', 'section' => '🎨 Styling'],
-		],
-		'example' => '[cts_calendar view="monthly-modern"]',
-	],
-	[
-		'tag' => 'cts_grid',
-		'name' => 'Grid',
-		'icon' => '🎯',
-		'category' => 'grid',
+		'views'       => array( 'monthly-modern', 'monthly-clean', 'monthly-classic', 'weekly-fluent', 'weekly-liquid', 'yearly', 'daily', 'daily-liquid' ),
+		'params'      => array(
+			'view'     => array(
+				'type'    => 'select',
+				'label'   => 'View',
+				'options' => array(
+					'monthly-modern'  => 'Monatlich Modern',
+					'monthly-clean'   => 'Monatlich Clean',
+					'monthly-classic' => 'Monatlich Klassisch',
+					'weekly-fluent'   => 'Wöchentlich Fluent',
+					'weekly-liquid'   => 'Wöchentlich Flüssig',
+					'yearly'          => 'Jährlich',
+					'daily'           => 'Täglich',
+					'daily-liquid'    => 'Täglich Flüssig',
+				),
+				'section' => '📋 Ansicht & Basis',
+			),
+			'calendar' => array(
+				'type'    => 'checkboxes',
+				'label'   => 'Kalender auswählen',
+				'section' => '📋 Ansicht & Basis',
+			),
+			'from'     => array(
+				'type'    => 'date',
+				'label'   => 'Von Datum',
+				'section' => '🔍 Filter & Sortierung',
+			),
+			'to'       => array(
+				'type'    => 'date',
+				'label'   => 'Bis Datum',
+				'section' => '🔍 Filter & Sortierung',
+			),
+			'class'    => array(
+				'type'    => 'text',
+				'label'   => 'CSS Klasse',
+				'section' => '🎨 Styling',
+			),
+		),
+		'example'     => '[cts_calendar view="monthly-modern"]',
+	),
+	array(
+		'tag'         => 'cts_grid',
+		'name'        => 'Grid',
+		'icon'        => '🎯',
+		'category'    => 'grid',
 		'description' => 'Zeigt Events als Karten-Raster (Klassisch: Hero-Bild+Buttons, Einfach: Alle Infos, Minimal: Essentials+Info-Icon)',
-		'views' => ['grid-klassisch', 'grid-einfach', 'grid-minimal', 'grid-modern'], // v1.1.0.5: Standardisierte IDs
-		'params' => [
+		'views'       => array( 'grid-klassisch', 'grid-einfach', 'grid-minimal', 'grid-modern' ), // v1.1.0.5: Standardisierte IDs.
+		'params'      => array(
 			// === Ansicht & Basis ===
-			'view' => ['type' => 'select', 'label' => 'View', 'options' => ['grid-klassisch' => 'Klassisch (Hero-Bild)', 'grid-einfach' => 'Einfach (Alle Details)', 'grid-minimal' => 'Minimal (Kompakt)', 'grid-modern' => 'Modern (Card-Style)'], 'section' => '📋 Ansicht & Basis'],
-			'calendar' => ['type' => 'checkboxes', 'label' => 'Kalender auswählen', 'section' => '📋 Ansicht & Basis'],
-			'limit' => ['type' => 'number', 'label' => 'Anzahl Events', 'default' => '12', 'section' => '⚙️ Basis-Einstellungen'],
+			'view'               => array(
+				'type'    => 'select',
+				'label'   => 'View',
+				'options' => array(
+					'grid-klassisch' => 'Klassisch (Hero-Bild)',
+					'grid-einfach'   => 'Einfach (Alle Details)',
+					'grid-minimal'   => 'Minimal (Kompakt)',
+					'grid-modern'    => 'Modern (Card-Style)',
+				),
+				'section' => '📋 Ansicht & Basis',
+			),
+			'calendar'           => array(
+				'type'    => 'checkboxes',
+				'label'   => 'Kalender auswählen',
+				'section' => '📋 Ansicht & Basis',
+			),
+			'limit'              => array(
+				'type'    => 'number',
+				'label'   => 'Anzahl Events',
+				'default' => '12',
+				'section' => '⚙️ Basis-Einstellungen',
+			),
 			// === Layout ===
-			'columns' => ['type' => 'number', 'label' => 'Spalten (1-4)', 'default' => '3', 'section' => '⚙️ Basis-Einstellungen'],
+			'columns'            => array(
+				'type'    => 'number',
+				'label'   => 'Spalten (1-4)',
+				'default' => '3',
+				'section' => '⚙️ Basis-Einstellungen',
+			),
 			// === Anzeige-Optionen ===
-			'show_description' => ['type' => 'toggle', 'label' => 'Beschreibung anzeigen', 'default' => true, 'section' => '👁️ Anzeige-Optionen'],
-			'show_location' => ['type' => 'toggle', 'label' => 'Ort anzeigen', 'default' => true, 'section' => '👁️ Anzeige-Optionen'],
-			'show_services' => ['type' => 'toggle', 'label' => 'Services anzeigen', 'default' => true, 'section' => '👁️ Anzeige-Optionen'],
-			'show_calendar_name' => ['type' => 'toggle', 'label' => 'Kalender-Name anzeigen', 'default' => false, 'section' => '👁️ Anzeige-Optionen'],
-			'show_time' => ['type' => 'toggle', 'label' => 'Uhrzeit anzeigen', 'default' => true, 'section' => '👁️ Anzeige-Optionen'],
+			'show_description'   => array(
+				'type'    => 'toggle',
+				'label'   => 'Beschreibung anzeigen',
+				'default' => true,
+				'section' => '👁️ Anzeige-Optionen',
+			),
+			'show_location'      => array(
+				'type'    => 'toggle',
+				'label'   => 'Ort anzeigen',
+				'default' => true,
+				'section' => '👁️ Anzeige-Optionen',
+			),
+			'show_services'      => array(
+				'type'    => 'toggle',
+				'label'   => 'Services anzeigen',
+				'default' => true,
+				'section' => '👁️ Anzeige-Optionen',
+			),
+			'show_calendar_name' => array(
+				'type'    => 'toggle',
+				'label'   => 'Kalender-Name anzeigen',
+				'default' => false,
+				'section' => '👁️ Anzeige-Optionen',
+			),
+			'show_time'          => array(
+				'type'    => 'toggle',
+				'label'   => 'Uhrzeit anzeigen',
+				'default' => true,
+				'section' => '👁️ Anzeige-Optionen',
+			),
 			// === Filter & Sortierung ===
-			'order' => ['type' => 'select', 'label' => 'Sortierung', 'options' => ['asc' => 'Aufsteigend', 'desc' => 'Absteigend'], 'default' => 'asc', 'section' => '🔍 Filter & Sortierung'],
-			'date_from' => ['type' => 'date', 'label' => 'Datum von (YYYY-MM-DD)', 'section' => '🔍 Filter & Sortierung'],
-			'date_to' => ['type' => 'date', 'label' => 'Datum bis (YYYY-MM-DD)', 'section' => '🔍 Filter & Sortierung'],
+			'order'              => array(
+				'type'    => 'select',
+				'label'   => 'Sortierung',
+				'options' => array(
+					'asc'  => 'Aufsteigend',
+					'desc' => 'Absteigend',
+				),
+				'default' => 'asc',
+				'section' => '🔍 Filter & Sortierung',
+			),
+			'date_from'          => array(
+				'type'    => 'date',
+				'label'   => 'Datum von (YYYY-MM-DD)',
+				'section' => '🔍 Filter & Sortierung',
+			),
+			'date_to'            => array(
+				'type'    => 'date',
+				'label'   => 'Datum bis (YYYY-MM-DD)',
+				'section' => '🔍 Filter & Sortierung',
+			),
 			// === Legacy ===
-			'from' => ['type' => 'date', 'label' => 'Von Datum (Legacy)', 'section' => '📦 Legacy-Parameter'],
-			'to' => ['type' => 'date', 'label' => 'Bis Datum (Legacy)', 'section' => '📦 Legacy-Parameter'],
-			'class' => ['type' => 'text', 'label' => 'CSS Klasse', 'section' => '🎨 Styling'],
-		],
-		'example' => '[cts_grid view="grid-klassisch" columns="3"]',
-	],
-	[
-		'tag' => 'cts_countdown',
-		'name' => 'Countdown',
-		'icon' => '⏱️',
-		'category' => 'countdown',
+			'from'               => array(
+				'type'    => 'date',
+				'label'   => 'Von Datum (Legacy)',
+				'section' => '📦 Legacy-Parameter',
+			),
+			'to'                 => array(
+				'type'    => 'date',
+				'label'   => 'Bis Datum (Legacy)',
+				'section' => '📦 Legacy-Parameter',
+			),
+			'class'              => array(
+				'type'    => 'text',
+				'label'   => 'CSS Klasse',
+				'section' => '🎨 Styling',
+			),
+		),
+		'example'     => '[cts_grid view="grid-klassisch" columns="3"]',
+	),
+	array(
+		'tag'         => 'cts_countdown',
+		'name'        => 'Countdown',
+		'icon'        => '⏱️',
+		'category'    => 'countdown',
 		'description' => 'Zeigt nächstes kommendes Event mit Live-Countdown-Timer (Split-Layout: Timer links, Hero-Image rechts)',
-		'views' => ['countdown-klassisch'], // v1.1.1.0: Neuer View-Typ
-		'params' => [
+		'views'       => array( 'countdown-klassisch' ), // v1.1.1.0: Neuer View-Typ.
+		'params'      => array(
 			// === Ansicht & Basis ===
-			'view' => ['type' => 'select', 'label' => 'View', 'options' => ['countdown-klassisch' => 'Klassisch (Split-Layout)'], 'section' => '📋 Ansicht & Basis'],
-			'calendar' => ['type' => 'checkboxes', 'label' => 'Kalender auswählen', 'section' => '📋 Ansicht & Basis'],
+			'view'                         => array(
+				'type'    => 'select',
+				'label'   => 'View',
+				'options' => array( 'countdown-klassisch' => 'Klassisch (Split-Layout)' ),
+				'section' => '📋 Ansicht & Basis',
+			),
+			'calendar'                     => array(
+				'type'    => 'checkboxes',
+				'label'   => 'Kalender auswählen',
+				'section' => '📋 Ansicht & Basis',
+			),
 			// === Anzeige-Optionen ===
-			'show_event_description' => ['type' => 'toggle', 'label' => 'Event-Beschreibung anzeigen', 'default' => true, 'section' => '👁️ Anzeige-Optionen'],
-			'show_appointment_description' => ['type' => 'toggle', 'label' => 'Termin-Beschreibung anzeigen', 'default' => true, 'section' => '👁️ Anzeige-Optionen'],
-			'show_location' => ['type' => 'toggle', 'label' => 'Ort anzeigen', 'default' => true, 'section' => '👁️ Anzeige-Optionen'],
-			'show_calendar_name' => ['type' => 'toggle', 'label' => 'Kalender-Name anzeigen', 'default' => true, 'section' => '👁️ Anzeige-Optionen'],
-			'show_images' => ['type' => 'toggle', 'label' => 'Hero-Image anzeigen', 'default' => true, 'section' => '👁️ Anzeige-Optionen'],
+			'show_event_description'       => array(
+				'type'    => 'toggle',
+				'label'   => 'Event-Beschreibung anzeigen',
+				'default' => true,
+				'section' => '👁️ Anzeige-Optionen',
+			),
+			'show_appointment_description' => array(
+				'type'    => 'toggle',
+				'label'   => 'Termin-Beschreibung anzeigen',
+				'default' => true,
+				'section' => '👁️ Anzeige-Optionen',
+			),
+			'show_location'                => array(
+				'type'    => 'toggle',
+				'label'   => 'Ort anzeigen',
+				'default' => true,
+				'section' => '👁️ Anzeige-Optionen',
+			),
+			'show_calendar_name'           => array(
+				'type'    => 'toggle',
+				'label'   => 'Kalender-Name anzeigen',
+				'default' => true,
+				'section' => '👁️ Anzeige-Optionen',
+			),
+			'show_images'                  => array(
+				'type'    => 'toggle',
+				'label'   => 'Hero-Image anzeigen',
+				'default' => true,
+				'section' => '👁️ Anzeige-Optionen',
+			),
 			// === Verhalten ===
-			'event_action' => ['type' => 'select', 'label' => 'Event Aktion', 'options' => ['modal' => 'Modal öffnen', 'page' => 'Seite öffnen', 'none' => 'Keine Aktion'], 'default' => 'modal', 'section' => '⚙️ Basis-Einstellungen'],
+			'event_action'                 => array(
+				'type'    => 'select',
+				'label'   => 'Event Aktion',
+				'options' => array(
+					'modal' => 'Modal öffnen',
+					'page'  => 'Seite öffnen',
+					'none'  => 'Keine Aktion',
+				),
+				'default' => 'modal',
+				'section' => '⚙️ Basis-Einstellungen',
+			),
 			// === Filter & Sortierung ===
-			'date_from' => ['type' => 'date', 'label' => 'Datum von (YYYY-MM-DD)', 'section' => '🔍 Filter & Sortierung'],
-			'date_to' => ['type' => 'date', 'label' => 'Datum bis (YYYY-MM-DD)', 'section' => '🔍 Filter & Sortierung'],
+			'date_from'                    => array(
+				'type'    => 'date',
+				'label'   => 'Datum von (YYYY-MM-DD)',
+				'section' => '🔍 Filter & Sortierung',
+			),
+			'date_to'                      => array(
+				'type'    => 'date',
+				'label'   => 'Datum bis (YYYY-MM-DD)',
+				'section' => '🔍 Filter & Sortierung',
+			),
 			// === Styling ===
-			'class' => ['type' => 'text', 'label' => 'CSS Klasse', 'section' => '🎨 Styling'],
-		],
-		'example' => '[cts_countdown view="countdown-klassisch"]',
-	],
-	[
-		'tag' => 'cts_carousel',
-		'name' => 'Carousel',
-		'icon' => '🎠',
-		'category' => 'carousel',
+			'class'                        => array(
+				'type'    => 'text',
+				'label'   => 'CSS Klasse',
+				'section' => '🎨 Styling',
+			),
+		),
+		'example'     => '[cts_countdown view="countdown-klassisch"]',
+	),
+	array(
+		'tag'         => 'cts_carousel',
+		'name'        => 'Carousel',
+		'icon'        => '🎠',
+		'category'    => 'carousel',
 		'description' => 'Horizontales Karussell mit Swipe-Navigation (Hero-Images, mehrere Events, Touch-Support)',
-		'views' => ['carousel-klassisch'], // v1.1.1.0: Neuer View-Typ
-		'params' => [
+		'views'       => array( 'carousel-klassisch' ), // v1.1.1.0: Neuer View-Typ.
+		'params'      => array(
 			// === Ansicht & Basis ===
-			'view' => ['type' => 'select', 'label' => 'View', 'options' => ['carousel-klassisch' => 'Klassisch (Swipe)'], 'section' => '📋 Ansicht & Basis'],
-			'calendar' => ['type' => 'checkboxes', 'label' => 'Kalender auswählen', 'section' => '📋 Ansicht & Basis'],
-			'limit' => ['type' => 'number', 'label' => 'Anzahl Events', 'default' => '12', 'section' => '⚙️ Basis-Einstellungen'],
+			'view'                         => array(
+				'type'    => 'select',
+				'label'   => 'View',
+				'options' => array( 'carousel-klassisch' => 'Klassisch (Swipe)' ),
+				'section' => '📋 Ansicht & Basis',
+			),
+			'calendar'                     => array(
+				'type'    => 'checkboxes',
+				'label'   => 'Kalender auswählen',
+				'section' => '📋 Ansicht & Basis',
+			),
+			'limit'                        => array(
+				'type'    => 'number',
+				'label'   => 'Anzahl Events',
+				'default' => '12',
+				'section' => '⚙️ Basis-Einstellungen',
+			),
 			// === Carousel-Einstellungen ===
-			'slides_per_view' => ['type' => 'number', 'label' => 'Slides pro Ansicht (1-6)', 'default' => '3', 'section' => '🎠 Carousel-Einstellungen'],
-			'autoplay' => ['type' => 'toggle', 'label' => 'Auto-Play aktivieren', 'default' => false, 'section' => '🎠 Carousel-Einstellungen'],
-			'autoplay_delay' => ['type' => 'number', 'label' => 'Auto-Play Verzögerung (ms)', 'default' => '5000', 'section' => '🎠 Carousel-Einstellungen'],
-			'loop' => ['type' => 'toggle', 'label' => 'Loop-Modus (endlos)', 'default' => true, 'section' => '🎠 Carousel-Einstellungen'],
+			'slides_per_view'              => array(
+				'type'    => 'number',
+				'label'   => 'Slides pro Ansicht (1-6)',
+				'default' => '3',
+				'section' => '🎠 Carousel-Einstellungen',
+			),
+			'autoplay'                     => array(
+				'type'    => 'toggle',
+				'label'   => 'Auto-Play aktivieren',
+				'default' => false,
+				'section' => '🎠 Carousel-Einstellungen',
+			),
+			'autoplay_delay'               => array(
+				'type'    => 'number',
+				'label'   => 'Auto-Play Verzögerung (ms)',
+				'default' => '5000',
+				'section' => '🎠 Carousel-Einstellungen',
+			),
+			'loop'                         => array(
+				'type'    => 'toggle',
+				'label'   => 'Loop-Modus (endlos)',
+				'default' => true,
+				'section' => '🎠 Carousel-Einstellungen',
+			),
 			// === Anzeige-Optionen ===
-			'show_event_description' => ['type' => 'toggle', 'label' => 'Event-Beschreibung anzeigen', 'default' => true, 'section' => '👁️ Anzeige-Optionen'],
-			'show_appointment_description' => ['type' => 'toggle', 'label' => 'Termin-Beschreibung anzeigen', 'default' => true, 'section' => '👁️ Anzeige-Optionen'],
-			'show_location' => ['type' => 'toggle', 'label' => 'Ort anzeigen', 'default' => true, 'section' => '👁️ Anzeige-Optionen'],
-			'show_time' => ['type' => 'toggle', 'label' => 'Uhrzeit anzeigen', 'default' => true, 'section' => '👁️ Anzeige-Optionen'],
-			'show_services' => ['type' => 'toggle', 'label' => 'Services anzeigen', 'default' => false, 'section' => '👁️ Anzeige-Optionen'],
-			'show_tags' => ['type' => 'toggle', 'label' => 'Tags anzeigen', 'default' => false, 'section' => '👁️ Anzeige-Optionen'],
-			'show_calendar_name' => ['type' => 'toggle', 'label' => 'Kalender-Name anzeigen', 'default' => true, 'section' => '👁️ Anzeige-Optionen'],
-			'show_images' => ['type' => 'toggle', 'label' => 'Hero-Images anzeigen', 'default' => true, 'section' => '👁️ Anzeige-Optionen'],
+			'show_event_description'       => array(
+				'type'    => 'toggle',
+				'label'   => 'Event-Beschreibung anzeigen',
+				'default' => true,
+				'section' => '👁️ Anzeige-Optionen',
+			),
+			'show_appointment_description' => array(
+				'type'    => 'toggle',
+				'label'   => 'Termin-Beschreibung anzeigen',
+				'default' => true,
+				'section' => '👁️ Anzeige-Optionen',
+			),
+			'show_location'                => array(
+				'type'    => 'toggle',
+				'label'   => 'Ort anzeigen',
+				'default' => true,
+				'section' => '👁️ Anzeige-Optionen',
+			),
+			'show_time'                    => array(
+				'type'    => 'toggle',
+				'label'   => 'Uhrzeit anzeigen',
+				'default' => true,
+				'section' => '👁️ Anzeige-Optionen',
+			),
+			'show_services'                => array(
+				'type'    => 'toggle',
+				'label'   => 'Services anzeigen',
+				'default' => false,
+				'section' => '👁️ Anzeige-Optionen',
+			),
+			'show_tags'                    => array(
+				'type'    => 'toggle',
+				'label'   => 'Tags anzeigen',
+				'default' => false,
+				'section' => '👁️ Anzeige-Optionen',
+			),
+			'show_calendar_name'           => array(
+				'type'    => 'toggle',
+				'label'   => 'Kalender-Name anzeigen',
+				'default' => true,
+				'section' => '👁️ Anzeige-Optionen',
+			),
+			'show_images'                  => array(
+				'type'    => 'toggle',
+				'label'   => 'Hero-Images anzeigen',
+				'default' => true,
+				'section' => '👁️ Anzeige-Optionen',
+			),
 			// === Verhalten ===
-			'event_action' => ['type' => 'select', 'label' => 'Event Aktion', 'options' => ['modal' => 'Modal öffnen', 'page' => 'Seite öffnen', 'none' => 'Keine Aktion'], 'default' => 'modal', 'section' => '⚙️ Basis-Einstellungen'],
+			'event_action'                 => array(
+				'type'    => 'select',
+				'label'   => 'Event Aktion',
+				'options' => array(
+					'modal' => 'Modal öffnen',
+					'page'  => 'Seite öffnen',
+					'none'  => 'Keine Aktion',
+				),
+				'default' => 'modal',
+				'section' => '⚙️ Basis-Einstellungen',
+			),
 			// === Filter & Sortierung ===
-			'date_from' => ['type' => 'date', 'label' => 'Datum von (YYYY-MM-DD)', 'section' => '🔍 Filter & Sortierung'],
-			'date_to' => ['type' => 'date', 'label' => 'Datum bis (YYYY-MM-DD)', 'section' => '🔍 Filter & Sortierung'],
+			'date_from'                    => array(
+				'type'    => 'date',
+				'label'   => 'Datum von (YYYY-MM-DD)',
+				'section' => '🔍 Filter & Sortierung',
+			),
+			'date_to'                      => array(
+				'type'    => 'date',
+				'label'   => 'Datum bis (YYYY-MM-DD)',
+				'section' => '🔍 Filter & Sortierung',
+			),
 			// === Styling ===
-			'class' => ['type' => 'text', 'label' => 'CSS Klasse', 'section' => '🎨 Styling'],
-		],
-		'example' => '[cts_carousel view="carousel-klassisch" slides_per_view="3" autoplay="true"]',
-	],
-];
+			'class'                        => array(
+				'type'    => 'text',
+				'label'   => 'CSS Klasse',
+				'section' => '🎨 Styling',
+			),
+		),
+		'example'     => '[cts_carousel view="carousel-klassisch" slides_per_view="3" autoplay="true"]',
+	),
+);
 ?>
 
 <div class="wrap cts-wrap">
@@ -188,7 +533,7 @@ $shortcodes = [
 		</a>
 		<a href="#" class="cts-tab" data-tab="presets">
 			<span>⭐</span>
-			<?php esc_html_e( 'Meine Presets', 'churchtools-suite' ); ?> (<?php echo count( array_filter( $saved_presets, fn($p) => ! $p['is_system'] ) ); ?>)
+			<?php esc_html_e( 'Meine Presets', 'churchtools-suite' ); ?> (<?php echo count( array_filter( $saved_presets, fn( $p ) => ! $p['is_system'] ) ); ?>)
 		</a>
 		<a href="#" class="cts-tab" data-tab="create" id="cts-create-tab">
 			<span id="cts-create-icon">➕</span>
@@ -229,7 +574,7 @@ $shortcodes = [
 				<div class="cts-shortcode-card" data-category="<?php echo esc_attr( $shortcode['category'] ); ?>" data-tag="<?php echo esc_attr( $shortcode['tag'] ); ?>" data-name="<?php echo esc_attr( strtolower( $shortcode['name'] ) ); ?>">
 					<div class="cts-card">
 						<div class="cts-card-header">
-							<span class="cts-card-icon"><?php echo $shortcode['icon']; ?></span>
+							<span class="cts-card-icon"><?php echo esc_html( $shortcode['icon'] ); ?></span>
 							<h3><?php echo esc_html( $shortcode['name'] ); ?></h3>
 						</div>
 						<div class="cts-card-body">
@@ -296,16 +641,17 @@ $shortcodes = [
 				</div>
 			<?php else : ?>
 				<div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 20px;">
-					<?php foreach ( $saved_presets as $preset ) : 
+					<?php
+					foreach ( $saved_presets as $preset ) :
 						$is_system = $preset['is_system'];
-						$config = $preset['configuration'];
-						
+						$config    = $preset['configuration'];
+
 						// Build shortcode string - NUR view Parameter anzeigen (Preset-Slug)
-						// Der Rest wird intern durch apply_preset_config() geladen
-						$view_value = $config['view'] ?? '';
+						// Der Rest wird intern durch apply_preset_config() geladen.
+						$view_value       = $config['view'] ?? '';
 						$shortcode_string = '[' . $preset['shortcode_tag'] . ' view="' . esc_attr( $view_value ) . '"]';
-					?>
-						<div class="cts-preset-card" data-preset-id="<?php echo $preset['id']; ?>">
+						?>
+						<div class="cts-preset-card" data-preset-id="<?php echo esc_attr( $preset['id'] ); ?>">
 							<div class="cts-card">
 								<div class="cts-card-header" style="display: flex; justify-content: space-between; align-items: center;">
 									<div style="display: flex; align-items: center; gap: 8px;">
@@ -349,9 +695,12 @@ $shortcodes = [
 									<button class="cts-button cts-button-secondary cts-copy-preset" data-shortcode="<?php echo esc_attr( $shortcode_string ); ?>">
 										📋 <?php esc_html_e( 'Kopieren', 'churchtools-suite' ); ?>
 									</button>
-									<?php if ( ! $is_system ) : ?>									<button class="cts-button cts-button-secondary cts-edit-preset" data-preset="<?php echo esc_attr( wp_json_encode( $preset ) ); ?>">
+									<?php
+									if ( ! $is_system ) :
+										?>
+										<button class="cts-button cts-button-secondary cts-edit-preset" data-preset="<?php echo esc_attr( wp_json_encode( $preset ) ); ?>">
 										✏️ <?php esc_html_e( 'Bearbeiten', 'churchtools-suite' ); ?>
-									</button>										<button class="cts-button cts-button-secondary cts-delete-preset" data-preset-id="<?php echo $preset['id']; ?>" style="color: #d63638; border-color: #d63638;">
+									</button>										<button class="cts-button cts-button-secondary cts-delete-preset" data-preset-id="<?php echo esc_attr( $preset['id'] ); ?>" style="color: #d63638; border-color: #d63638;">
 											🗑️ <?php esc_html_e( 'Löschen', 'churchtools-suite' ); ?>
 										</button>
 									<?php endif; ?>
@@ -860,7 +1209,7 @@ $shortcodes = [
 						headers: {'Content-Type': 'application/x-www-form-urlencoded'},
 						body: new URLSearchParams({
 							action: 'cts_get_calendars',
-							nonce: '<?php echo wp_create_nonce( 'churchtools_suite_admin' ); ?>'
+							nonce: '<?php echo esc_js( wp_create_nonce( 'churchtools_suite_admin' ) ); ?>'
 						})
 					})
 					.then(response => response.json())
@@ -1000,7 +1349,7 @@ $shortcodes = [
 			const action = presetId ? 'cts_update_preset' : 'cts_save_preset';
 			const params = {
 				action: action,
-				nonce: '<?php echo wp_create_nonce( 'churchtools_suite_admin' ); ?>',
+				nonce: '<?php echo esc_js( wp_create_nonce( 'churchtools_suite_admin' ) ); ?>',
 				name: name,
 				description: description,
 				shortcode_tag: shortcodeTag,
@@ -1147,7 +1496,7 @@ $shortcodes = [
 				},
 				body: new URLSearchParams({
 					action: 'cts_delete_preset',
-					nonce: '<?php echo wp_create_nonce( 'churchtools_suite_admin' ); ?>',
+					nonce: '<?php echo esc_js( wp_create_nonce( 'churchtools_suite_admin' ) ); ?>',
 					preset_id: presetId
 				})
 			})

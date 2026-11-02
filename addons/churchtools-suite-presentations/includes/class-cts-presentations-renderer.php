@@ -1,4 +1,9 @@
 <?php
+/**
+ * Class cts presentations renderer.
+ *
+ * @package ChurchTools_Suite
+ */
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
@@ -6,13 +11,13 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 class CTS_Presentations_Renderer {
 	public static function render_slider( array $config ): string {
-		$event_id = isset( $config['event_id'] ) ? (int) $config['event_id'] : 0;
-		$special_tags = isset( $config['special_tags'] ) ? (string) $config['special_tags'] : '';
+		$event_id      = isset( $config['event_id'] ) ? (int) $config['event_id'] : 0;
+		$special_tags  = isset( $config['special_tags'] ) ? (string) $config['special_tags'] : '';
 		$slide_seconds = isset( $config['slide_seconds'] ) ? max( 3, (int) $config['slide_seconds'] ) : 10;
-		$slide_1_view = isset( $config['slide_1_view'] ) ? (string) $config['slide_1_view'] : 'list-classic';
-		$slide_2_view = isset( $config['slide_2_view'] ) ? (string) $config['slide_2_view'] : 'grid-modern';
+		$slide_1_view  = isset( $config['slide_1_view'] ) ? (string) $config['slide_1_view'] : 'list-classic';
+		$slide_2_view  = isset( $config['slide_2_view'] ) ? (string) $config['slide_2_view'] : 'grid-modern';
 
-		$slides = [];
+		$slides   = array();
 		$slides[] = self::render_shortcode_slide(
 			__( 'Nächste Termine', 'churchtools-suite-presentations' ),
 			sprintf(
@@ -26,7 +31,7 @@ class CTS_Presentations_Renderer {
 			esc_attr( $slide_2_view ),
 			esc_attr( $special_tags )
 		);
-		$slides[] = self::render_shortcode_slide( __( 'Besondere Termine', 'churchtools-suite-presentations' ), $special_shortcode );
+		$slides[]          = self::render_shortcode_slide( __( 'Besondere Termine', 'churchtools-suite-presentations' ), $special_shortcode );
 
 		$slides[] = self::render_today_services_slide( $event_id );
 
@@ -40,7 +45,7 @@ class CTS_Presentations_Renderer {
 		<div class="cts-presentation" data-slide-seconds="<?php echo esc_attr( $slide_seconds ); ?>">
 			<div class="cts-presentation-stage">
 				<?php foreach ( $slides as $index => $slide_html ) : ?>
-					<section class="cts-presentation-slide<?php echo $index === 0 ? ' is-active' : ''; ?>" data-slide-index="<?php echo esc_attr( (string) $index ); ?>">
+					<section class="cts-presentation-slide<?php echo 0 === $index ? ' is-active' : ''; ?>" data-slide-index="<?php echo esc_attr( (string) $index ); ?>">
 						<?php echo $slide_html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
 					</section>
 				<?php endforeach; ?>
@@ -82,13 +87,13 @@ class CTS_Presentations_Renderer {
 			require_once CHURCHTOOLS_SUITE_PATH . 'includes/services/class-churchtools-suite-template-data.php';
 		}
 
-		$data = new ChurchTools_Suite_Template_Data();
+		$data  = new ChurchTools_Suite_Template_Data();
 		$event = $data->get_event_by_id( $event_id );
 		if ( empty( $event ) || ! is_array( $event ) ) {
 			return '';
 		}
 
-		$services = isset( $event['services'] ) && is_array( $event['services'] ) ? $event['services'] : [];
+		$services = isset( $event['services'] ) && is_array( $event['services'] ) ? $event['services'] : array();
 		ob_start();
 		?>
 		<header class="cts-presentation-header">

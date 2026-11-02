@@ -11,15 +11,15 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 $registered_modules = class_exists( 'ChurchTools_Suite_Sync_Modules' )
 	? ChurchTools_Suite_Sync_Modules::get_registered_modules()
-	: [];
+	: array();
 
-$state_labels = [
-	'idle' => __( 'Bereit', 'churchtools-suite' ),
-	'running' => __( 'Läuft', 'churchtools-suite' ),
-	'ok' => __( 'OK', 'churchtools-suite' ),
-	'error' => __( 'Fehler', 'churchtools-suite' ),
+$state_labels = array(
+	'idle'     => __( 'Bereit', 'churchtools-suite' ),
+	'running'  => __( 'Läuft', 'churchtools-suite' ),
+	'ok'       => __( 'OK', 'churchtools-suite' ),
+	'error'    => __( 'Fehler', 'churchtools-suite' ),
 	'disabled' => __( 'Deaktiviert', 'churchtools-suite' ),
-];
+);
 ?>
 <div class="cts-debug-subtab-content">
 	<h2>🔎 Übersicht</h2>
@@ -43,20 +43,20 @@ $state_labels = [
 					</tr>
 					<?php foreach ( $registered_modules as $module ) : ?>
 						<?php
-						$module_id = isset( $module['id'] ) ? (string) $module['id'] : '';
-						$module_label = isset( $module['label'] ) ? (string) $module['label'] : $module_id;
-						$status = $module_id !== '' ? ChurchTools_Suite_Sync_Modules::get_module_status( $module_id ) : [];
-						$state = isset( $status['state'] ) ? sanitize_key( (string) $status['state'] ) : 'idle';
-						$state_label = $state_labels[ $state ] ?? ucfirst( $state );
-						$last_data_sync_at = isset( $status['last_data_sync_at'] ) ? (string) $status['last_data_sync_at'] : '';
-						$last_result = isset( $status['last_result'] ) && is_array( $status['last_result'] ) ? $status['last_result'] : [];
-						$last_message = isset( $last_result['message'] ) ? (string) $last_result['message'] : '';
+						$module_id         = isset( $module['id'] ) ? (string) $module['id'] : '';
+						$module_label      = isset( $module['label'] ) ? (string) $module['label'] : $module_id;
+						$cts_status        = '' !== $module_id ? ChurchTools_Suite_Sync_Modules::get_module_status( $module_id ) : array();
+						$state             = isset( $cts_status['state'] ) ? sanitize_key( (string) $cts_status['state'] ) : 'idle';
+						$state_label       = $state_labels[ $state ] ?? ucfirst( $state );
+						$last_data_sync_at = isset( $cts_status['last_data_sync_at'] ) ? (string) $cts_status['last_data_sync_at'] : '';
+						$last_result       = isset( $cts_status['last_result'] ) && is_array( $cts_status['last_result'] ) ? $cts_status['last_result'] : array();
+						$last_message      = isset( $last_result['message'] ) ? (string) $last_result['message'] : '';
 						?>
 						<tr>
 							<td><?php echo esc_html( $module_label ); ?></td>
 							<td><?php echo esc_html( $state_label ); ?></td>
-							<td><?php echo esc_html( $last_data_sync_at !== '' ? $last_data_sync_at : '—' ); ?></td>
-							<td><?php echo esc_html( $last_message !== '' ? $last_message : '—' ); ?></td>
+							<td><?php echo esc_html( '' !== $last_data_sync_at ? $last_data_sync_at : '—' ); ?></td>
+							<td><?php echo esc_html( '' !== $last_message ? $last_message : '—' ); ?></td>
 						</tr>
 					<?php endforeach; ?>
 				</table>
@@ -65,6 +65,6 @@ $state_labels = [
 	</div>
 
 	<?php
-	include __DIR__ . '/../tab-debug-minimal.php';
+	require __DIR__ . '/../tab-debug-minimal.php';
 	?>
 </div>
