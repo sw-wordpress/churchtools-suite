@@ -5,550 +5,572 @@
  * Injects GitHub latest release into WordPress plugin update transient
  * so the Plugins list shows available updates and the package URL points
  * to the release asset (ZIP).
+ *
+ * @package ChurchTools_Suite
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
-    exit;
+	exit;
 }
 
 class ChurchTools_Suite_Update_Checker {
 
-    const TRANSIENT_KEY = 'churchtools_suite_github_release';
-    const GITHUB_API_RELEASES_URL = 'https://api.github.com/repos/feg-aschaffenburg/churchtools-suite/releases?per_page=30';
-    const GITHUB_API_LATEST_URL = 'https://api.github.com/repos/feg-aschaffenburg/churchtools-suite/releases/latest';
-    const FALLBACK_DOWNLOAD_BASE = 'https://plugin.feg-aschaffenburg.de/download';
+	const TRANSIENT_KEY           = 'churchtools_suite_github_release';
+	const GITHUB_API_RELEASES_URL = 'https://api.github.com/repos/feg-aschaffenburg/churchtools-suite/releases?per_page=30';
+	const GITHUB_API_LATEST_URL   = 'https://api.github.com/repos/feg-aschaffenburg/churchtools-suite/releases/latest';
+	const FALLBACK_DOWNLOAD_BASE  = 'https://plugin.feg-aschaffenburg.de/download';
 
-    public static function init(): void {
-        if ( ! ChurchTools_Suite_Auto_Updater::GITHUB_UPDATES_ENABLED ) {
-            return;
-        }
+	public static function init(): void {
+		if ( ! ChurchTools_Suite_Auto_Updater::GITHUB_UPDATES_ENABLED ) {
+			return;
+		}
 
-        // Hook both pre_set and site_transient variants to ensure compatibility
-        add_filter( 'pre_set_site_transient_update_plugins', [ __CLASS__, 'check_for_update' ] );
-        add_filter( 'site_transient_update_plugins', [ __CLASS__, 'check_for_update' ] );
-        
-        // Hook for after update completion
-        add_action( 'upgrader_process_complete', [ __CLASS__, 'after_update' ], 10, 2 );
-        
-        // Force cache refresh on plugins page (v1.0.3.14)
-        add_action( 'load-plugins.php', [ __CLASS__, 'force_cache_refresh' ] );
-        // Force cache refresh on WordPress update-core page as well
-        add_action( 'load-update-core.php', [ __CLASS__, 'force_cache_refresh' ] );
-    }
-    
-    /**
-     * Force cache refresh when viewing plugins page
-     * Ensures latest version is always shown (v1.0.3.14)
-     */
-    public static function force_cache_refresh(): void {
-        delete_transient( self::TRANSIENT_KEY );
-        delete_site_transient( 'update_plugins' );
-        wp_clean_plugins_cache();
-        wp_update_plugins();
-    }
+		// Hook both pre_set and site_transient variants to ensure compatibility.
+		add_filter( 'pre_set_site_transient_update_plugins', array( __CLASS__, 'check_for_update' ) );
+		add_filter( 'site_transient_update_plugins', array( __CLASS__, 'check_for_update' ) );
 
-    /**
-     * Inject update information into the plugins transient
-     *
-     * @param object $transient
-     * @return object
-     */
-    public static function check_for_update( $transient ) {
-        if ( empty( $transient ) || empty( $transient->checked ) ) {
-            return $transient;
-        }
+		// Hook for after update completion.
+		add_action( 'upgrader_process_complete', array( __CLASS__, 'after_update' ), 10, 2 );
 
-        if ( ! isset( $transient->response ) || ! is_array( $transient->response ) ) {
-            $transient->response = [];
-        }
+		// Force cache refresh on plugins page (v1.0.3.14).
+		add_action( 'load-plugins.php', array( __CLASS__, 'force_cache_refresh' ) );
+		// Force cache refresh on WordPress update-core page as well.
+		add_action( 'load-update-core.php', array( __CLASS__, 'force_cache_refresh' ) );
+	}
 
-        if ( ! isset( $transient->no_update ) || ! is_array( $transient->no_update ) ) {
-            $transient->no_update = [];
-        }
+	/**
+	 * Force cache refresh when viewing plugins page
+	 * Ensures latest version is always shown (v1.0.3.14)
+	 */
+	public static function force_cache_refresh(): void {
+		delete_transient( self::TRANSIENT_KEY );
+		delete_site_transient( 'update_plugins' );
+		wp_clean_plugins_cache();
+		wp_update_plugins();
+	}
 
-        $cache = get_transient( self::TRANSIENT_KEY );
-        if ( $cache ) {
-            $release = $cache;
-        } else {
-            $release = self::fetch_latest_release();
-            if ( is_wp_error( $release ) ) {
-                return $transient;
-            }
-            // Cache for 60 minutes
-            set_transient( self::TRANSIENT_KEY, $release, HOUR_IN_SECONDS );
-        }
+	/**
+	 * Inject update information into the plugins transient
+	 *
+	 * @param object $transient
+	 * @return object
+	 */
+	public static function check_for_update( $transient ) {
+		if ( empty( $transient ) || empty( $transient->checked ) ) {
+			return $transient;
+		}
 
-        if ( empty( $release['tag_name'] ) ) {
-            return $transient;
-        }
+		if ( ! isset( $transient->response ) || ! is_array( $transient->response ) ) {
+			$transient->response = array();
+		}
 
-        $latest_version = ltrim( $release['tag_name'], 'v' );
+		if ( ! isset( $transient->no_update ) || ! is_array( $transient->no_update ) ) {
+			$transient->no_update = array();
+		}
 
-        if ( version_compare( CHURCHTOOLS_SUITE_VERSION, $latest_version, '<' ) ) {
-            // Find asset URL (prefer main plugin ZIP in monorepo releases)
-            $asset_url = self::select_main_plugin_zip_url( $release['assets'] ?? [] );
+		$cache = get_transient( self::TRANSIENT_KEY );
+		if ( $cache ) {
+			$release = $cache;
+		} else {
+			$release = self::fetch_latest_release();
+			if ( is_wp_error( $release ) ) {
+				return $transient;
+			}
+			// Cache for 60 minutes.
+			set_transient( self::TRANSIENT_KEY, $release, HOUR_IN_SECONDS );
+		}
 
-            if ( empty( $asset_url ) ) {
-                $asset_url = self::build_main_plugin_fallback_url( $release['tag_name'] ?? $latest_version );
-            }
+		if ( empty( $release['tag_name'] ) ) {
+			return $transient;
+		}
 
-            // Determine plugin file key as used in the transient
-            $plugin_file = self::find_plugin_file_key( $transient );
+		$latest_version = ltrim( $release['tag_name'], 'v' );
 
-            $update = new stdClass();
-            $update->id = 0;
-            $update->slug = self::get_plugin_slug();
-            $update->plugin = $plugin_file;
-            $update->new_version = $latest_version;
-            $update->url = $release['html_url'] ?? 'https://github.com/feg-aschaffenburg/churchtools-suite';
-            $update->package = $asset_url;
+		if ( version_compare( CHURCHTOOLS_SUITE_VERSION, $latest_version, '<' ) ) {
+			// Find asset URL (prefer main plugin ZIP in monorepo releases).
+			$asset_url = self::select_main_plugin_zip_url( $release['assets'] ?? array() );
 
-            $transient->response[ $plugin_file ] = $update;
-            unset( $transient->no_update[ $plugin_file ] );
-            if ( class_exists( 'ChurchTools_Suite_Logger' ) ) {
-                ChurchTools_Suite_Logger::debug( 'update_checker', 'Injected update for plugin', [ 'plugin_file' => $plugin_file, 'new_version' => $latest_version, 'package' => $asset_url ] );
-            }
-        }
+			if ( empty( $asset_url ) ) {
+				$asset_url = self::build_main_plugin_fallback_url( $release['tag_name'] ?? $latest_version );
+			}
 
-        // Also inject addon updates so WordPress can detect them in Plugins list.
-        self::inject_addon_updates( $transient, $release['assets'] ?? [] );
+			// Determine plugin file key as used in the transient.
+			$plugin_file = self::find_plugin_file_key( $transient );
 
-        return $transient;
-    }
+			$update              = new stdClass();
+			$update->id          = 0;
+			$update->slug        = self::get_plugin_slug();
+			$update->plugin      = $plugin_file;
+			$update->new_version = $latest_version;
+			$update->url         = $release['html_url'] ?? 'https://github.com/feg-aschaffenburg/churchtools-suite';
+			$update->package     = $asset_url;
 
-    /**
-     * Inject update information for known addons from release assets.
-     *
-     * @param object $transient
-     * @param array  $assets
-     * @return void
-     */
-    private static function inject_addon_updates( $transient, array $assets ): void {
-        if ( ! is_object( $transient ) || empty( $transient->checked ) || ! is_array( $transient->checked ) ) {
-            return;
-        }
+			$transient->response[ $plugin_file ] = $update;
+			unset( $transient->no_update[ $plugin_file ] );
+			if ( class_exists( 'ChurchTools_Suite_Logger' ) ) {
+				ChurchTools_Suite_Logger::debug(
+					'update_checker',
+					'Injected update for plugin',
+					array(
+						'plugin_file' => $plugin_file,
+						'new_version' => $latest_version,
+						'package'     => $asset_url,
+					)
+				);
+			}
+		}
 
-        $addon_map = [
-            'churchtools-suite-elementor/churchtools-suite-elementor.php' => [
-                'slug' => 'churchtools-suite-elementor',
-                'prefix' => 'churchtools-suite-elementor-',
-            ],
-            'churchtools-suite-posts-sync/churchtools-suite-posts-sync.php' => [
-                'slug' => 'churchtools-suite-posts-sync',
-                'prefix' => 'churchtools-suite-posts-sync-',
-            ],
-        ];
+		// Also inject addon updates so WordPress can detect them in Plugins list.
+		self::inject_addon_updates( $transient, $release['assets'] ?? array() );
 
-        foreach ( $addon_map as $default_plugin_file => $meta ) {
-            $plugin_file = self::resolve_addon_plugin_file( $transient->checked, $default_plugin_file );
-            if ( $plugin_file === '' ) {
-                continue;
-            }
+		return $transient;
+	}
 
-            $current_version = ltrim( trim( (string) $transient->checked[ $plugin_file ] ), 'vV' );
-            $asset_info = self::find_asset_version_and_url( $assets, (string) $meta['prefix'], (string) $meta['slug'] );
-            if ( empty( $asset_info['version'] ) || empty( $asset_info['url'] ) ) {
-                continue;
-            }
+	/**
+	 * Inject update information for known addons from release assets.
+	 *
+	 * @param object $transient
+	 * @param array  $assets
+	 * @return void
+	 */
+	private static function inject_addon_updates( $transient, array $assets ): void {
+		if ( ! is_object( $transient ) || empty( $transient->checked ) || ! is_array( $transient->checked ) ) {
+			return;
+		}
 
-            $latest_version = ltrim( trim( (string) $asset_info['version'] ), 'vV' );
-            if ( $latest_version === '' ) {
-                continue;
-            }
+		$addon_map = array(
+			'churchtools-suite-elementor/churchtools-suite-elementor.php' => array(
+				'slug'   => 'churchtools-suite-elementor',
+				'prefix' => 'churchtools-suite-elementor-',
+			),
+			'churchtools-suite-posts-sync/churchtools-suite-posts-sync.php' => array(
+				'slug'   => 'churchtools-suite-posts-sync',
+				'prefix' => 'churchtools-suite-posts-sync-',
+			),
+		);
 
-            if ( version_compare( $latest_version, $current_version, '>' ) ) {
-                $transient->response[ $plugin_file ] = (object) [
-                    'id' => 0,
-                    'slug' => (string) $meta['slug'],
-                    'plugin' => $plugin_file,
-                    'new_version' => $latest_version,
-                    'url' => 'https://github.com/feg-aschaffenburg/churchtools-suite/releases',
-                    'package' => (string) $asset_info['url'],
-                ];
-                unset( $transient->no_update[ $plugin_file ] );
-            }
-        }
-    }
+		foreach ( $addon_map as $default_plugin_file => $meta ) {
+			$plugin_file = self::resolve_addon_plugin_file( $transient->checked, $default_plugin_file );
+			if ( '' === $plugin_file ) {
+				continue;
+			}
 
-    /**
-     * Resolve addon plugin file key from transient->checked.
-     *
-     * @param array  $checked
-     * @param string $default_plugin_file
-     * @return string
-     */
-    private static function resolve_addon_plugin_file( array $checked, string $default_plugin_file ): string {
-        if ( isset( $checked[ $default_plugin_file ] ) ) {
-            return $default_plugin_file;
-        }
+			$current_version = ltrim( trim( (string) $transient->checked[ $plugin_file ] ), 'vV' );
+			$asset_info      = self::find_asset_version_and_url( $assets, (string) $meta['prefix'], (string) $meta['slug'] );
+			if ( empty( $asset_info['version'] ) || empty( $asset_info['url'] ) ) {
+				continue;
+			}
 
-        $needle = basename( $default_plugin_file );
-        foreach ( array_keys( $checked ) as $plugin_file ) {
-            if ( is_string( $plugin_file ) && str_ends_with( $plugin_file, '/' . $needle ) ) {
-                return $plugin_file;
-            }
-        }
+			$latest_version = ltrim( trim( (string) $asset_info['version'] ), 'vV' );
+			if ( '' === $latest_version ) {
+				continue;
+			}
 
-        return '';
-    }
+			if ( version_compare( $latest_version, $current_version, '>' ) ) {
+				$transient->response[ $plugin_file ] = (object) array(
+					'id'          => 0,
+					'slug'        => (string) $meta['slug'],
+					'plugin'      => $plugin_file,
+					'new_version' => $latest_version,
+					'url'         => 'https://github.com/feg-aschaffenburg/churchtools-suite/releases',
+					'package'     => (string) $asset_info['url'],
+				);
+				unset( $transient->no_update[ $plugin_file ] );
+			}
+		}
+	}
 
-    /**
-     * Find addon asset URL and version by prefix.
-     *
-     * @param array  $assets
-     * @param string $asset_prefix
-     * @param string $slug
-     * @return array{version:string,url:string}
-     */
-    private static function find_asset_version_and_url( array $assets, string $asset_prefix, string $slug ): array {
-        foreach ( $assets as $asset ) {
-            if ( empty( $asset['name'] ) || empty( $asset['browser_download_url'] ) ) {
-                continue;
-            }
+	/**
+	 * Resolve addon plugin file key from transient->checked.
+	 *
+	 * @param array  $checked
+	 * @param string $default_plugin_file
+	 * @return string
+	 */
+	private static function resolve_addon_plugin_file( array $checked, string $default_plugin_file ): string {
+		if ( isset( $checked[ $default_plugin_file ] ) ) {
+			return $default_plugin_file;
+		}
 
-            $name = (string) $asset['name'];
-            if ( strpos( $name, $asset_prefix ) !== 0 || ! str_ends_with( $name, '.zip' ) ) {
-                continue;
-            }
+		$needle = basename( $default_plugin_file );
+		foreach ( array_keys( $checked ) as $plugin_file ) {
+			if ( is_string( $plugin_file ) && str_ends_with( $plugin_file, '/' . $needle ) ) {
+				return $plugin_file;
+			}
+		}
 
-            $version = '';
-            if ( preg_match( '/^' . preg_quote( $slug, '/' ) . '-(.+)\.zip$/i', $name, $matches ) ) {
-                $version = ltrim( (string) $matches[1], 'vV' );
-            }
+		return '';
+	}
 
-            return [
-                'version' => $version,
-                'url' => (string) $asset['browser_download_url'],
-            ];
-        }
+	/**
+	 * Find addon asset URL and version by prefix.
+	 *
+	 * @param array  $assets
+	 * @param string $asset_prefix
+	 * @param string $slug
+	 * @return array{version:string,url:string}
+	 */
+	private static function find_asset_version_and_url( array $assets, string $asset_prefix, string $slug ): array {
+		foreach ( $assets as $asset ) {
+			if ( empty( $asset['name'] ) || empty( $asset['browser_download_url'] ) ) {
+				continue;
+			}
 
-        return [
-            'version' => '',
-            'url' => '',
-        ];
-    }
+			$name = (string) $asset['name'];
+			if ( strpos( $name, $asset_prefix ) !== 0 || ! str_ends_with( $name, '.zip' ) ) {
+				continue;
+			}
 
-    /**
-     * Build a download URL under the public plugin.feg-aschaffenburg.de download area.
-     *
-     * @param string $filename
-     * @return string
-     */
-    private static function build_fallback_download_url( string $filename ): string {
-        $filename = trim( (string) $filename );
-        if ( $filename === '' ) {
-            return rtrim( self::FALLBACK_DOWNLOAD_BASE, '/' ) . '/churchtools-suite.zip';
-        }
+			$version = '';
+			if ( preg_match( '/^' . preg_quote( $slug, '/' ) . '-(.+)\.zip$/i', $name, $matches ) ) {
+				$version = ltrim( (string) $matches[1], 'vV' );
+			}
 
-        return rtrim( self::FALLBACK_DOWNLOAD_BASE, '/' ) . '/' . ltrim( $filename, '/' );
-    }
+			return array(
+				'version' => $version,
+				'url'     => (string) $asset['browser_download_url'],
+			);
+		}
 
-    /**
-     * Build the main plugin fallback ZIP URL from a tag or version.
-     *
-     * @param string $tag_or_version
-     * @return string
-     */
-    private static function build_main_plugin_fallback_url( string $tag_or_version ): string {
-        $version = ltrim( trim( (string) $tag_or_version ), 'vV' );
-        if ( $version === '' ) {
-            return self::build_fallback_download_url( 'churchtools-suite.zip' );
-        }
+		return array(
+			'version' => '',
+			'url'     => '',
+		);
+	}
 
-        return self::build_fallback_download_url( sprintf( 'churchtools-suite-%s.zip', $version ) );
-    }
+	/**
+	 * Build a download URL under the public plugin.feg-aschaffenburg.de download area.
+	 *
+	 * @param string $filename
+	 * @return string
+	 */
+	private static function build_fallback_download_url( string $filename ): string {
+		$filename = trim( (string) $filename );
+		if ( '' === $filename ) {
+			return rtrim( self::FALLBACK_DOWNLOAD_BASE, '/' ) . '/churchtools-suite.zip';
+		}
 
-    /**
-     * Select the main plugin ZIP from release assets.
-     *
-     * @param array $assets
-     * @return string
-     */
-    private static function select_main_plugin_zip_url( array $assets ): string {
-        if ( empty( $assets ) ) {
-            return '';
-        }
+		return rtrim( self::FALLBACK_DOWNLOAD_BASE, '/' ) . '/' . ltrim( $filename, '/' );
+	}
 
-        foreach ( $assets as $asset ) {
-            if ( empty( $asset['name'] ) || empty( $asset['browser_download_url'] ) ) {
-                continue;
-            }
+	/**
+	 * Build the main plugin fallback ZIP URL from a tag or version.
+	 *
+	 * @param string $tag_or_version
+	 * @return string
+	 */
+	private static function build_main_plugin_fallback_url( string $tag_or_version ): string {
+		$version = ltrim( trim( (string) $tag_or_version ), 'vV' );
+		if ( '' === $version ) {
+			return self::build_fallback_download_url( 'churchtools-suite.zip' );
+		}
 
-            $name = (string) $asset['name'];
-            if ( preg_match( '/^churchtools-suite-\d+(?:\.\d+)+\.zip$/i', $name ) ) {
-                return (string) $asset['browser_download_url'];
-            }
-        }
+		return self::build_fallback_download_url( sprintf( 'churchtools-suite-%s.zip', $version ) );
+	}
 
-        // Fallback: first ZIP asset
-        foreach ( $assets as $asset ) {
-            if ( ! empty( $asset['name'] ) && ! empty( $asset['browser_download_url'] ) && preg_match( '/\.zip$/i', (string) $asset['name'] ) ) {
-                return (string) $asset['browser_download_url'];
-            }
-        }
+	/**
+	 * Select the main plugin ZIP from release assets.
+	 *
+	 * @param array $assets
+	 * @return string
+	 */
+	private static function select_main_plugin_zip_url( array $assets ): string {
+		if ( empty( $assets ) ) {
+			return '';
+		}
 
-        return '';
-    }
+		foreach ( $assets as $asset ) {
+			if ( empty( $asset['name'] ) || empty( $asset['browser_download_url'] ) ) {
+				continue;
+			}
 
-    /**
-     * Fetch latest GitHub release
-     *
-     * @return array|WP_Error
-     */
-    private static function fetch_latest_release() {
-        if ( ! ChurchTools_Suite_Auto_Updater::GITHUB_UPDATES_ENABLED ) {
-            return new WP_Error( 'github_updates_disabled', 'GitHub updates are disabled for this fork.' );
-        }
+			$name = (string) $asset['name'];
+			if ( preg_match( '/^churchtools-suite-\d+(?:\.\d+)+\.zip$/i', $name ) ) {
+				return (string) $asset['browser_download_url'];
+			}
+		}
 
-        $cached = get_transient( self::TRANSIENT_KEY );
-        if ( is_array( $cached ) && ! empty( $cached['tag_name'] ) ) {
-            return $cached;
-        }
+		// Fallback: first ZIP asset.
+		foreach ( $assets as $asset ) {
+			if ( ! empty( $asset['name'] ) && ! empty( $asset['browser_download_url'] ) && preg_match( '/\.zip$/i', (string) $asset['name'] ) ) {
+				return (string) $asset['browser_download_url'];
+			}
+		}
 
-        $args = [
-            'headers' => [
-                'User-Agent' => 'ChurchTools-Suite-Update-Checker',
-                'Accept' => 'application/vnd.github.v3+json',
-            ],
-            'timeout' => 20,
-        ];
+		return '';
+	}
 
-        // Optional token from option or constant.
-        // Without token the request remains "normal WP update" and can hit GitHub rate limits,
-        // but it should fail soft rather than break the update-check behavior.
-        $token = get_option( 'churchtools_suite_github_token', '' );
-        if ( empty( $token ) && defined( 'WP_CHURCHTOOLS_SUITE_GITHUB_TOKEN' ) ) {
-            $token = WP_CHURCHTOOLS_SUITE_GITHUB_TOKEN;
-        }
+	/**
+	 * Fetch latest GitHub release
+	 *
+	 * @return array|WP_Error
+	 */
+	private static function fetch_latest_release() {
+		if ( ! ChurchTools_Suite_Auto_Updater::GITHUB_UPDATES_ENABLED ) {
+			return new WP_Error( 'github_updates_disabled', 'GitHub updates are disabled for this fork.' );
+		}
 
-        if ( ! empty( $token ) ) {
-            $args['headers']['Authorization'] = 'token ' . $token;
-        }
+		$cached = get_transient( self::TRANSIENT_KEY );
+		if ( is_array( $cached ) && ! empty( $cached['tag_name'] ) ) {
+			return $cached;
+		}
 
-        // Prefer full releases list and pick highest stable version.
-        $response = wp_remote_get( self::GITHUB_API_RELEASES_URL, $args );
+		$args = array(
+			'headers' => array(
+				'User-Agent' => 'ChurchTools-Suite-Update-Checker',
+				'Accept'     => 'application/vnd.github.v3+json',
+			),
+			'timeout' => 20,
+		);
 
-        if ( ! is_wp_error( $response ) ) {
-            $code = wp_remote_retrieve_response_code( $response );
-            $body = wp_remote_retrieve_body( $response );
+		// Optional token from option or constant.
+		// Without token the request remains "normal WP update" and can hit GitHub rate limits,
+		// but it should fail soft rather than break the update-check behavior.
+		$token = get_option( 'churchtools_suite_github_token', '' );
+		if ( empty( $token ) && defined( 'WP_CHURCHTOOLS_SUITE_GITHUB_TOKEN' ) ) {
+			$token = WP_CHURCHTOOLS_SUITE_GITHUB_TOKEN;
+		}
 
-            if ( $code === 200 ) {
-                $releases = json_decode( $body, true );
-                if ( json_last_error() === JSON_ERROR_NONE && is_array( $releases ) ) {
-                    $selected = self::select_highest_stable_release( $releases );
-                    if ( ! empty( $selected['tag_name'] ) ) {
-                        set_transient( self::TRANSIENT_KEY, $selected, HOUR_IN_SECONDS );
-                        return $selected;
-                    }
-                }
-            }
-        }
+		if ( ! empty( $token ) ) {
+			$args['headers']['Authorization'] = 'token ' . $token;
+		}
 
-        // Fallback: GitHub /latest.
-        $response = wp_remote_get( self::GITHUB_API_LATEST_URL, $args );
+		// Prefer full releases list and pick highest stable version.
+		$response = wp_remote_get( self::GITHUB_API_RELEASES_URL, $args );
 
-        if ( is_wp_error( $response ) ) {
-            return $cached;
-        }
+		if ( ! is_wp_error( $response ) ) {
+			$code = wp_remote_retrieve_response_code( $response );
+			$body = wp_remote_retrieve_body( $response );
 
-        $code = wp_remote_retrieve_response_code( $response );
-        $body = wp_remote_retrieve_body( $response );
+			if ( 200 === $code ) {
+				$releases = json_decode( $body, true );
+				if ( json_last_error() === JSON_ERROR_NONE && is_array( $releases ) ) {
+					$selected = self::select_highest_stable_release( $releases );
+					if ( ! empty( $selected['tag_name'] ) ) {
+						set_transient( self::TRANSIENT_KEY, $selected, HOUR_IN_SECONDS );
+						return $selected;
+					}
+				}
+			}
+		}
 
-        if ( $code !== 200 ) {
-            return $cached;
-        }
+		// Fallback: GitHub /latest.
+		$response = wp_remote_get( self::GITHUB_API_LATEST_URL, $args );
 
-        $data = json_decode( $body, true );
-        if ( json_last_error() !== JSON_ERROR_NONE || ! is_array( $data ) ) {
-            return $cached;
-        }
+		if ( is_wp_error( $response ) ) {
+			return $cached;
+		}
 
-        set_transient( self::TRANSIENT_KEY, $data, HOUR_IN_SECONDS );
-        return $data;
-    }
+		$code = wp_remote_retrieve_response_code( $response );
+		$body = wp_remote_retrieve_body( $response );
 
-    /**
-     * Select highest stable release by semantic version from GitHub releases list.
-     *
-     * @param array $releases
-     * @return array
-     */
-    private static function select_highest_stable_release( array $releases ): array {
-        $selected = [];
-        $selected_version = '0.0.0';
+		if ( 200 !== $code ) {
+			return $cached;
+		}
 
-        foreach ( $releases as $release ) {
-            if ( ! is_array( $release ) ) {
-                continue;
-            }
-            if ( ! empty( $release['draft'] ) || ! empty( $release['prerelease'] ) ) {
-                continue;
-            }
-            if ( empty( $release['tag_name'] ) ) {
-                continue;
-            }
+		$data = json_decode( $body, true );
+		if ( json_last_error() !== JSON_ERROR_NONE || ! is_array( $data ) ) {
+			return $cached;
+		}
 
-            $version = ltrim( (string) $release['tag_name'], 'vV' );
-            if ( ! preg_match( '/^\d+(?:\.\d+)+$/', $version ) ) {
-                continue;
-            }
+		set_transient( self::TRANSIENT_KEY, $data, HOUR_IN_SECONDS );
+		return $data;
+	}
 
-            if ( empty( $selected ) || version_compare( $version, $selected_version, '>' ) ) {
-                $selected = $release;
-                $selected_version = $version;
-            }
-        }
+	/**
+	 * Select highest stable release by semantic version from GitHub releases list.
+	 *
+	 * @param array $releases
+	 * @return array
+	 */
+	private static function select_highest_stable_release( array $releases ): array {
+		$selected         = array();
+		$selected_version = '0.0.0';
 
-        return $selected;
-    }
+		foreach ( $releases as $release ) {
+			if ( ! is_array( $release ) ) {
+				continue;
+			}
+			if ( ! empty( $release['draft'] ) || ! empty( $release['prerelease'] ) ) {
+				continue;
+			}
+			if ( empty( $release['tag_name'] ) ) {
+				continue;
+			}
 
-    /**
-     * Find the plugin file key in the transient->checked array
-     * Fallback to CHURCHTOOLS_SUITE_BASENAME if not found
-     *
-     * @param object $transient
-     * @return string
-     */
-    private static function find_plugin_file_key( $transient ): string {
-        $needle = basename( CHURCHTOOLS_SUITE_BASENAME );
-        foreach ( $transient->checked as $key => $ver ) {
-            if ( strpos( $key, $needle ) !== false ) {
-                return $key;
-            }
-        }
+			$version = ltrim( (string) $release['tag_name'], 'vV' );
+			if ( ! preg_match( '/^\d+(?:\.\d+)+$/', $version ) ) {
+				continue;
+			}
 
-        // fallback
-        return CHURCHTOOLS_SUITE_BASENAME;
-    }
+			if ( empty( $selected ) || version_compare( $version, $selected_version, '>' ) ) {
+				$selected         = $release;
+				$selected_version = $version;
+			}
+		}
 
-    /**
-     * Get a stable plugin slug for WordPress update API payloads.
-     *
-     * For root plugins (main file in plugin root), dirname() returns "."
-     * which breaks update recognition in some WP versions.
-     *
-     * @return string
-     */
-    private static function get_plugin_slug(): string {
-        $slug = dirname( CHURCHTOOLS_SUITE_BASENAME );
-        if ( $slug === '.' || $slug === '' ) {
-            $slug = 'churchtools-suite';
-        }
+		return $selected;
+	}
 
-        return $slug;
-    }
-    
-    /**
-     * Handle after update completion
-     * 
-     * Clears caches and ensures proper WordPress redirect/refresh
-     *
-     * @param WP_Upgrader $upgrader
-     * @param array $hook_extra
-     */
-    public static function after_update( $upgrader, $hook_extra ): void {
-        // Check if this is a plugin update
-        if ( ! isset( $hook_extra['type'] ) || $hook_extra['type'] !== 'plugin' ) {
-            return;
-        }
-        
-        // Check if this is an update (not install)
-        if ( ! isset( $hook_extra['action'] ) || $hook_extra['action'] !== 'update' ) {
-            return;
-        }
-        
-        // Check if our plugin was updated
-        $our_plugin = false;
-        if ( isset( $hook_extra['plugins'] ) && is_array( $hook_extra['plugins'] ) ) {
-            foreach ( $hook_extra['plugins'] as $plugin ) {
-                if ( $plugin === CHURCHTOOLS_SUITE_BASENAME || strpos( $plugin, 'churchtools-suite.php' ) !== false ) {
-                    $our_plugin = true;
-                    break;
-                }
-            }
-        } elseif ( isset( $hook_extra['plugin'] ) && ( $hook_extra['plugin'] === CHURCHTOOLS_SUITE_BASENAME || strpos( $hook_extra['plugin'], 'churchtools-suite.php' ) !== false ) ) {
-            $our_plugin = true;
-        }
-        
-        if ( ! $our_plugin ) {
-            return;
-        }
-        
-        // Clear our cache
-        delete_transient( self::TRANSIENT_KEY );
-        
-        // Cleanup old update directories (v0.10.3.50)
-        self::cleanup_old_update_directories();
-        
-        // Log successful update
-        if ( class_exists( 'ChurchTools_Suite_Logger' ) ) {
-            ChurchTools_Suite_Logger::info( 'update_checker', 'Plugin updated successfully', [
-                'new_version' => CHURCHTOOLS_SUITE_VERSION,
-                'hook_extra' => $hook_extra,
-            ] );
-        }
-        
-        // Force WordPress to refresh the plugins page
-        // This ensures the "Successfully updated" message is shown
-        if ( ! wp_doing_ajax() ) {
-            wp_cache_flush();
-        }
-    }
-    
-    /**
-     * Cleanup old update directories left behind by WordPress updater
-     * 
-     * WordPress sometimes leaves temporary plugin directories when updating
-     * from GitHub releases. This method removes them.
-     * 
-     * Pattern: FEGAschaffenburg-churchtools-suite-{commit-hash}
-     * 
-     * @since 0.10.3.50
-     * @return void
-     */
-    private static function cleanup_old_update_directories(): void {
-        $plugins_dir = WP_PLUGIN_DIR;
-        
-        if ( ! is_dir( $plugins_dir ) ) {
-            return;
-        }
-        
-        $dirs = glob( $plugins_dir . '/FEGAschaffenburg-churchtools-suite-*' );
-        
-        if ( empty( $dirs ) || ! is_array( $dirs ) ) {
-            return;
-        }
-        
-        require_once ABSPATH . 'wp-admin/includes/file.php';
-        
-        $deleted_count = 0;
-        
-        foreach ( $dirs as $dir ) {
-            // Safety check: Only delete directories matching the pattern exactly
-            if ( ! is_dir( $dir ) || ! preg_match( '/FEGAschaffenburg-churchtools-suite-[a-f0-9]{7,}$/i', basename( $dir ) ) ) {
-                continue;
-            }
-            
-            // Use WordPress filesystem API for safe deletion
-            global $wp_filesystem;
-            
-            if ( WP_Filesystem() ) {
-                if ( $wp_filesystem->delete( $dir, true ) ) {
-                    $deleted_count++;
-                    
-                    if ( class_exists( 'ChurchTools_Suite_Logger' ) ) {
-                        ChurchTools_Suite_Logger::debug( 'update_checker', 'Deleted old update directory', [
-                            'directory' => basename( $dir ),
-                        ] );
-                    }
-                }
-            }
-        }
-        
-        if ( $deleted_count > 0 && class_exists( 'ChurchTools_Suite_Logger' ) ) {
-            ChurchTools_Suite_Logger::info( 'update_checker', 'Cleanup completed', [
-                'deleted_directories' => $deleted_count,
-            ] );
-        }
-    }
+	/**
+	 * Find the plugin file key in the transient->checked array
+	 * Fallback to CHURCHTOOLS_SUITE_BASENAME if not found
+	 *
+	 * @param object $transient
+	 * @return string
+	 */
+	private static function find_plugin_file_key( $transient ): string {
+		$needle = basename( CHURCHTOOLS_SUITE_BASENAME );
+		foreach ( $transient->checked as $key => $ver ) {
+			if ( strpos( $key, $needle ) !== false ) {
+				return $key;
+			}
+		}
+
+		// fallback.
+		return CHURCHTOOLS_SUITE_BASENAME;
+	}
+
+	/**
+	 * Get a stable plugin slug for WordPress update API payloads.
+	 *
+	 * For root plugins (main file in plugin root), dirname() returns "."
+	 * which breaks update recognition in some WP versions.
+	 *
+	 * @return string
+	 */
+	private static function get_plugin_slug(): string {
+		$slug = dirname( CHURCHTOOLS_SUITE_BASENAME );
+		if ( '.' === $slug || '' === $slug ) {
+			$slug = 'churchtools-suite';
+		}
+
+		return $slug;
+	}
+
+	/**
+	 * Handle after update completion
+	 *
+	 * Clears caches and ensures proper WordPress redirect/refresh
+	 *
+	 * @param WP_Upgrader $upgrader
+	 * @param array       $hook_extra
+	 */
+	public static function after_update( $upgrader, $hook_extra ): void {
+		// Check if this is a plugin update.
+		if ( ! isset( $hook_extra['type'] ) || 'plugin' !== $hook_extra['type'] ) {
+			return;
+		}
+
+		// Check if this is an update (not install).
+		if ( ! isset( $hook_extra['action'] ) || 'update' !== $hook_extra['action'] ) {
+			return;
+		}
+
+		// Check if our plugin was updated.
+		$our_plugin = false;
+		if ( isset( $hook_extra['plugins'] ) && is_array( $hook_extra['plugins'] ) ) {
+			foreach ( $hook_extra['plugins'] as $plugin ) {
+				if ( CHURCHTOOLS_SUITE_BASENAME === $plugin || strpos( $plugin, 'churchtools-suite.php' ) !== false ) {
+					$our_plugin = true;
+					break;
+				}
+			}
+		} elseif ( isset( $hook_extra['plugin'] ) && ( CHURCHTOOLS_SUITE_BASENAME === $hook_extra['plugin'] || strpos( $hook_extra['plugin'], 'churchtools-suite.php' ) !== false ) ) {
+			$our_plugin = true;
+		}
+
+		if ( ! $our_plugin ) {
+			return;
+		}
+
+		// Clear our cache.
+		delete_transient( self::TRANSIENT_KEY );
+
+		// Cleanup old update directories (v0.10.3.50).
+		self::cleanup_old_update_directories();
+
+		// Log successful update.
+		if ( class_exists( 'ChurchTools_Suite_Logger' ) ) {
+			ChurchTools_Suite_Logger::info(
+				'update_checker',
+				'Plugin updated successfully',
+				array(
+					'new_version' => CHURCHTOOLS_SUITE_VERSION,
+					'hook_extra'  => $hook_extra,
+				)
+			);
+		}
+
+		// Force WordPress to refresh the plugins page
+		// This ensures the "Successfully updated" message is shown.
+		if ( ! wp_doing_ajax() ) {
+			wp_cache_flush();
+		}
+	}
+
+	/**
+	 * Cleanup old update directories left behind by WordPress updater
+	 *
+	 * WordPress sometimes leaves temporary plugin directories when updating
+	 * from GitHub releases. This method removes them.
+	 *
+	 * Pattern: FEGAschaffenburg-churchtools-suite-{commit-hash}
+	 *
+	 * @since 0.10.3.50
+	 * @return void
+	 */
+	private static function cleanup_old_update_directories(): void {
+		$plugins_dir = WP_PLUGIN_DIR;
+
+		if ( ! is_dir( $plugins_dir ) ) {
+			return;
+		}
+
+		$dirs = glob( $plugins_dir . '/FEGAschaffenburg-churchtools-suite-*' );
+
+		if ( empty( $dirs ) || ! is_array( $dirs ) ) {
+			return;
+		}
+
+		require_once ABSPATH . 'wp-admin/includes/file.php';
+
+		$deleted_count = 0;
+
+		foreach ( $dirs as $dir ) {
+			// Safety check: Only delete directories matching the pattern exactly.
+			if ( ! is_dir( $dir ) || ! preg_match( '/FEGAschaffenburg-churchtools-suite-[a-f0-9]{7,}$/i', basename( $dir ) ) ) {
+				continue;
+			}
+
+			// Use WordPress filesystem API for safe deletion.
+			global $wp_filesystem;
+
+			if ( WP_Filesystem() ) {
+				if ( $wp_filesystem->delete( $dir, true ) ) {
+					++$deleted_count;
+
+					if ( class_exists( 'ChurchTools_Suite_Logger' ) ) {
+						ChurchTools_Suite_Logger::debug(
+							'update_checker',
+							'Deleted old update directory',
+							array(
+								'directory' => basename( $dir ),
+							)
+						);
+					}
+				}
+			}
+		}
+
+		if ( $deleted_count > 0 && class_exists( 'ChurchTools_Suite_Logger' ) ) {
+			ChurchTools_Suite_Logger::info(
+				'update_checker',
+				'Cleanup completed',
+				array(
+					'deleted_directories' => $deleted_count,
+				)
+			);
+		}
+	}
 }

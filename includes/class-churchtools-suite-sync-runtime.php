@@ -12,21 +12,21 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 class ChurchTools_Suite_Sync_Runtime {
 
-	private const STATUS_OPTION_PREFIX = 'churchtools_suite_module_';
-	private const STATUS_OPTION_SUFFIX = '_status';
+	private const STATUS_OPTION_PREFIX  = 'churchtools_suite_module_';
+	private const STATUS_OPTION_SUFFIX  = '_status';
 	private const LOCK_TRANSIENT_PREFIX = 'cts_lock_module_';
 
 	/**
 	 * @return array<string, mixed>
 	 */
 	public static function get_default_status(): array {
-		return [
-			'state' => 'idle',
-			'last_source_sync_at' => '',
+		return array(
+			'state'                  => 'idle',
+			'last_source_sync_at'    => '',
 			'last_selection_save_at' => '',
-			'last_data_sync_at' => '',
-			'last_result' => [],
-		];
+			'last_data_sync_at'      => '',
+			'last_result'            => array(),
+		);
 	}
 
 	/**
@@ -34,24 +34,25 @@ class ChurchTools_Suite_Sync_Runtime {
 	 */
 	public static function get_module_status( string $module_id ): array {
 		$module_id = sanitize_key( $module_id );
-		if ( $module_id === '' ) {
+		if ( '' === $module_id ) {
 			return self::get_default_status();
 		}
 
-		$status = get_option( self::get_status_option_name( $module_id ), [] );
+		$status = get_option( self::get_status_option_name( $module_id ), array() );
 		if ( ! is_array( $status ) ) {
-			$status = [];
+			$status = array();
 		}
 
 		return self::normalize_status( $status );
 	}
 
 	/**
+	 * @param string               $module_id Module identifier.
 	 * @param array<string, mixed> $status
 	 */
 	public static function set_module_status( string $module_id, array $status ): void {
 		$module_id = sanitize_key( $module_id );
-		if ( $module_id === '' ) {
+		if ( '' === $module_id ) {
 			return;
 		}
 
@@ -60,55 +61,59 @@ class ChurchTools_Suite_Sync_Runtime {
 	}
 
 	/**
+	 * @param string               $module_id Module identifier.
+	 * @param string               $action Action name.
 	 * @param array<string, mixed> $result
 	 */
 	public static function record_result( string $module_id, string $action, array $result ): void {
 		$module_id = sanitize_key( $module_id );
-		$action = sanitize_key( $action );
-		if ( $module_id === '' || $action === '' ) {
+		$action    = sanitize_key( $action );
+		if ( '' === $module_id || '' === $action ) {
 			return;
 		}
 
-		$status = self::get_module_status( $module_id );
+		$status            = self::get_module_status( $module_id );
 		$normalized_result = self::normalize_result_payload( $result );
 
-		if ( $action === 'source_sync' ) {
+		if ( 'source_sync' === $action ) {
 			$status['last_source_sync_at'] = current_time( 'mysql' );
-		} elseif ( $action === 'selection_save' ) {
+		} elseif ( 'selection_save' === $action ) {
 			$status['last_selection_save_at'] = current_time( 'mysql' );
-		} elseif ( $action === 'data_sync' ) {
+		} elseif ( 'data_sync' === $action ) {
 			$status['last_data_sync_at'] = current_time( 'mysql' );
 		}
 
 		$status['last_result'] = $normalized_result;
-		$status['state'] = self::state_from_result_status( (string) ( $normalized_result['status'] ?? '' ) );
+		$status['state']       = self::state_from_result_status( (string) ( $normalized_result['status'] ?? '' ) );
 
 		self::set_module_status( $module_id, $status );
 	}
 
 	/**
+	 * @param string           $module_id Module identifier.
+	 * @param string           $action Action name.
 	 * @param callable():mixed $callback
 	 * @return mixed
 	 */
 	public static function run_locked_action( string $module_id, string $action, callable $callback, int $lock_timeout = 300 ) {
 		$module_id = sanitize_key( $module_id );
-		$action = sanitize_key( $action );
+		$action    = sanitize_key( $action );
 
-		if ( $module_id === '' || $action === '' ) {
+		if ( '' === $module_id || '' === $action ) {
 			return new WP_Error( 'cts_invalid_module_action', __( 'Ungültiger Modulaufruf.', 'churchtools-suite' ) );
 		}
 
 		if ( ! self::acquire_lock( $module_id, $action, $lock_timeout ) ) {
-			$locked_result = [
-				'status' => 'locked',
+			$locked_result = array(
+				'status'  => 'locked',
 				'message' => __( 'Für dieses Modul läuft bereits eine Synchronisation.', 'churchtools-suite' ),
-			];
+			);
 			self::record_result( $module_id, $action, $locked_result );
 			return $locked_result;
 		}
 
 		try {
-			$current_status = self::get_module_status( $module_id );
+			$current_status          = self::get_module_status( $module_id );
 			$current_status['state'] = 'running';
 			self::set_module_status( $module_id, $current_status );
 
@@ -118,10 +123,10 @@ class ChurchTools_Suite_Sync_Runtime {
 				self::record_result(
 					$module_id,
 					$action,
-					[
-						'status' => 'error',
+					array(
+						'status'  => 'error',
 						'message' => $result->get_error_message(),
-					]
+					)
 				);
 			} elseif ( is_array( $result ) ) {
 				self::record_result( $module_id, $action, $result );
@@ -129,10 +134,10 @@ class ChurchTools_Suite_Sync_Runtime {
 				self::record_result(
 					$module_id,
 					$action,
-					[
+					array(
 						'status' => 'success',
-						'value' => $result,
-					]
+						'value'  => $result,
+					)
 				);
 			}
 
@@ -141,10 +146,10 @@ class ChurchTools_Suite_Sync_Runtime {
 			self::record_result(
 				$module_id,
 				$action,
-				[
-					'status' => 'error',
+				array(
+					'status'  => 'error',
 					'message' => $e->getMessage(),
-				]
+				)
 			);
 
 			return new WP_Error( 'cts_module_runtime_exception', $e->getMessage() );
@@ -155,8 +160,8 @@ class ChurchTools_Suite_Sync_Runtime {
 
 	public static function acquire_lock( string $module_id, string $action, int $timeout = 300 ): bool {
 		$module_id = sanitize_key( $module_id );
-		$action = sanitize_key( $action );
-		if ( $module_id === '' || $action === '' ) {
+		$action    = sanitize_key( $action );
+		if ( '' === $module_id || '' === $action ) {
 			return false;
 		}
 
@@ -166,19 +171,19 @@ class ChurchTools_Suite_Sync_Runtime {
 			return false;
 		}
 
-		$lock_payload = [
-			'module_id' => $module_id,
-			'action' => $action,
+		$lock_payload = array(
+			'module_id'  => $module_id,
+			'action'     => $action,
 			'started_at' => current_time( 'mysql' ),
-		];
+		);
 
 		return set_transient( $transient_key, $lock_payload, max( 30, $timeout ) );
 	}
 
 	public static function release_lock( string $module_id, string $action ): void {
 		$module_id = sanitize_key( $module_id );
-		$action = sanitize_key( $action );
-		if ( $module_id === '' || $action === '' ) {
+		$action    = sanitize_key( $action );
+		if ( '' === $module_id || '' === $action ) {
 			return;
 		}
 
@@ -191,18 +196,18 @@ class ChurchTools_Suite_Sync_Runtime {
 	 */
 	private static function normalize_status( array $status ): array {
 		$defaults = self::get_default_status();
-		$merged = array_merge( $defaults, $status );
+		$merged   = array_merge( $defaults, $status );
 
 		$state = isset( $merged['state'] ) ? sanitize_key( (string) $merged['state'] ) : 'idle';
-		if ( ! in_array( $state, [ 'idle', 'running', 'error', 'ok', 'disabled' ], true ) ) {
+		if ( ! in_array( $state, array( 'idle', 'running', 'error', 'ok', 'disabled' ), true ) ) {
 			$state = 'idle';
 		}
 
-		$merged['state'] = $state;
-		$merged['last_source_sync_at'] = (string) ( $merged['last_source_sync_at'] ?? '' );
+		$merged['state']                  = $state;
+		$merged['last_source_sync_at']    = (string) ( $merged['last_source_sync_at'] ?? '' );
 		$merged['last_selection_save_at'] = (string) ( $merged['last_selection_save_at'] ?? '' );
-		$merged['last_data_sync_at'] = (string) ( $merged['last_data_sync_at'] ?? '' );
-		$merged['last_result'] = is_array( $merged['last_result'] ) ? $merged['last_result'] : [];
+		$merged['last_data_sync_at']      = (string) ( $merged['last_data_sync_at'] ?? '' );
+		$merged['last_result']            = is_array( $merged['last_result'] ) ? $merged['last_result'] : array();
 
 		return $merged;
 	}
@@ -213,11 +218,11 @@ class ChurchTools_Suite_Sync_Runtime {
 	 */
 	private static function normalize_result_payload( array $result ): array {
 		$status = isset( $result['status'] ) ? sanitize_key( (string) $result['status'] ) : 'success';
-		if ( $status === '' ) {
+		if ( '' === $status ) {
 			$status = 'success';
 		}
 
-		$payload = $result;
+		$payload           = $result;
 		$payload['status'] = $status;
 
 		if ( isset( $payload['message'] ) ) {
@@ -232,15 +237,15 @@ class ChurchTools_Suite_Sync_Runtime {
 	private static function state_from_result_status( string $result_status ): string {
 		$result_status = sanitize_key( $result_status );
 
-		if ( in_array( $result_status, [ 'error', 'failed', 'failure' ], true ) ) {
+		if ( in_array( $result_status, array( 'error', 'failed', 'failure' ), true ) ) {
 			return 'error';
 		}
 
-		if ( in_array( $result_status, [ 'success', 'ok' ], true ) ) {
+		if ( in_array( $result_status, array( 'success', 'ok' ), true ) ) {
 			return 'ok';
 		}
 
-		if ( $result_status === 'disabled' ) {
+		if ( 'disabled' === $result_status ) {
 			return 'disabled';
 		}
 

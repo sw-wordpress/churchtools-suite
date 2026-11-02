@@ -15,10 +15,10 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 class CTS_Posts_Sync_Auto_Updater {
 
-	const GITHUB_API_RELEASES = 'https://api.github.com/repos/FEGAschaffenburg/churchtools-suite/releases?per_page=30';
+	const GITHUB_API_RELEASES        = 'https://api.github.com/repos/FEGAschaffenburg/churchtools-suite/releases?per_page=30';
 	const GITHUB_API_RELEASES_LATEST = 'https://api.github.com/repos/FEGAschaffenburg/churchtools-suite/releases/latest';
-	const PLUGIN_SLUG = 'churchtools-suite-posts-sync';
-	const PLUGIN_FILE = 'churchtools-suite-posts-sync/churchtools-suite-posts-sync.php';
+	const PLUGIN_SLUG                = 'churchtools-suite-posts-sync';
+	const PLUGIN_FILE                = 'churchtools-suite-posts-sync/churchtools-suite-posts-sync.php';
 
 	/**
 	 * Resolve plugin file used in the WP update transient.
@@ -51,11 +51,11 @@ class CTS_Posts_Sync_Auto_Updater {
 	 * Register update hooks.
 	 */
 	public static function init(): void {
-		add_filter( 'pre_set_site_transient_update_plugins', [ __CLASS__, 'push_update_to_transient' ] );
-		add_filter( 'site_transient_update_plugins', [ __CLASS__, 'push_update_to_transient' ] );
-		add_filter( 'plugins_api', [ __CLASS__, 'plugins_api_filter' ], 10, 3 );
-		add_action( 'load-plugins.php', [ __CLASS__, 'force_cache_refresh' ] );
-		add_action( 'load-update-core.php', [ __CLASS__, 'force_cache_refresh' ] );
+		add_filter( 'pre_set_site_transient_update_plugins', array( __CLASS__, 'push_update_to_transient' ) );
+		add_filter( 'site_transient_update_plugins', array( __CLASS__, 'push_update_to_transient' ) );
+		add_filter( 'plugins_api', array( __CLASS__, 'plugins_api_filter' ), 10, 3 );
+		add_action( 'load-plugins.php', array( __CLASS__, 'force_cache_refresh' ) );
+		add_action( 'load-update-core.php', array( __CLASS__, 'force_cache_refresh' ) );
 	}
 
 	/**
@@ -75,24 +75,27 @@ class CTS_Posts_Sync_Auto_Updater {
 	 */
 	public static function get_latest_release_info() {
 		$cache_key = 'cts_posts_sync_latest_release';
-		$cached = get_transient( $cache_key );
-		if ( $cached !== false ) {
+		$cached    = get_transient( $cache_key );
+		if ( false !== $cached ) {
 			return $cached;
 		}
 
-		$headers = [
+		$headers = array(
 			'User-Agent' => 'ChurchTools-Suite-Posts-Sync-Updater',
 			'Accept'     => 'application/vnd.github.v3+json',
-		];
+		);
 
-		$response = wp_remote_get( self::GITHUB_API_RELEASES, [
-			'timeout' => 20,
-			'headers' => $headers,
-		] );
+		$response = wp_remote_get(
+			self::GITHUB_API_RELEASES,
+			array(
+				'timeout' => 20,
+				'headers' => $headers,
+			)
+		);
 
 		$release = null;
 		if ( ! is_wp_error( $response ) && (int) wp_remote_retrieve_response_code( $response ) === 200 ) {
-			$body = wp_remote_retrieve_body( $response );
+			$body     = wp_remote_retrieve_body( $response );
 			$releases = json_decode( $body, true );
 			if ( is_array( $releases ) ) {
 				$release = self::select_highest_stable_release_with_asset( $releases );
@@ -100,10 +103,13 @@ class CTS_Posts_Sync_Auto_Updater {
 		}
 
 		if ( ! is_array( $release ) || empty( $release['tag_name'] ) ) {
-			$response = wp_remote_get( self::GITHUB_API_RELEASES_LATEST, [
-				'timeout' => 20,
-				'headers' => $headers,
-			] );
+			$response = wp_remote_get(
+				self::GITHUB_API_RELEASES_LATEST,
+				array(
+					'timeout' => 20,
+					'headers' => $headers,
+				)
+			);
 
 			if ( is_wp_error( $response ) ) {
 				return $response;
@@ -113,7 +119,7 @@ class CTS_Posts_Sync_Auto_Updater {
 				return new WP_Error( 'github_error', 'GitHub API returned non-200 response for latest release.' );
 			}
 
-			$body = wp_remote_retrieve_body( $response );
+			$body    = wp_remote_retrieve_body( $response );
 			$release = json_decode( $body, true );
 		}
 
@@ -121,9 +127,9 @@ class CTS_Posts_Sync_Auto_Updater {
 			return new WP_Error( 'invalid_release', 'No valid release data from GitHub.' );
 		}
 
-		$zip_url = '';
+		$zip_url       = '';
 		$asset_version = '';
-		$assets = $release['assets'] ?? [];
+		$assets        = $release['assets'] ?? array();
 		if ( is_array( $assets ) ) {
 			foreach ( $assets as $asset ) {
 				if (
@@ -142,13 +148,13 @@ class CTS_Posts_Sync_Auto_Updater {
 			}
 		}
 
-		if ( $zip_url === '' ) {
+		if ( '' === $zip_url ) {
 			return new WP_Error( 'no_zip', 'No Posts Sync ZIP asset found in release.' );
 		}
 
-		$resolved_version = $asset_version !== '' ? $asset_version : ltrim( (string) $release['tag_name'], 'vV' );
+		$resolved_version = '' !== $asset_version ? $asset_version : ltrim( (string) $release['tag_name'], 'vV' );
 
-		$info = [
+		$info = array(
 			'tag_name'     => (string) $release['tag_name'],
 			'version'      => $resolved_version,
 			'zip_url'      => $zip_url,
@@ -156,7 +162,7 @@ class CTS_Posts_Sync_Auto_Updater {
 			'name'         => (string) ( $release['name'] ?? $release['tag_name'] ),
 			'body'         => (string) ( $release['body'] ?? '' ),
 			'published_at' => (string) ( $release['published_at'] ?? '' ),
-		];
+		);
 
 		set_transient( $cache_key, $info, HOUR_IN_SECONDS );
 
@@ -170,7 +176,7 @@ class CTS_Posts_Sync_Auto_Updater {
 	 * @return array|null
 	 */
 	private static function select_highest_stable_release_with_asset( array $releases ): ?array {
-		$selected = null;
+		$selected         = null;
 		$selected_version = '0.0.0';
 
 		foreach ( $releases as $release ) {
@@ -179,12 +185,12 @@ class CTS_Posts_Sync_Auto_Updater {
 			}
 
 			$tag = ltrim( (string) ( $release['tag_name'] ?? '' ), 'vV' );
-			if ( $tag === '' || ! preg_match( '/^\d+(?:\.\d+)+$/', $tag ) ) {
+			if ( '' === $tag || ! preg_match( '/^\d+(?:\.\d+)+$/', $tag ) ) {
 				continue;
 			}
 
 			$has_asset = false;
-			$assets = $release['assets'] ?? [];
+			$assets    = $release['assets'] ?? array();
 			if ( is_array( $assets ) ) {
 				foreach ( $assets as $asset ) {
 					if ( ! empty( $asset['name'] ) && strpos( (string) $asset['name'], 'churchtools-suite-posts-sync-' ) === 0 && str_ends_with( (string) $asset['name'], '.zip' ) ) {
@@ -198,8 +204,8 @@ class CTS_Posts_Sync_Auto_Updater {
 				continue;
 			}
 
-			if ( $selected === null || version_compare( $tag, $selected_version, '>' ) ) {
-				$selected = $release;
+			if ( null === $selected || version_compare( $tag, $selected_version, '>' ) ) {
+				$selected         = $release;
 				$selected_version = $tag;
 			}
 		}
@@ -219,22 +225,22 @@ class CTS_Posts_Sync_Auto_Updater {
 		}
 
 		$plugin_file = self::resolve_plugin_file( $transient );
-		$release = self::get_latest_release_info();
+		$release     = self::get_latest_release_info();
 		if ( is_wp_error( $release ) ) {
 			return $transient;
 		}
 
 		$current_version = $transient->checked[ $plugin_file ] ?? CTS_POSTS_SYNC_VERSION;
 		$current_version = ltrim( trim( (string) $current_version ), 'vV' );
-		$latest_version = ltrim( trim( (string) ( $release['version'] ?? '' ) ), 'vV' );
+		$latest_version  = ltrim( trim( (string) ( $release['version'] ?? '' ) ), 'vV' );
 
-		if ( $latest_version === '' ) {
+		if ( '' === $latest_version ) {
 			unset( $transient->response[ $plugin_file ] );
 			return $transient;
 		}
 
 		if ( version_compare( $latest_version, $current_version, '>' ) ) {
-			$transient->response[ $plugin_file ] = (object) [
+			$transient->response[ $plugin_file ] = (object) array(
 				'slug'         => self::PLUGIN_SLUG,
 				'plugin'       => $plugin_file,
 				'new_version'  => $latest_version,
@@ -242,16 +248,16 @@ class CTS_Posts_Sync_Auto_Updater {
 				'package'      => $release['zip_url'],
 				'tested'       => '6.7',
 				'requires_php' => '8.0',
-			];
+			);
 		} else {
 			unset( $transient->response[ $plugin_file ] );
-			$transient->no_update[ $plugin_file ] = (object) [
+			$transient->no_update[ $plugin_file ] = (object) array(
 				'slug'        => self::PLUGIN_SLUG,
 				'plugin'      => $plugin_file,
 				'new_version' => $current_version,
 				'url'         => $release['html_url'],
 				'package'     => '',
-			];
+			);
 		}
 
 		return $transient;
@@ -266,11 +272,11 @@ class CTS_Posts_Sync_Auto_Updater {
 	 * @return false|object|array
 	 */
 	public static function plugins_api_filter( $result, $action, $args ) {
-		if ( $action !== 'plugin_information' ) {
+		if ( 'plugin_information' !== $action ) {
 			return $result;
 		}
 
-		if ( ! isset( $args->slug ) || $args->slug !== self::PLUGIN_SLUG ) {
+		if ( ! isset( $args->slug ) || self::PLUGIN_SLUG !== $args->slug ) {
 			return $result;
 		}
 
@@ -279,7 +285,7 @@ class CTS_Posts_Sync_Auto_Updater {
 			return $result;
 		}
 
-		return (object) [
+		return (object) array(
 			'name'          => 'ChurchTools Suite – Posts Sync Addon',
 			'slug'          => self::PLUGIN_SLUG,
 			'version'       => $release['version'],
@@ -289,13 +295,13 @@ class CTS_Posts_Sync_Auto_Updater {
 			'tested'        => '6.7',
 			'requires_php'  => '8.0',
 			'download_link' => $release['zip_url'],
-			'sections'      => [
+			'sections'      => array(
 				'description' => 'Synchronisiert ChurchTools-Posts in WordPress-Posts und -Seiten.',
 				'changelog'   => $release['body'] ? wp_kses_post( $release['body'] ) : 'Siehe GitHub Release für Details.',
-			],
-			'banners'       => [],
+			),
+			'banners'       => array(),
 			'external'      => true,
-		];
+		);
 	}
 
 	/**

@@ -15,7 +15,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-// Display options
+// Display options.
 $show_event_description       = isset( $args['show_event_description'] ) ? ChurchTools_Suite_Shortcodes::parse_boolean( $args['show_event_description'] ) : true;
 $show_appointment_description = isset( $args['show_appointment_description'] ) ? ChurchTools_Suite_Shortcodes::parse_boolean( $args['show_appointment_description'] ) : true;
 $show_location                = isset( $args['show_location'] ) ? ChurchTools_Suite_Shortcodes::parse_boolean( $args['show_location'] ) : true;
@@ -39,7 +39,7 @@ $event_action          = $args['event_action'] ?? 'none';
 $single_event_base     = apply_filters( 'churchtools_suite_single_event_base_url', home_url( '/events/' ) );
 $single_event_template = get_option( 'churchtools_suite_single_template', 'professional' );
 
-// Event data
+// Event data.
 $event_id          = $next_event['id'] ?? $next_event['event_id'] ?? $next_event['appointment_id'] ?? 0;
 $event_title       = $next_event['title'] ?? '';
 $event_description = $next_event['event_description'] ?? '';
@@ -50,7 +50,7 @@ $calendar_name     = $next_event['calendar_name'] ?? '';
 $calendar_color    = $next_event['calendar_color'] ?? '#2e9d5b';
 $location          = $next_event['location_name'] ?? '';
 
-// Description (prefer event description, fall back to appointment)
+// Description (prefer event description, fall back to appointment).
 $description = '';
 if ( $show_event_description && ! empty( $event_description ) ) {
 	$description = $event_description;
@@ -58,11 +58,11 @@ if ( $show_event_description && ! empty( $event_description ) ) {
 	$description = $appt_description;
 }
 
-// Image (Event → Calendar fallback)
+// Image (Event → Calendar fallback).
 $hero_image = null;
 if ( class_exists( 'ChurchTools_Suite_Image_Helper' ) ) {
 	$event_arr          = (array) $next_event;
-	$calendar_for_image = ! empty( $event_arr['calendar_image_id'] ) ? [ 'calendar_image_id' => $event_arr['calendar_image_id'] ] : null;
+	$calendar_for_image = ! empty( $event_arr['calendar_image_id'] ) ? array( 'calendar_image_id' => $event_arr['calendar_image_id'] ) : null;
 	$hero_image         = ChurchTools_Suite_Image_Helper::get_image_url( $event_arr, $calendar_for_image );
 }
 if ( empty( $hero_image ) ) {
@@ -70,7 +70,7 @@ if ( empty( $hero_image ) ) {
 }
 $has_image = $show_images && ! empty( $hero_image );
 
-// Date / time (UTC → site timezone)
+// Date / time (UTC → site timezone).
 $wp_timezone = wp_timezone();
 $date_obj    = null;
 if ( ! empty( $start_datetime ) ) {
@@ -90,7 +90,7 @@ $start_time = $date_obj ? wp_date( $time_format, $date_obj->getTimestamp(), $wp_
 $end_time   = '';
 if ( ! empty( $end_datetime ) ) {
 	try {
-		$end_obj  = new DateTime( $end_datetime, new DateTimeZone( 'UTC' ) );
+		$end_obj = new DateTime( $end_datetime, new DateTimeZone( 'UTC' ) );
 		$end_obj->setTimezone( $wp_timezone );
 		$end_time = wp_date( $time_format, $end_obj->getTimestamp(), $wp_timezone );
 	} catch ( Exception $e ) {
@@ -105,22 +105,28 @@ if ( $start_time ) {
 	}
 }
 
-// Accent colors
+// Accent colors.
 $accent      = ( $use_calendar_colors && ! empty( $calendar_color ) ) ? $calendar_color : '#2e9d5b';
 $accent_soft = ChurchTools_Suite_Shortcodes::hex_to_rgba( $accent, 0.12 );
 
-// Call-to-action
+// Call-to-action.
 $cta_label = __( 'Mehr erfahren', 'churchtools-suite' );
 $cta_attrs = '';
 $cta_class = '';
 $cta_href  = '#';
 $show_cta  = false;
-if ( $event_action === 'page' ) {
+if ( 'page' === $event_action ) {
 	$show_cta  = true;
 	$cta_class = ' cts-event-page-link';
-	$cta_href  = add_query_arg( [ 'event_id' => $event_id, 'template' => $single_event_template ], $single_event_base );
+	$cta_href  = add_query_arg(
+		array(
+			'event_id' => $event_id,
+			'template' => $single_event_template,
+		),
+		$single_event_base
+	);
 	$cta_attrs = sprintf( ' data-event-id="%s" data-event-url="%s" data-template="%s"', esc_attr( $event_id ), esc_url( $cta_href ), esc_attr( $single_event_template ) );
-} elseif ( $event_action === 'modal' ) {
+} elseif ( 'modal' === $event_action ) {
 	$show_cta  = true;
 	$cta_class = ' cts-event-clickable';
 	$cta_attrs = sprintf( ' data-event-id="%s" data-template="%s" role="button"', esc_attr( $event_id ), esc_attr( $single_event_template ) );

@@ -1,7 +1,7 @@
 <?php
 /**
  * Admin Dashboard
- * 
+ *
  * Shows plugin status and Elementor integration info
  *
  * @package ChurchTools_Suite
@@ -13,29 +13,29 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 class ChurchTools_Suite_Admin_Dashboard {
-	
+
 	/**
 	 * Initialize admin dashboard
-	 * 
+	 *
 	 * @since 1.0.4.0
 	 */
 	public static function init() {
-		add_action( 'admin_notices', [ __CLASS__, 'show_status_notice' ] );
+		add_action( 'admin_notices', array( __CLASS__, 'show_status_notice' ) );
 	}
-	
+
 	/**
 	 * Show status notice in admin
-	 * 
+	 *
 	 * @since 1.0.4.0
 	 */
 	public static function show_status_notice() {
-		// Only show on plugin pages
+		// Only show on plugin pages.
 		if ( ! self::is_plugin_page() ) {
 			return;
 		}
-		
+
 		$elementor_active = is_plugin_active( 'elementor/elementor.php' );
-		
+
 		?>
 		<div class="notice notice-info">
 			<p>
@@ -67,10 +67,10 @@ class ChurchTools_Suite_Admin_Dashboard {
 		</div>
 		<?php
 	}
-	
+
 	/**
 	 * Check if current page is a ChurchTools plugin page
-	 * 
+	 *
 	 * @return bool
 	 * @since 1.0.4.0
 	 */
@@ -78,12 +78,12 @@ class ChurchTools_Suite_Admin_Dashboard {
 		if ( ! is_admin() ) {
 			return false;
 		}
-		
-		$page = isset( $_GET['page'] ) ? sanitize_text_field( $_GET['page'] ) : '';
-		
+
+		/* phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only navigation, display filters, or status messages; no state is changed by these query arguments. */ $page = isset( $_GET['page'] ) ? sanitize_text_field( wp_unslash( $_GET['page'] ) ) : '';
+
 		return strpos( $page, 'churchtools' ) !== false;
 	}
 }
 
-// Initialize on admin_init
-add_action( 'admin_init', [ 'ChurchTools_Suite_Admin_Dashboard', 'init' ] );
+// Initialize on admin_init.
+add_action( 'admin_init', array( 'ChurchTools_Suite_Admin_Dashboard', 'init' ) );

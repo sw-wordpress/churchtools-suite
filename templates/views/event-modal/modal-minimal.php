@@ -1,9 +1,9 @@
 <?php
 /**
  * Event Modal - Minimal
- * 
+ *
  * Sehr einfaches Modal ohne Schnörkel - nur die Basics
- * 
+ *
  * @package ChurchTools_Suite
  * @since   0.9.9.85
  */

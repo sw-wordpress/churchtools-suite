@@ -1,0 +1,37 @@
+{
+    "name": "feg-aschaffenburg/churchtools-suite",
+    "description": "ChurchTools Integration Suite - ChurchTools integration for WordPress.",
+    "type": "wordpress-plugin",
+    "license": "GPL-2.0-or-later",
+    "require": {
+        "php": ">=8.2"
+    },
+    "require-dev": {
+        "dealerdirect/phpcodesniffer-composer-installer": "^1.0",
+        "phpcompatibility/phpcompatibility-wp": "^2.1",
+        "phpstan/extension-installer": "^1.4",
+        "phpstan/phpstan": "^2.0",
+        "squizlabs/php_codesniffer": "^3.10",
+        "szepeviktor/phpstan-wordpress": "^2.0",
+        "wp-coding-standards/wpcs": "^3.1"
+    },
+    "config": {
+        "sort-packages": true,
+        "allow-plugins": {
+            "dealerdirect/phpcodesniffer-composer-installer": true,
+            "phpstan/extension-installer": true
+        },
+        "platform": {
+            "php": "8.2.0"
+        }
+    },
+    "scripts": {
+        "stan": "phpstan analyse --memory-limit=1G",
+        "cs": "phpcs --runtime-set ignore_warnings_on_exit 1",
+        "cs:fix": "phpcbf",
+        "check": [
+            "@cs",
+            "@stan"
+        ]
+    }
+}

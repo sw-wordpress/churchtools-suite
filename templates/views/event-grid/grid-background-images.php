@@ -7,7 +7,7 @@
  *
  * @package ChurchTools_Suite
  * @since   0.9.9.35
- * 
+ *
  * Available variables:
  * @var array $events Events data
  * @var array $args   Shortcode arguments
@@ -17,37 +17,37 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-// Load image helper
+// Load image helper.
 require_once CHURCHTOOLS_SUITE_PATH . 'includes/class-churchtools-suite-image-helper.php';
 
-// Parse boolean parameters
+// Parse boolean parameters.
 $show_event_description = isset( $args['show_event_description'] ) ? ChurchTools_Suite_Shortcodes::parse_boolean( $args['show_event_description'] ) : true;
-$show_location = isset( $args['show_location'] ) ? ChurchTools_Suite_Shortcodes::parse_boolean( $args['show_location'] ) : true;
-$show_time = isset( $args['show_time'] ) ? ChurchTools_Suite_Shortcodes::parse_boolean( $args['show_time'] ) : true;
-$show_tags = isset( $args['show_tags'] ) ? ChurchTools_Suite_Shortcodes::parse_boolean( $args['show_tags'] ) : false;
+$show_location          = isset( $args['show_location'] ) ? ChurchTools_Suite_Shortcodes::parse_boolean( $args['show_location'] ) : true;
+$show_time              = isset( $args['show_time'] ) ? ChurchTools_Suite_Shortcodes::parse_boolean( $args['show_time'] ) : true;
+$show_tags              = isset( $args['show_tags'] ) ? ChurchTools_Suite_Shortcodes::parse_boolean( $args['show_tags'] ) : false;
 
-// Grid columns
+// Grid columns.
 $columns = absint( $args['columns'] ?? 3 );
 $columns = max( 1, min( 4, $columns ) ); // 1-4 columns
 
-// Style mode and custom colors
-$style_mode = $args['style_mode'] ?? 'theme';
+// Style mode and custom colors.
+$style_mode    = $args['style_mode'] ?? 'theme';
 $custom_styles = '';
-if ( $style_mode === 'plugin' ) {
+if ( 'plugin' === $style_mode ) {
 	$custom_styles = '--cts-primary-color: #2563eb;';
-} elseif ( $style_mode === 'custom' ) {
-	$primary = $args['custom_primary_color'] ?? '#2563eb';
+} elseif ( 'custom' === $style_mode ) {
+	$primary       = $args['custom_primary_color'] ?? '#2563eb';
 	$custom_styles = sprintf(
 		'--cts-primary-color: %s;',
 		esc_attr( $primary )
 	);
 }
 
-// Use calendar colors
+// Use calendar colors.
 $use_calendar_colors = isset( $args['use_calendar_colors'] ) ? ChurchTools_Suite_Shortcodes::parse_boolean( $args['use_calendar_colors'] ) : false;
 ?>
 
-<div class="churchtools-suite-wrapper" data-style-mode="<?php echo esc_attr( $style_mode ); ?>"<?php echo $custom_styles ? ' style="' . $custom_styles . '"' : ''; ?>>
+<div class="churchtools-suite-wrapper" data-style-mode="<?php echo esc_attr( $style_mode ); ?>"<?php echo $custom_styles ? ' style="' . esc_attr( $custom_styles ) . '"' : ''; ?>>
 	<div class="cts-grid cts-grid-with-background-images" 
 		data-view="grid-with-background-images"
 		data-columns="<?php echo esc_attr( $columns ); ?>"
@@ -67,67 +67,67 @@ $use_calendar_colors = isset( $args['use_calendar_colors'] ) ? ChurchTools_Suite
 	<?php else : ?>
 		
 		<?php foreach ( $events as $event ) : ?>
-			<?php 
-			$time_format = get_option( 'time_format' );
-			$has_ampm = ( strpos( $time_format, 'a' ) !== false || strpos( $time_format, 'A' ) !== false );
-			$time_suffix = $has_ampm ? '' : ' Uhr';
+			<?php
+			$time_format  = get_option( 'time_format' );
+			$has_ampm     = ( strpos( $time_format, 'a' ) !== false || strpos( $time_format, 'A' ) !== false );
+			$time_suffix  = $has_ampm ? '' : ' Uhr';
 			$time_display = get_date_from_gmt( $event['start_datetime'], $time_format ) . $time_suffix;
 
-			// Event action logic
+			// Event action logic.
 			$event_action = isset( $args['event_action'] ) ? $args['event_action'] : 'modal';
 
-			// Single event target for page clicks
-			$single_event_base = apply_filters( 'churchtools_suite_single_event_base_url', home_url( '/events/' ) );
+			// Single event target for page clicks.
+			$single_event_base     = apply_filters( 'churchtools_suite_single_event_base_url', home_url( '/events/' ) );
 			$single_event_template = get_option( 'churchtools_suite_single_template', 'professional' );
-			
+
 			$click_class = '';
 			$click_attrs = '';
-		
-			if ( $event_action === 'modal' ) {
+
+			if ( 'modal' === $event_action ) {
 				$click_class = 'cts-event-clickable';
 				$click_attrs = sprintf(
 					'data-event-id="%s" role="button" tabindex="0" aria-label="%s"',
 					esc_attr( $event['id'] ),
-					esc_attr( sprintf( __( 'Details für %s anzeigen', 'churchtools-suite' ), $event['title'] ) )
+					esc_attr( sprintf( /* translators: %s: Event title. */ __( 'Details für %s anzeigen', 'churchtools-suite' ), $event['title'] ) )
 				);
-			} elseif ( $event_action === 'page' ) {
+			} elseif ( 'page' === $event_action ) {
 				$click_class = 'cts-event-page-link';
-				$page_url = add_query_arg(
-					[
-						'event_id' => $event['id'],
-						'template' => $single_event_template,
+				$page_url    = add_query_arg(
+					array(
+						'event_id'     => $event['id'],
+						'template'     => $single_event_template,
 						'ctse_context' => 'elementor',
-					],
+					),
 					$single_event_base
 				);
 				$click_attrs = sprintf(
 					'data-event-id="%s" data-event-url="%s" role="link" tabindex="0" aria-label="%s"',
 					esc_attr( $event['id'] ),
 					esc_url( $page_url ),
-					esc_attr( sprintf( __( 'Zu %s navigieren', 'churchtools-suite' ), $event['title'] ) )
+					esc_attr( sprintf( /* translators: %s: Event title. */ __( 'Zu %s navigieren', 'churchtools-suite' ), $event['title'] ) )
 				);
 			}
-			
+
 			// Get image URL with fallback
-			// Build calendar array with calendar_image_id for fallback
-			$event_arr = is_array( $event ) ? $event : (array) $event;
-			$calendar_for_image = ! empty( $event_arr['calendar_image_id'] ) ? [
+			// Build calendar array with calendar_image_id for fallback.
+			$event_arr          = is_array( $event ) ? $event : (array) $event;
+			$calendar_for_image = ! empty( $event_arr['calendar_image_id'] ) ? array(
 				'calendar_image_id' => $event_arr['calendar_image_id'],
-			] : null;
-			$image_url = ChurchTools_Suite_Image_Helper::get_image_url( $event_arr, $calendar_for_image );
-			$bg_style = sprintf( 'background-image: url("%s");', esc_url( $image_url ) );
-			
-			// Overlay color from calendar
+			) : null;
+			$image_url          = ChurchTools_Suite_Image_Helper::get_image_url( $event_arr, $calendar_for_image );
+			$bg_style           = sprintf( 'background-image: url("%s");', esc_url( $image_url ) );
+
+			// Overlay color from calendar.
 			$overlay_opacity = '0.6';
-			$overlay_color = 'rgba(0, 0, 0, ' . $overlay_opacity . ')';
+			$overlay_color   = 'rgba(0, 0, 0, ' . $overlay_opacity . ')';
 			if ( $use_calendar_colors && ! empty( $event['calendar_color'] ) ) {
 				$overlay_color = ChurchTools_Suite_Shortcodes::hex_to_rgba( $event['calendar_color'], $overlay_opacity );
 			}
 			?>
 
 <div class="cts-grid-card cts-grid-card-background-image <?php echo esc_attr( $click_class ); ?>" 
-	<?php echo $click_attrs; ?>
-	style="<?php echo $bg_style; ?>">
+			<?php /* phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Attribute markup is assembled above with individually escaped values. */  echo $click_attrs; ?>
+	style="<?php echo esc_attr( $bg_style ); ?>">
 	
 	<!-- Background Overlay -->
 	<div class="cts-grid-card-overlay" style="background-color: <?php echo esc_attr( $overlay_color ); ?>"></div>
@@ -160,19 +160,19 @@ $use_calendar_colors = isset( $args['use_calendar_colors'] ) ? ChurchTools_Suite
 		</div>
 		
 		<!-- Tags -->
-		<?php if ( $show_tags && ! empty( $event_arr['tags'] ) ) : ?>
+			<?php if ( $show_tags && ! empty( $event_arr['tags'] ) ) : ?>
 			<div class="cts-grid-card-tags">
-				<?php 
-				$tags = [];
+				<?php
+				$tags = array();
 				if ( is_string( $event_arr['tags'] ) ) {
-					$tags = json_decode( $event_arr['tags'], true ) ?? [];
+					$tags = json_decode( $event_arr['tags'], true ) ?? array();
 				} elseif ( is_array( $event_arr['tags'] ) ) {
 					$tags = $event_arr['tags'];
 				}
-				foreach ( array_slice( $tags, 0, 2 ) as $tag ) : 
-				?>
-					<span class="cts-grid-card-tag" style="background-color: <?php echo esc_attr( $tag['color'] ?? '#6b7280' ); ?>">
-						<?php echo esc_html( $tag['name'] ?? '' ); ?>
+				foreach ( array_slice( $tags, 0, 2 ) as $cts_tag ) :
+					?>
+					<span class="cts-grid-card-tag" style="background-color: <?php echo esc_attr( $cts_tag['color'] ?? '#6b7280' ); ?>">
+						<?php echo esc_html( $cts_tag['name'] ?? '' ); ?>
 					</span>
 				<?php endforeach; ?>
 			</div>

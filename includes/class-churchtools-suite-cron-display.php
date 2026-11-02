@@ -14,7 +14,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 class ChurchTools_Suite_Cron_Display {
-	
+
 	/**
 	 * Get human-readable display name for a cron hook
 	 *
@@ -22,15 +22,15 @@ class ChurchTools_Suite_Cron_Display {
 	 * @return string Display name
 	 */
 	public static function get_cron_display_name( string $hook ): string {
-		$names = [
-			'churchtools_suite_auto_sync' => __( 'Event-Synchronisation', 'churchtools-suite' ),
+		$names = array(
+			'churchtools_suite_auto_sync'         => __( 'Event-Synchronisation', 'churchtools-suite' ),
 			'churchtools_suite_session_keepalive' => __( 'Session aufrechterhalten', 'churchtools-suite' ),
-			'churchtools_suite_check_updates' => __( 'Update-Prüfung', 'churchtools-suite' ),
-		];
-		
+			'churchtools_suite_check_updates'     => __( 'Update-Prüfung', 'churchtools-suite' ),
+		);
+
 		return $names[ $hook ] ?? $hook;
 	}
-	
+
 	/**
 	 * Get human-readable description for a cron hook
 	 *
@@ -38,15 +38,15 @@ class ChurchTools_Suite_Cron_Display {
 	 * @return string Description
 	 */
 	public static function get_cron_description( string $hook ): string {
-		$descriptions = [
-			'churchtools_suite_auto_sync' => __( 'Synchronisiert Events automatisch gemäß Zeitplan.', 'churchtools-suite' ),
+		$descriptions = array(
+			'churchtools_suite_auto_sync'         => __( 'Synchronisiert Events automatisch gemäß Zeitplan.', 'churchtools-suite' ),
 			'churchtools_suite_session_keepalive' => __( 'Verlängert die ChurchTools-Session.', 'churchtools-suite' ),
-			'churchtools_suite_check_updates' => __( 'Prüft auf neue Plugin-Versionen und installiert Updates automatisch.', 'churchtools-suite' ),
-		];
-		
+			'churchtools_suite_check_updates'     => __( 'Prüft auf neue Plugin-Versionen und installiert Updates automatisch.', 'churchtools-suite' ),
+		);
+
 		return $descriptions[ $hook ] ?? '';
 	}
-	
+
 	/**
 	 * Filter cron event display (for WP-CLI and debug screens)
 	 *
@@ -56,12 +56,12 @@ class ChurchTools_Suite_Cron_Display {
 	public static function format_cron_event( string $hook ): string {
 		$name = self::get_cron_display_name( $hook );
 		$desc = self::get_cron_description( $hook );
-		
+
 		if ( $name === $hook ) {
-			// Nicht unserer, original zurückgeben
+			// Nicht unserer, original zurückgeben.
 			return $hook;
 		}
-		
+
 		return sprintf(
 			'<strong>%s</strong><br><span style="color:#666; font-size:0.9em;">%s</span><br><code style="font-size:0.85em; color:#999;">%s</code>',
 			esc_html( $name ),

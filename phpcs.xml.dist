@@ -1,0 +1,75 @@
+<?xml version="1.0"?>
+<ruleset name="churchtools-suite">
+    <description>WordPress Coding Standards + PHP compatibility (rules adopted from the sw-* plugins).</description>
+    <arg name="extensions" value="php"/>
+    <arg name="colors"/>
+    <arg value="sp"/>
+    <arg name="cache" value=".phpcs.cache"/>
+    <exclude-pattern>*/vendor/*</exclude-pattern>
+    <exclude-pattern>*/node_modules/*</exclude-pattern>
+    <exclude-pattern>*/languages/*</exclude-pattern>
+
+    <file>churchtools-suite.php</file>
+    <file>admin</file>
+    <file>includes</file>
+    <file>templates</file>
+    <file>addons</file>
+
+    <config name="minimum_wp_version" value="6.0"/>
+    <config name="testVersion" value="8.2-"/>
+
+    <rule ref="WordPress">
+        <!-- Same documented exceptions as in the sw-* plugins. -->
+        <exclude name="Universal.Operators.DisallowShortTernary"/>
+        <exclude name="Squiz.Commenting.FunctionComment.Missing"/>
+        <exclude name="Squiz.Commenting.FunctionComment.MissingParamTag"/>
+        <exclude name="Squiz.Commenting.FunctionComment.MissingParamComment"/>
+        <exclude name="Squiz.Commenting.FunctionComment.ParamCommentFullStop"/>
+        <exclude name="Squiz.Commenting.ClassComment.Missing"/>
+        <exclude name="Squiz.Commenting.VariableComment.Missing"/>
+        <exclude name="Squiz.Commenting.FileComment.SpacingAfterOpen"/>
+        <exclude name="Generic.Commenting.DocComment.MissingShort"/>
+        <exclude name="Universal.NamingConventions.NoReservedKeywordParameterNames"/>
+        <exclude name="WordPress.DB.DirectDatabaseQuery.NoCaching"/>
+    </rule>
+    <rule ref="WordPress.WP.I18n">
+        <properties>
+            <property name="text_domain" type="array">
+                <element value="churchtools-suite"/>
+                <element value="churchtools-suite-elementor"/>
+                <element value="churchtools-suite-posts-sync"/>
+                <element value="churchtools-suite-presentations"/>
+            </property>
+        </properties>
+    </rule>
+    <rule ref="WordPress.NamingConventions.PrefixAllGlobals">
+        <properties>
+            <property name="prefixes" type="array">
+                <element value="churchtools_suite"/>
+                <element value="ChurchTools_Suite"/>
+                <element value="CHURCHTOOLS_SUITE"/>
+                <element value="cts_"/>
+                <element value="CTS_"/>
+            </property>
+        </properties>
+    </rule>
+    <rule ref="WordPress.WP.Capabilities">
+        <properties>
+            <property name="custom_capabilities" type="array">
+                <element value="manage_churchtools_suite"/>
+                <element value="configure_churchtools_suite"/>
+                <element value="sync_churchtools_events"/>
+                <element value="manage_churchtools_calendars"/>
+                <element value="manage_churchtools_services"/>
+                <element value="view_churchtools_debug"/>
+            </property>
+        </properties>
+    </rule>
+    <rule ref="PHPCompatibilityWP"/>
+
+    <!-- Templates are included from within a function scope; their variables are not globals. -->
+    <rule ref="WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound">
+        <exclude-pattern>*/templates/*</exclude-pattern>
+        <exclude-pattern>*/admin/views/*</exclude-pattern>
+    </rule>
+</ruleset>

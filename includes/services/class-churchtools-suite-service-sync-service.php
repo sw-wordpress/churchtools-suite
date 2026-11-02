@@ -14,41 +14,41 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 class ChurchTools_Suite_Service_Sync_Service {
-	
+
 	/**
 	 * ChurchTools API Client
 	 *
 	 * @var ChurchTools_Suite_CT_Client
 	 */
 	private $ct_client;
-	
+
 	/**
 	 * Services Repository
 	 *
 	 * @var ChurchTools_Suite_Services_Repository
 	 */
 	private $services_repo;
-	
+
 	/**
 	 * Service Groups Repository
 	 *
 	 * @var ChurchTools_Suite_Service_Groups_Repository
 	 */
 	private $service_groups_repo;
-	
+
 	/**
 	 * Constructor
 	 *
-	 * @param ChurchTools_Suite_CT_Client $ct_client ChurchTools API Client
-	 * @param ChurchTools_Suite_Services_Repository $services_repo Services Repository
+	 * @param ChurchTools_Suite_CT_Client                 $ct_client ChurchTools API Client
+	 * @param ChurchTools_Suite_Services_Repository       $services_repo Services Repository
 	 * @param ChurchTools_Suite_Service_Groups_Repository $service_groups_repo Service Groups Repository
 	 */
 	public function __construct( $ct_client, $services_repo, $service_groups_repo = null ) {
-		$this->ct_client = $ct_client;
-		$this->services_repo = $services_repo;
+		$this->ct_client           = $ct_client;
+		$this->services_repo       = $services_repo;
 		$this->service_groups_repo = $service_groups_repo;
 	}
-	
+
 	/**
 	 * Synchronize service groups from ChurchTools
 	 *
@@ -63,80 +63,92 @@ class ChurchTools_Suite_Service_Sync_Service {
 		}
 
 		$deep_debug = class_exists( 'ChurchTools_Suite_Logger' ) && ChurchTools_Suite_Logger::is_deep_debug_enabled();
-		
+
 		if ( $deep_debug ) {
 			if ( class_exists( 'ChurchTools_Suite_Logger' ) ) {
 				ChurchTools_Suite_Logger::debug( 'service_sync', 'Service groups sync started' );
 			}
 		}
-		
-		// Fetch service groups from ChurchTools
+
+		// Fetch service groups from ChurchTools.
 		$response = $this->ct_client->api_request( 'servicegroups', 'GET' );
-		
+
 		if ( is_wp_error( $response ) ) {
 			if ( class_exists( 'ChurchTools_Suite_Logger' ) ) {
-				ChurchTools_Suite_Logger::error( 'service_sync', 'Service groups API error', [
-					'error' => $response->get_error_message(),
-				] );
+				ChurchTools_Suite_Logger::error(
+					'service_sync',
+					'Service groups API error',
+					array(
+						'error' => $response->get_error_message(),
+					)
+				);
 			}
 			return $response;
 		}
-		
+
 		if ( ! isset( $response['data'] ) || ! is_array( $response['data'] ) ) {
 			if ( class_exists( 'ChurchTools_Suite_Logger' ) ) {
 				ChurchTools_Suite_Logger::error( 'service_sync', 'Service groups invalid response structure' );
 			}
 			return new WP_Error( 'invalid_response', __( 'Ungültige API-Antwort für Service Groups', 'churchtools-suite' ) );
 		}
-		
+
 		$groups = $response['data'];
-		
+
 		if ( $deep_debug ) {
 			if ( class_exists( 'ChurchTools_Suite_Logger' ) ) {
-				ChurchTools_Suite_Logger::debug( 'service_sync', 'Service groups fetched', [
-					'count' => count( $groups ),
-				] );
+				ChurchTools_Suite_Logger::debug(
+					'service_sync',
+					'Service groups fetched',
+					array(
+						'count' => count( $groups ),
+					)
+				);
 			}
 		}
-		
-		$stats = [
-			'groups_found' => count( $groups ),
+
+		$stats = array(
+			'groups_found'    => count( $groups ),
 			'groups_inserted' => 0,
-			'groups_updated' => 0,
-			'groups_skipped' => 0,
-		];
-		
-		// Process each service group
+			'groups_updated'  => 0,
+			'groups_skipped'  => 0,
+		);
+
+		// Process each service group.
 		foreach ( $groups as $group ) {
 			$result = $this->process_service_group( $group );
-			
+
 			if ( is_wp_error( $result ) ) {
-				$stats['groups_skipped']++;
+				++$stats['groups_skipped'];
 				continue;
 			}
-			
-			if ( $result['action'] === 'inserted' ) {
-				$stats['groups_inserted']++;
-			} elseif ( $result['action'] === 'updated' ) {
-				$stats['groups_updated']++;
+
+			if ( 'inserted' === $result['action'] ) {
+				++$stats['groups_inserted'];
+			} elseif ( 'updated' === $result['action'] ) {
+				++$stats['groups_updated'];
 			}
 		}
-		
-		// Save sync timestamp
+
+		// Save sync timestamp.
 		update_option( 'churchtools_suite_service_groups_last_sync', current_time( 'mysql' ), false );
-		
+
 		if ( class_exists( 'ChurchTools_Suite_Logger' ) ) {
-			ChurchTools_Suite_Logger::info( 'service_sync', 'Service groups sync complete', [
-				'found' => $stats['groups_found'],
-				'inserted' => $stats['groups_inserted'],
-				'updated' => $stats['groups_updated'],
-				'skipped' => $stats['groups_skipped'],
-			] );
+			ChurchTools_Suite_Logger::info(
+				'service_sync',
+				'Service groups sync complete',
+				array(
+					'found'    => $stats['groups_found'],
+					'inserted' => $stats['groups_inserted'],
+					'updated'  => $stats['groups_updated'],
+					'skipped'  => $stats['groups_skipped'],
+				)
+			);
 		}
-		
+
 		return $stats;
 	}
-	
+
 	/**
 	 * Synchronize services from ChurchTools
 	 *
@@ -147,77 +159,85 @@ class ChurchTools_Suite_Service_Sync_Service {
 	 * @return array|WP_Error Statistics array or WP_Error on failure
 	 */
 	public function sync_services() {
-		// Get selected service groups (if any)
-		$selected_group_ids = [];
+		// Get selected service groups (if any).
+		$selected_group_ids = array();
 		if ( $this->service_groups_repo ) {
 			$selected_group_ids = $this->service_groups_repo->get_selected_group_ids();
 		}
-		
+
 		$deep_debug = class_exists( 'ChurchTools_Suite_Logger' ) && ChurchTools_Suite_Logger::is_deep_debug_enabled();
 		if ( $deep_debug ) {
 			if ( class_exists( 'ChurchTools_Suite_Logger' ) ) {
-				ChurchTools_Suite_Logger::debug( 'service_sync', 'Services sync started', [
-					'selected_groups' => count( $selected_group_ids ),
-				] );
+				ChurchTools_Suite_Logger::debug(
+					'service_sync',
+					'Services sync started',
+					array(
+						'selected_groups' => count( $selected_group_ids ),
+					)
+				);
 			}
 		}
-		
-		// Fetch services from ChurchTools
+
+		// Fetch services from ChurchTools.
 		$response = $this->ct_client->api_request( 'services', 'GET' );
-		
+
 		if ( is_wp_error( $response ) ) {
 			if ( class_exists( 'ChurchTools_Suite_Logger' ) ) {
-				ChurchTools_Suite_Logger::error( 'service_sync', 'Services API error', [
-					'error' => $response->get_error_message(),
-				] );
+				ChurchTools_Suite_Logger::error(
+					'service_sync',
+					'Services API error',
+					array(
+						'error' => $response->get_error_message(),
+					)
+				);
 			}
 			return $response;
 		}
-		
+
 		if ( ! isset( $response['data'] ) || ! is_array( $response['data'] ) ) {
 			return new WP_Error( 'invalid_response', __( 'Ungültige API-Antwort für Services', 'churchtools-suite' ) );
 		}
-		
+
 		$services = $response['data'];
-		
-		$stats = [
-			'services_found' => count( $services ),
+
+		$stats = array(
+			'services_found'    => count( $services ),
 			'services_inserted' => 0,
-			'services_updated' => 0,
-			'services_skipped' => 0,
-		];
-		
-		// Process each service
+			'services_updated'  => 0,
+			'services_skipped'  => 0,
+		);
+
+		// Process each service.
 		foreach ( $services as $service ) {
-			// Filter by selected service groups
+			// Filter by selected service groups.
 			if ( ! empty( $selected_group_ids ) ) {
 				$service_group_id = isset( $service['serviceGroupId'] ) ? (string) $service['serviceGroupId'] : null;
 				if ( ! $service_group_id || ! in_array( $service_group_id, $selected_group_ids, true ) ) {
-					$stats['services_skipped']++;
+					++$stats['services_skipped'];
 					continue;
 				}
 			}
-			
+
 			$result = $this->process_service( $service );
-			
+
 			if ( is_wp_error( $result ) ) {
-				$stats['services_skipped']++;
+				++$stats['services_skipped'];
 				continue;
 			}
-			
-			if ( $result['action'] === 'inserted' ) {
-				$stats['services_inserted']++;
-			} elseif ( $result['action'] === 'updated' ) {
-				$stats['services_updated']++;
+
+			if ( 'inserted' === $result['action'] ) {
+				++$stats['services_inserted'];
+			} elseif ( 'updated' === $result['action'] ) {
+				++$stats['services_updated'];
 			}
 		}
-		
-		// Save sync timestamp
+
+		// Save sync timestamp.
 		update_option( 'churchtools_suite_services_last_sync', current_time( 'mysql' ), false );
-		
+
 		return $stats;
 	}
-	
+
 	/**
 	 * Process a single service group
 	 *
@@ -228,35 +248,35 @@ class ChurchTools_Suite_Service_Sync_Service {
 		if ( ! isset( $group['id'] ) ) {
 			return new WP_Error( 'missing_id', __( 'Service Group hat keine ID', 'churchtools-suite' ) );
 		}
-		
-		// Skip if no name provided
+
+		// Skip if no name provided.
 		if ( empty( $group['name'] ) ) {
 			return new WP_Error( 'missing_name', __( 'Service Group hat keinen Namen', 'churchtools-suite' ) );
 		}
-		
-		$group_data = [
+
+		$group_data = array(
 			'service_group_id' => (string) $group['id'],
-			'name' => $group['name'],
-			'sort_order' => $group['sortKey'] ?? 0,
-			'view_all' => isset( $group['viewAll'] ) ? (int) $group['viewAll'] : 0,
-			'raw_payload' => wp_json_encode( $group ),
-		];
-		
-		// Check if exists before upserting
+			'name'             => $group['name'],
+			'sort_order'       => $group['sortKey'] ?? 0,
+			'view_all'         => isset( $group['viewAll'] ) ? (int) $group['viewAll'] : 0,
+			'raw_payload'      => wp_json_encode( $group ),
+		);
+
+		// Check if exists before upserting.
 		$exists_before = $this->service_groups_repo->get_by_service_group_id( $group_data['service_group_id'] );
-		
+
 		$group_id = $this->service_groups_repo->upsert( $group_data );
-		
+
 		if ( ! $group_id ) {
 			return new WP_Error( 'save_failed', __( 'Service Group konnte nicht gespeichert werden', 'churchtools-suite' ) );
 		}
-		
-		return [
-			'action' => $exists_before ? 'updated' : 'inserted',
+
+		return array(
+			'action'   => $exists_before ? 'updated' : 'inserted',
 			'group_id' => $group_id,
-		];
+		);
 	}
-	
+
 	/**
 	 * Process a single service
 	 *
@@ -267,36 +287,36 @@ class ChurchTools_Suite_Service_Sync_Service {
 		if ( ! isset( $service['id'] ) ) {
 			return new WP_Error( 'missing_id', __( 'Service hat keine ID', 'churchtools-suite' ) );
 		}
-		
-		// Skip if no name provided
+
+		// Skip if no name provided.
 		if ( empty( $service['name'] ) ) {
 			return new WP_Error( 'missing_name', __( 'Service hat keinen Namen', 'churchtools-suite' ) );
 		}
-		
-		$service_data = [
-			'service_id' => (string) $service['id'],
+
+		$service_data = array(
+			'service_id'       => (string) $service['id'],
 			'service_group_id' => isset( $service['serviceGroupId'] ) ? (string) $service['serviceGroupId'] : null,
-			'name' => $service['name'],
-			'name_translated' => $service['nameTranslated'] ?? null,
-			'sort_order' => $service['sortKey'] ?? 0,
-			'raw_payload' => wp_json_encode( $service ),
-		];
-		
-		// Check if exists before upserting
+			'name'             => $service['name'],
+			'name_translated'  => $service['nameTranslated'] ?? null,
+			'sort_order'       => $service['sortKey'] ?? 0,
+			'raw_payload'      => wp_json_encode( $service ),
+		);
+
+		// Check if exists before upserting.
 		$exists_before = $this->services_repo->get_by_service_id( $service_data['service_id'] );
-		
+
 		$service_id = $this->services_repo->upsert( $service_data );
-		
+
 		if ( ! $service_id ) {
 			return new WP_Error( 'save_failed', __( 'Service konnte nicht gespeichert werden', 'churchtools-suite' ) );
 		}
-		
-		return [
-			'action' => $exists_before ? 'updated' : 'inserted',
+
+		return array(
+			'action'     => $exists_before ? 'updated' : 'inserted',
 			'service_id' => $service_id,
-		];
+		);
 	}
-	
+
 	/**
 	 * Get last service groups sync timestamp
 	 *
@@ -305,7 +325,7 @@ class ChurchTools_Suite_Service_Sync_Service {
 	public function get_last_service_groups_sync_time(): ?string {
 		return get_option( 'churchtools_suite_service_groups_last_sync', null );
 	}
-	
+
 	/**
 	 * Get last services sync timestamp
 	 *

@@ -27,31 +27,39 @@ if ( ! defined( 'ABSPATH' ) ) {
 		</div>
 		<div id="cts-log-content" style="background: #1e1e1e; color: #d4d4d4; padding: 16px; border-radius: 4px; max-height: 400px; overflow-y: auto; font-family: 'Courier New', monospace; font-size: 12px; line-height: 1.6;">
 			<?php
-			$log_entries = ChurchTools_Suite_Logger::get_log_content(200); // Letzte 200 Einträge als Array
+			$log_entries = ChurchTools_Suite_Logger::get_log_content( 200 ); // Letzte 200 Einträge als Array.
 			if ( empty( $log_entries ) ) {
 				echo '<span style="color: #8c8f94;">Keine Logs verfügbar. Führen Sie einen Sync aus, um Logs zu generieren.</span>';
 			} else {
-				if ( ! function_exists( 'esc_html' ) ) {
-					function esc_html( $text ) { return htmlspecialchars( $text, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8' ); }
-				}
+
 				foreach ( $log_entries as $entry ) {
 					$color = '#d4d4d4';
 					switch ( $entry['level'] ?? '' ) {
-						case 'error': $color = '#f48771'; break;
-						case 'warning': $color = '#dcdcaa'; break;
-						case 'info': $color = '#4ec9b0'; break;
-						case 'debug': $color = '#9cdcfe'; break;
-						case 'critical': $color = '#ff1744'; break;
+						case 'error':
+							$color = '#f48771';
+							break;
+						case 'warning':
+							$color = '#dcdcaa';
+							break;
+						case 'info':
+							$color = '#4ec9b0';
+							break;
+						case 'debug':
+							$color = '#9cdcfe';
+							break;
+						case 'critical':
+							$color = '#ff1744';
+							break;
 					}
-					$time = esc_html( $entry['timestamp'] ?? '' );
-					$level = strtoupper( esc_html( $entry['level'] ?? '' ) );
+					$time    = esc_html( $entry['timestamp'] ?? '' );
+					$level   = strtoupper( esc_html( $entry['level'] ?? '' ) );
 					$context = esc_html( $entry['context'] ?? '' );
-					$msg = esc_html( $entry['message'] ?? '' );
-					echo '<div style="color:'.$color.';margin-bottom:2px;">';
-					echo '<span style="color:#6a9fb5;">['.$time.']</span> ';
-					echo '<span style="font-weight:600;">['.$level.']</span> ';
-					echo '<span style="color:#b388ff;">['.$context.']</span> ';
-					echo $msg;
+					$msg     = esc_html( $entry['message'] ?? '' );
+					echo '<div style="color:' . esc_attr( $color ) . ';margin-bottom:2px;">';
+					echo '<span style="color:#6a9fb5;">[' . esc_html( $time ) . ']</span> ';
+					echo '<span style="font-weight:600;">[' . esc_html( $level ) . ']</span> ';
+					echo '<span style="color:#b388ff;">[' . esc_html( $context ) . ']</span> ';
+					echo esc_html( $msg );
 					echo '</div>';
 				}
 			}
@@ -92,7 +100,7 @@ jQuery(function($){
 		$btn.prop('disabled', true).text('⏳ <?php esc_html_e( 'Lösche...', 'churchtools-suite' ); ?>');
 		$.post(ajaxurl, {
 			action: 'cts_clear_logs',
-			nonce: '<?php echo wp_create_nonce('churchtools_suite_admin'); ?>'
+			nonce: '<?php echo esc_js( wp_create_nonce( 'churchtools_suite_admin' ) ); ?>'
 		}).done(function(resp){
 			if (resp.success) {
 				alert('<?php esc_html_e( 'Logs wurden gelöscht.', 'churchtools-suite' ); ?>');

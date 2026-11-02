@@ -1,0 +1,12 @@
+parameters:
+    level: 8
+    paths:
+        - churchtools-suite.php
+        - admin
+        - includes
+        - templates
+        - addons
+    excludePaths:
+        - */vendor/*
+        - */node_modules/*
+    tmpDir: .phpstan.cache

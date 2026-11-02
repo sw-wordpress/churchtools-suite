@@ -10,28 +10,28 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-// Load repositories
+// Load repositories.
 require_once CHURCHTOOLS_SUITE_PATH . 'includes/repositories/class-churchtools-suite-repository-base.php';
 require_once CHURCHTOOLS_SUITE_PATH . 'includes/repositories/class-churchtools-suite-event-services-repository.php';
 require_once CHURCHTOOLS_SUITE_PATH . 'includes/repositories/class-churchtools-suite-events-repository.php';
 
 $event_services_repo = new ChurchTools_Suite_Event_Services_Repository();
-$events_repo = new ChurchTools_Suite_Events_Repository();
+$events_repo         = new ChurchTools_Suite_Events_Repository();
 
-// Pagination
-$page = max( 1, (int) ( $_GET['paged'] ?? 1 ) );
-$limit = 50;
-$offset = ( $page - 1 ) * $limit;
+// Pagination.
+/* phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only navigation, display filters, or status messages; no state is changed by these query arguments. */ $cts_page = max( 1, (int) ( absint( wp_unslash( $_GET['paged'] ?? 1 ) ) ) );
+$limit  = 50;
+$offset = ( $cts_page - 1 ) * $limit;
 
-// Get all event services with pagination
+// Get all event services with pagination.
 $all_services = $event_services_repo->get_all();
-$total_count = count( $all_services );
-$services = array_slice( $all_services, $offset, $limit );
+$total_count  = count( $all_services );
+$services     = array_slice( $all_services, $offset, $limit );
 
-// Get unique service names
+// Get unique service names.
 $unique_services = $event_services_repo->get_unique_service_names();
 
-// Calculate pagination
+// Calculate pagination.
 $total_pages = ceil( $total_count / $limit );
 ?>
 
@@ -42,8 +42,8 @@ $total_pages = ceil( $total_count / $limit );
 		<p class="cts-section-description">
 			<?php
 			printf(
-				esc_html__( 'Übersicht aller importierten Services aus ChurchTools Events. Insgesamt %d Services in %d Events.', 'churchtools-suite' ),
-				$total_count,
+				/* translators: 1: Number of services, 2: Number of events. */                esc_html__( 'Übersicht aller importierten Services aus ChurchTools Events. Insgesamt %1$d Services in %2$d Events.', 'churchtools-suite' ),
+				(int) $total_count,
 				count( array_unique( array_column( $all_services, 'event_id' ) ) )
 			);
 			?>
@@ -54,21 +54,21 @@ $total_pages = ceil( $total_count / $limit );
 	<div class="cts-grid cts-grid-3">
 		<div class="cts-card">
 			<div class="cts-card-body">
-				<div class="cts-stat-number"><?php echo esc_html( $total_count ); ?></div>
+				<div class="cts-stat-number"><?php echo esc_html( (string) ( $total_count ) ); ?></div>
 				<p class="cts-card-detail"><?php esc_html_e( 'Services gesamt', 'churchtools-suite' ); ?></p>
 			</div>
 		</div>
 		
 		<div class="cts-card">
 			<div class="cts-card-body">
-				<div class="cts-stat-number"><?php echo esc_html( count( $unique_services ) ); ?></div>
+				<div class="cts-stat-number"><?php echo esc_html( (string) ( count( $unique_services ) ) ); ?></div>
 				<p class="cts-card-detail"><?php esc_html_e( 'Verschiedene Services', 'churchtools-suite' ); ?></p>
 			</div>
 		</div>
 		
 		<div class="cts-card">
 			<div class="cts-card-body">
-				<div class="cts-stat-number"><?php echo esc_html( count( array_unique( array_column( $all_services, 'event_id' ) ) ) ); ?></div>
+				<div class="cts-stat-number"><?php echo esc_html( (string) ( count( array_unique( array_column( $all_services, 'event_id' ) ) ) ) ); ?></div>
 				<p class="cts-card-detail"><?php esc_html_e( 'Events mit Services', 'churchtools-suite' ); ?></p>
 			</div>
 		</div>
@@ -96,10 +96,11 @@ $total_pages = ceil( $total_count / $limit );
 						</tr>
 					</thead>
 					<tbody>
-						<?php foreach ( $services as $service ) : 
-							// Get event details
+						<?php
+						foreach ( $services as $service ) :
+							// Get event details.
 							$event = $events_repo->get_by_id( $service->event_id );
-						?>
+							?>
 							<tr>
 								<td>
 									<strong><?php echo esc_html( $service->service_name ); ?></strong>
@@ -155,23 +156,23 @@ $total_pages = ceil( $total_count / $limit );
 				<span class="cts-pagination-info">
 					<?php
 					printf(
-						esc_html__( 'Seite %d von %d', 'churchtools-suite' ),
-						$page,
-						$total_pages
+						/* translators: 1: Current page, 2: Total pages. */                        esc_html__( 'Seite %1$d von %2$d', 'churchtools-suite' ),
+						(int) $cts_page,
+						(int) $total_pages
 					);
 					?>
 				</span>
 				<div style="display: flex; gap: 8px;">
-					<?php if ( $page > 1 ) : ?>
-						<a href="<?php echo esc_url( admin_url( 'admin.php?page=churchtools-suite-data&subtab=imported-services&paged=' . ( $page - 1 ) ) ); ?>" 
-						   class="cts-button cts-button-secondary">
+					<?php if ( $cts_page > 1 ) : ?>
+						<a href="<?php echo esc_url( admin_url( 'admin.php?page=churchtools-suite-data&subtab=imported-services&paged=' . ( $cts_page - 1 ) ) ); ?>"
+							class="cts-button cts-button-secondary">
 							<?php esc_html_e( 'Zurück', 'churchtools-suite' ); ?>
 						</a>
 					<?php endif; ?>
 					
-					<?php if ( $page < $total_pages ) : ?>
-						<a href="<?php echo esc_url( admin_url( 'admin.php?page=churchtools-suite-data&subtab=imported-services&paged=' . ( $page + 1 ) ) ); ?>" 
-						   class="cts-button cts-button-primary">
+					<?php if ( $cts_page < $total_pages ) : ?>
+						<a href="<?php echo esc_url( admin_url( 'admin.php?page=churchtools-suite-data&subtab=imported-services&paged=' . ( $cts_page + 1 ) ) ); ?>"
+							class="cts-button cts-button-primary">
 							<?php esc_html_e( 'Weiter', 'churchtools-suite' ); ?>
 						</a>
 					<?php endif; ?>

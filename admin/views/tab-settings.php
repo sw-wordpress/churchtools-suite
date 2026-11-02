@@ -10,33 +10,33 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-// Determine active sub-tab
-$active_subtab = isset( $_GET['subtab'] ) ? sanitize_key( $_GET['subtab'] ) : 'api';
+// Determine active sub-tab.
+/* phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only navigation, display filters, or status messages; no state is changed by these query arguments. */ $active_subtab = isset( $_GET['subtab'] ) ? sanitize_key( $_GET['subtab'] ) : 'api';
 ?>
 
 <div class="cts-settings">
 	
 	<!-- Sub-Navigation -->
 	<div class="cts-sub-tabs">
-		<a href="?page=churchtools-suite&tab=settings&subtab=api" class="cts-sub-tab <?php echo $active_subtab === 'api' ? 'active' : ''; ?>">
+		<a href="?page=churchtools-suite&tab=settings&subtab=api" class="cts-sub-tab <?php echo 'api' === $active_subtab ? 'active' : ''; ?>">
 			<?php esc_html_e( 'API & Verbindung', 'churchtools-suite' ); ?>
 		</a>
-		<a href="?page=churchtools-suite&tab=settings&subtab=sync" class="cts-sub-tab <?php echo $active_subtab === 'sync' ? 'active' : ''; ?>">
+		<a href="?page=churchtools-suite&tab=settings&subtab=sync" class="cts-sub-tab <?php echo 'sync' === $active_subtab ? 'active' : ''; ?>">
 			<?php esc_html_e( 'Synchronisation', 'churchtools-suite' ); ?>
 		</a>
-		<a href="?page=churchtools-suite&tab=settings&subtab=posts" class="cts-sub-tab <?php echo $active_subtab === 'posts' ? 'active' : ''; ?>">
+		<a href="?page=churchtools-suite&tab=settings&subtab=posts" class="cts-sub-tab <?php echo 'posts' === $active_subtab ? 'active' : ''; ?>">
 			<?php esc_html_e( 'Posts', 'churchtools-suite' ); ?>
 		</a>
-		<a href="?page=churchtools-suite&tab=settings&subtab=calendars" class="cts-sub-tab <?php echo $active_subtab === 'calendars' ? 'active' : ''; ?>">
+		<a href="?page=churchtools-suite&tab=settings&subtab=calendars" class="cts-sub-tab <?php echo 'calendars' === $active_subtab ? 'active' : ''; ?>">
 			<?php esc_html_e( 'Kalender', 'churchtools-suite' ); ?>
 		</a>
-		<a href="?page=churchtools-suite&tab=settings&subtab=services" class="cts-sub-tab <?php echo $active_subtab === 'services' ? 'active' : ''; ?>">
+		<a href="?page=churchtools-suite&tab=settings&subtab=services" class="cts-sub-tab <?php echo 'services' === $active_subtab ? 'active' : ''; ?>">
 			<?php esc_html_e( 'Dienste', 'churchtools-suite' ); ?>
 		</a>
-		<a href="?page=churchtools-suite&tab=settings&subtab=templates" class="cts-sub-tab <?php echo $active_subtab === 'templates' ? 'active' : ''; ?>">
+		<a href="?page=churchtools-suite&tab=settings&subtab=templates" class="cts-sub-tab <?php echo 'templates' === $active_subtab ? 'active' : ''; ?>">
 			<?php esc_html_e( 'Templates', 'churchtools-suite' ); ?>
 		</a>
-		<a href="?page=churchtools-suite&tab=settings&subtab=advanced" class="cts-sub-tab <?php echo $active_subtab === 'advanced' ? 'active' : ''; ?>">
+		<a href="?page=churchtools-suite&tab=settings&subtab=advanced" class="cts-sub-tab <?php echo 'advanced' === $active_subtab ? 'active' : ''; ?>">
 			<?php esc_html_e( 'Erweitert', 'churchtools-suite' ); ?>
 		</a>
 	</div>

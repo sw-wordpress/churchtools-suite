@@ -11,43 +11,47 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 class ChurchTools_Suite_Loader {
-	
+
 	/**
 	 * Actions to be registered
+	 *
+	 * @var array
 	 */
-	protected array $actions = [];
-	
+	protected array $actions = array();
+
 	/**
 	 * Filters to be registered
+	 *
+	 * @var array
 	 */
-	protected array $filters = [];
-	
+	protected array $filters = array();
+
 	/**
 	 * Add an action
 	 */
 	public function add_action( string $hook, object $component, string $callback, int $priority = 10, int $accepted_args = 1 ): void {
-		$this->actions[] = [
+		$this->actions[] = array(
 			'hook'          => $hook,
 			'component'     => $component,
 			'callback'      => $callback,
 			'priority'      => $priority,
 			'accepted_args' => $accepted_args,
-		];
+		);
 	}
-	
+
 	/**
 	 * Add a filter
 	 */
 	public function add_filter( string $hook, object $component, string $callback, int $priority = 10, int $accepted_args = 1 ): void {
-		$this->filters[] = [
+		$this->filters[] = array(
 			'hook'          => $hook,
 			'component'     => $component,
 			'callback'      => $callback,
 			'priority'      => $priority,
 			'accepted_args' => $accepted_args,
-		];
+		);
 	}
-	
+
 	/**
 	 * Register all hooks
 	 */
@@ -55,16 +59,16 @@ class ChurchTools_Suite_Loader {
 		foreach ( $this->filters as $hook ) {
 			add_filter(
 				$hook['hook'],
-				[ $hook['component'], $hook['callback'] ],
+				array( $hook['component'], $hook['callback'] ),
 				$hook['priority'],
 				$hook['accepted_args']
 			);
 		}
-		
+
 		foreach ( $this->actions as $hook ) {
 			add_action(
 				$hook['hook'],
-				[ $hook['component'], $hook['callback'] ],
+				array( $hook['component'], $hook['callback'] ),
 				$hook['priority'],
 				$hook['accepted_args']
 			);

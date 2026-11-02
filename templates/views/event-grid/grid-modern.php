@@ -17,27 +17,27 @@ require_once CHURCHTOOLS_SUITE_PATH . 'includes/class-churchtools-suite-image-he
 $columns = isset( $args['columns'] ) ? intval( $args['columns'] ) : 3;
 $columns = max( 1, min( 6, $columns ) );
 
-$show_event_description = isset( $args['show_event_description'] ) ? ChurchTools_Suite_Shortcodes::parse_boolean( $args['show_event_description'] ) : true;
+$show_event_description       = isset( $args['show_event_description'] ) ? ChurchTools_Suite_Shortcodes::parse_boolean( $args['show_event_description'] ) : true;
 $show_appointment_description = isset( $args['show_appointment_description'] ) ? ChurchTools_Suite_Shortcodes::parse_boolean( $args['show_appointment_description'] ) : true;
-$show_location = isset( $args['show_location'] ) ? ChurchTools_Suite_Shortcodes::parse_boolean( $args['show_location'] ) : true;
-$show_services = isset( $args['show_services'] ) ? ChurchTools_Suite_Shortcodes::parse_boolean( $args['show_services'] ) : true;
-$show_time = isset( $args['show_time'] ) ? ChurchTools_Suite_Shortcodes::parse_boolean( $args['show_time'] ) : true;
-$show_tags = isset( $args['show_tags'] ) ? ChurchTools_Suite_Shortcodes::parse_boolean( $args['show_tags'] ) : false;
-$show_month_separator = isset( $args['show_month_separator'] ) ? ChurchTools_Suite_Shortcodes::parse_boolean( $args['show_month_separator'] ) : true;
-$show_calendar_name = isset( $args['show_calendar_name'] ) ? ChurchTools_Suite_Shortcodes::parse_boolean( $args['show_calendar_name'] ) : true;
-$show_images = isset( $args['show_images'] ) ? ChurchTools_Suite_Shortcodes::parse_boolean( $args['show_images'] ) : true;
-$image_fit = isset( $args['image_fit'] ) ? ChurchTools_Suite_Shortcodes::sanitize_image_fit( $args['image_fit'] ) : 'cover';
-$use_calendar_colors = isset( $args['use_calendar_colors'] ) ? ChurchTools_Suite_Shortcodes::parse_boolean( $args['use_calendar_colors'] ) : false;
+$show_location                = isset( $args['show_location'] ) ? ChurchTools_Suite_Shortcodes::parse_boolean( $args['show_location'] ) : true;
+$show_services                = isset( $args['show_services'] ) ? ChurchTools_Suite_Shortcodes::parse_boolean( $args['show_services'] ) : true;
+$show_time                    = isset( $args['show_time'] ) ? ChurchTools_Suite_Shortcodes::parse_boolean( $args['show_time'] ) : true;
+$show_tags                    = isset( $args['show_tags'] ) ? ChurchTools_Suite_Shortcodes::parse_boolean( $args['show_tags'] ) : false;
+$show_month_separator         = isset( $args['show_month_separator'] ) ? ChurchTools_Suite_Shortcodes::parse_boolean( $args['show_month_separator'] ) : true;
+$show_calendar_name           = isset( $args['show_calendar_name'] ) ? ChurchTools_Suite_Shortcodes::parse_boolean( $args['show_calendar_name'] ) : true;
+$show_images                  = isset( $args['show_images'] ) ? ChurchTools_Suite_Shortcodes::parse_boolean( $args['show_images'] ) : true;
+$image_fit                    = isset( $args['image_fit'] ) ? ChurchTools_Suite_Shortcodes::sanitize_image_fit( $args['image_fit'] ) : 'cover';
+$use_calendar_colors          = isset( $args['use_calendar_colors'] ) ? ChurchTools_Suite_Shortcodes::parse_boolean( $args['use_calendar_colors'] ) : false;
 
-$single_event_base = apply_filters( 'churchtools_suite_single_event_base_url', home_url( '/events/' ) );
+$single_event_base     = apply_filters( 'churchtools_suite_single_event_base_url', home_url( '/events/' ) );
 $single_event_template = get_option( 'churchtools_suite_single_template', 'professional' );
-$event_action = $args['event_action'] ?? 'modal';
+$event_action          = $args['event_action'] ?? 'modal';
 
-$style_mode = $args['style_mode'] ?? 'theme';
+$style_mode    = $args['style_mode'] ?? 'theme';
 $custom_styles = '';
-if ( $style_mode === 'plugin' ) {
+if ( 'plugin' === $style_mode ) {
 	$custom_styles = '--cts-primary-color: #2563eb; --cts-text-color: #1e293b; --cts-bg-color: #ffffff; --cts-border-radius: 12px; --cts-font-size: 15px; --cts-padding: 20px; --cts-spacing: 20px;';
-} elseif ( $style_mode === 'custom' ) {
+} elseif ( 'custom' === $style_mode ) {
 	$custom_styles = sprintf(
 		'--cts-primary-color: %s; --cts-text-color: %s; --cts-bg-color: %s; --cts-border-radius: %dpx; --cts-font-size: %dpx; --cts-padding: %dpx; --cts-spacing: %dpx;',
 		esc_attr( $args['custom_primary_color'] ?? '#2563eb' ),
@@ -64,7 +64,7 @@ if ( ! function_exists( 'cts_truncate_text' ) ) {
 }
 ?>
 
-<div class="churchtools-suite-wrapper" data-style-mode="<?php echo esc_attr( $style_mode ); ?>" data-image-fit="<?php echo esc_attr( $image_fit ); ?>"<?php echo $custom_styles ? ' style="' . $custom_styles . '"' : ''; ?>>
+<div class="churchtools-suite-wrapper" data-style-mode="<?php echo esc_attr( $style_mode ); ?>" data-image-fit="<?php echo esc_attr( $image_fit ); ?>"<?php echo $custom_styles ? ' style="' . esc_attr( $custom_styles ) . '"' : ''; ?>>
 	<div class="cts-grid-modern"
 		data-view="grid-modern"
 		data-columns="<?php echo esc_attr( $columns ); ?>"
@@ -86,16 +86,16 @@ if ( ! function_exists( 'cts_truncate_text' ) ) {
 			<?php
 			$current_month = '';
 			foreach ( $events as $event ) :
-				$event_month = get_date_from_gmt( $event['start_datetime'], 'Y-m' );
+				$event_month    = get_date_from_gmt( $event['start_datetime'], 'Y-m' );
 				$show_separator = $show_month_separator && $event_month !== $current_month;
-				$current_month = $event_month;
+				$current_month  = $event_month;
 				$calendar_color = $event['calendar_color'] ?? '#2563eb';
-				$day = get_date_from_gmt( $event['start_datetime'], 'd' );
-				$month_short = get_date_from_gmt( $event['start_datetime'], 'M' );
+				$day            = get_date_from_gmt( $event['start_datetime'], 'd' );
+				$month_short    = get_date_from_gmt( $event['start_datetime'], 'M' );
 
 				$click_class = '';
 				$click_attrs = '';
-				if ( $event_action === 'modal' ) {
+				if ( 'modal' === $event_action ) {
 					$click_class = ' cts-event-clickable';
 					$click_attrs = sprintf(
 						'data-event-id="%s" data-event-title="%s" data-event-start="%s" data-event-location="%s" data-event-description="%s"',
@@ -105,13 +105,13 @@ if ( ! function_exists( 'cts_truncate_text' ) ) {
 						esc_attr( $event['location_name'] ?? '' ),
 						esc_attr( wp_trim_words( $event['event_description'] ?? '', 50 ) )
 					);
-				} elseif ( $event_action === 'page' ) {
+				} elseif ( 'page' === $event_action ) {
 					$click_class = ' cts-event-page-link';
-					$event_url = add_query_arg(
-						[
+					$event_url   = add_query_arg(
+						array(
 							'event_id' => $event['id'],
 							'template' => $single_event_template,
-						],
+						),
 						$single_event_base
 					);
 					$click_attrs = sprintf(
@@ -126,16 +126,16 @@ if ( ! function_exists( 'cts_truncate_text' ) ) {
 					$card_style = sprintf( ' style="--calendar-color: %s; --cts-primary-color: %s;"', esc_attr( $calendar_color ), esc_attr( $calendar_color ) );
 				}
 
-				$event_arr = is_array( $event ) ? $event : (array) $event;
-				$calendar_for_image = ! empty( $event_arr['calendar_image_id'] ) ? [ 'calendar_image_id' => $event_arr['calendar_image_id'] ] : null;
-				$image_url = ChurchTools_Suite_Image_Helper::get_image_url( $event_arr, $calendar_for_image );
+				$event_arr          = is_array( $event ) ? $event : (array) $event;
+				$calendar_for_image = ! empty( $event_arr['calendar_image_id'] ) ? array( 'calendar_image_id' => $event_arr['calendar_image_id'] ) : null;
+				$image_url          = ChurchTools_Suite_Image_Helper::get_image_url( $event_arr, $calendar_for_image );
 				?>
 
 				<?php if ( $show_separator ) : ?>
 					<h2 class="cts-grid-modern__month-separator"><?php echo esc_html( get_date_from_gmt( $event['start_datetime'], 'F Y' ) ); ?></h2>
 				<?php endif; ?>
 
-				<article class="cts-grid-card-modern<?php echo esc_attr( $click_class ); ?>"<?php echo $card_style . ' ' . $click_attrs; ?>>
+				<article class="cts-grid-card-modern<?php /* phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Attribute markup is assembled above with individually escaped values. */  echo esc_attr( $click_class ); ?>"<?php echo $card_style . ' ' . $click_attrs; ?>>
 					<?php if ( $show_images && ! empty( $image_url ) ) : ?>
 						<div class="cts-card-image-hero">
 							<img src="<?php echo esc_url( $image_url ); ?>" alt="<?php echo esc_attr( $event['title'] ); ?>" class="cts-card-image" />
@@ -176,8 +176,8 @@ if ( ! function_exists( 'cts_truncate_text' ) ) {
 
 							<?php if ( $show_tags && ! empty( $event['tags_array'] ) ) : ?>
 								<div class="cts-tags">
-									<?php foreach ( $event['tags_array'] as $tag ) : ?>
-										<span class="cts-tag" style="background-color: <?php echo esc_attr( $tag['color'] ?? '#6b7280' ); ?>;"><?php echo esc_html( $tag['name'] ); ?></span>
+									<?php foreach ( $event['tags_array'] as $cts_tag ) : ?>
+										<span class="cts-tag" style="background-color: <?php echo esc_attr( $cts_tag['color'] ?? '#6b7280' ); ?>;"><?php echo esc_html( $cts_tag['name'] ); ?></span>
 									<?php endforeach; ?>
 								</div>
 							<?php endif; ?>

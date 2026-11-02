@@ -22,13 +22,13 @@ class ChurchTools_Suite_Calendar_Image_Templates {
 	 */
 	public static function get_templates(): array {
 		$definitions = self::get_template_definitions();
-		$stored_ids = get_option( self::OPTION_KEY, [] );
-		$templates = [];
+		$stored_ids  = get_option( self::OPTION_KEY, array() );
+		$templates   = array();
 
 		require_once CHURCHTOOLS_SUITE_PATH . 'includes/class-churchtools-suite-image-importer.php';
 
 		foreach ( $definitions as $definition ) {
-			$template_key = $definition['key'];
+			$template_key  = $definition['key'];
 			$attachment_id = isset( $stored_ids[ $template_key ] ) ? absint( $stored_ids[ $template_key ] ) : 0;
 
 			if ( $attachment_id <= 0 || ! get_post( $attachment_id ) ) {
@@ -38,15 +38,15 @@ class ChurchTools_Suite_Calendar_Image_Templates {
 				}
 			}
 
-			$templates[] = [
-				'key' => $template_key,
-				'name' => $definition['name'],
-				'description' => $definition['description'],
+			$templates[] = array(
+				'key'           => $template_key,
+				'name'          => $definition['name'],
+				'description'   => $definition['description'],
 				'attachment_id' => $attachment_id,
-				'image_url' => $attachment_id ? wp_get_attachment_url( $attachment_id ) : '',
-				'preview_url' => CHURCHTOOLS_SUITE_URL . $definition['relative_path'],
-				'copyright' => $definition['copyright'],
-			];
+				'image_url'     => $attachment_id ? wp_get_attachment_url( $attachment_id ) : '',
+				'preview_url'   => CHURCHTOOLS_SUITE_URL . $definition['relative_path'],
+				'copyright'     => $definition['copyright'],
+			);
 		}
 
 		update_option( self::OPTION_KEY, $stored_ids, false );
@@ -60,50 +60,50 @@ class ChurchTools_Suite_Calendar_Image_Templates {
 	 * @return array<int, array<string, string>>
 	 */
 	private static function get_template_definitions(): array {
-		return [
-			[
-				'key' => 'gottesdienst',
-				'name' => __( 'Gottesdienst', 'churchtools-suite' ),
-				'description' => __( 'Feierliche Vorlage mit ruhiger Liturgie-Optik.', 'churchtools-suite' ),
+		return array(
+			array(
+				'key'           => 'gottesdienst',
+				'name'          => __( 'Gottesdienst', 'churchtools-suite' ),
+				'description'   => __( 'Feierliche Vorlage mit ruhiger Liturgie-Optik.', 'churchtools-suite' ),
 				'relative_path' => 'assets/images/calendar-templates/gottesdienst.svg',
-				'copyright' => 'Copyright 2026 FEG Aschaffenburg',
-			],
-			[
-				'key' => 'jugend',
-				'name' => __( 'Jugend', 'churchtools-suite' ),
-				'description' => __( 'Dynamische Vorlage für Jugendabende und Teens.', 'churchtools-suite' ),
+				'copyright'     => 'Copyright 2026 FEG Aschaffenburg',
+			),
+			array(
+				'key'           => 'jugend',
+				'name'          => __( 'Jugend', 'churchtools-suite' ),
+				'description'   => __( 'Dynamische Vorlage für Jugendabende und Teens.', 'churchtools-suite' ),
 				'relative_path' => 'assets/images/calendar-templates/jugend.svg',
-				'copyright' => 'Copyright 2026 FEG Aschaffenburg',
-			],
-			[
-				'key' => 'kinder',
-				'name' => __( 'Kinder', 'churchtools-suite' ),
-				'description' => __( 'Freundlich, bunt und leicht verspielt.', 'churchtools-suite' ),
+				'copyright'     => 'Copyright 2026 FEG Aschaffenburg',
+			),
+			array(
+				'key'           => 'kinder',
+				'name'          => __( 'Kinder', 'churchtools-suite' ),
+				'description'   => __( 'Freundlich, bunt und leicht verspielt.', 'churchtools-suite' ),
 				'relative_path' => 'assets/images/calendar-templates/kinder.svg',
-				'copyright' => 'Copyright 2026 FEG Aschaffenburg',
-			],
-			[
-				'key' => 'gebet',
-				'name' => __( 'Gebet', 'churchtools-suite' ),
-				'description' => __( 'Klar und ruhig für Gebetsabende.', 'churchtools-suite' ),
+				'copyright'     => 'Copyright 2026 FEG Aschaffenburg',
+			),
+			array(
+				'key'           => 'gebet',
+				'name'          => __( 'Gebet', 'churchtools-suite' ),
+				'description'   => __( 'Klar und ruhig für Gebetsabende.', 'churchtools-suite' ),
 				'relative_path' => 'assets/images/calendar-templates/gebet.svg',
-				'copyright' => 'Copyright 2026 FEG Aschaffenburg',
-			],
-			[
-				'key' => 'bibelkreis',
-				'name' => __( 'Bibelkreis', 'churchtools-suite' ),
-				'description' => __( 'Zurückhaltende Vorlage mit Buchsymbolik.', 'churchtools-suite' ),
+				'copyright'     => 'Copyright 2026 FEG Aschaffenburg',
+			),
+			array(
+				'key'           => 'bibelkreis',
+				'name'          => __( 'Bibelkreis', 'churchtools-suite' ),
+				'description'   => __( 'Zurückhaltende Vorlage mit Buchsymbolik.', 'churchtools-suite' ),
 				'relative_path' => 'assets/images/calendar-templates/bibelkreis.svg',
-				'copyright' => 'Copyright 2026 FEG Aschaffenburg',
-			],
-			[
-				'key' => 'gemeinschaft',
-				'name' => __( 'Gemeinschaft', 'churchtools-suite' ),
-				'description' => __( 'Allgemeine Vorlage für Treffen und Gruppen.', 'churchtools-suite' ),
+				'copyright'     => 'Copyright 2026 FEG Aschaffenburg',
+			),
+			array(
+				'key'           => 'gemeinschaft',
+				'name'          => __( 'Gemeinschaft', 'churchtools-suite' ),
+				'description'   => __( 'Allgemeine Vorlage für Treffen und Gruppen.', 'churchtools-suite' ),
 				'relative_path' => 'assets/images/calendar-templates/gemeinschaft.svg',
-				'copyright' => 'Copyright 2026 FEG Aschaffenburg',
-			],
-		];
+				'copyright'     => 'Copyright 2026 FEG Aschaffenburg',
+			),
+		);
 	}
 
 	/**
@@ -118,10 +118,10 @@ class ChurchTools_Suite_Calendar_Image_Templates {
 			return 0;
 		}
 
-		$meta = [
-			'_cts_template_key' => $definition['key'],
+		$meta = array(
+			'_cts_template_key'    => $definition['key'],
 			'_cts_template_notice' => $definition['copyright'],
-		];
+		);
 
 		$attachment_id = ChurchTools_Suite_Image_Importer::import_local_file(
 			$source_path,

@@ -1,7 +1,7 @@
 <?php
 /**
  * Database Migration Manager
- * 
+ *
  * Handles versioned database migrations that run automatically on plugin load.
  * Each migration runs only once and is tracked via DB version in wp_options.
  *
@@ -16,43 +16,47 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 class ChurchTools_Suite_Migrations {
-	
+
 	/**
 	 * Current database schema version
-	 * 
+	 *
 	 * Increment this when adding new migrations.
 	 * Format: Major.Minor (e.g., 1.0, 1.1, 1.2)
 	 */
 	const DB_VERSION = '1.7';
-	
+
 	/**
 	 * Option key for storing DB version
 	 */
 	const DB_VERSION_KEY = 'churchtools_suite_db_version';
-	
+
 	/**
 	 * Run all pending migrations
-	 * 
+	 *
 	 * This is called on every plugin init and checks if migrations are needed.
 	 * Only runs migrations that haven't been executed yet.
 	 */
 	public static function run_migrations(): void {
 		$current_version = get_option( self::DB_VERSION_KEY, '0.0' );
-		
-		// No migrations needed
+
+		// No migrations needed.
 		if ( version_compare( $current_version, self::DB_VERSION, '>=' ) ) {
 			return;
 		}
-		
-		// Log migration start
+
+		// Log migration start.
 		if ( class_exists( 'ChurchTools_Suite_Logger' ) ) {
-			ChurchTools_Suite_Logger::log( 'migrations', 'Starting migrations', [
-				'from_version' => $current_version,
-				'to_version' => self::DB_VERSION,
-			] );
+			ChurchTools_Suite_Logger::log(
+				'migrations',
+				'Starting migrations',
+				array(
+					'from_version' => $current_version,
+					'to_version'   => self::DB_VERSION,
+				)
+			);
 		}
-		
-		// Run migrations in order
+
+		// Run migrations in order.
 		if ( version_compare( $current_version, '1.0', '<' ) ) {
 			self::migrate_to_1_0();
 		}
@@ -64,7 +68,7 @@ class ChurchTools_Suite_Migrations {
 		if ( version_compare( $current_version, '1.2', '<' ) ) {
 			self::migrate_to_1_2();
 		}
-		
+
 		if ( version_compare( $current_version, '1.3', '<' ) ) {
 			self::migrate_to_1_3();
 		}
@@ -84,34 +88,38 @@ class ChurchTools_Suite_Migrations {
 		if ( version_compare( $current_version, '1.7', '<' ) ) {
 			self::migrate_to_1_7();
 		}
-		
-		// Update DB version
+
+		// Update DB version.
 		update_option( self::DB_VERSION_KEY, self::DB_VERSION );
-		
-		// Log migration complete
+
+		// Log migration complete.
 		if ( class_exists( 'ChurchTools_Suite_Logger' ) ) {
-			ChurchTools_Suite_Logger::log( 'migrations', 'Migrations completed', [
-				'new_version' => self::DB_VERSION,
-			] );
+			ChurchTools_Suite_Logger::log(
+				'migrations',
+				'Migrations completed',
+				array(
+					'new_version' => self::DB_VERSION,
+				)
+			);
 		}
 	}
-	
+
 	/**
 	 * Migration 1.0: Initial database structure
-	 * 
+	 *
 	 * Creates all tables required for plugin operation.
 	 * This migration is safe to run multiple times (CREATE TABLE IF NOT EXISTS).
 	 */
 	private static function migrate_to_1_0(): void {
 		global $wpdb;
-		
+
 		$charset_collate = $wpdb->get_charset_collate();
-		$prefix = $wpdb->prefix . CHURCHTOOLS_SUITE_DB_PREFIX;
-		
-		$sql = [];
-		
-		   // Calendars table
-		   $sql[] = "CREATE TABLE IF NOT EXISTS {$prefix}calendars (
+		$prefix          = $wpdb->prefix . CHURCHTOOLS_SUITE_DB_PREFIX;
+
+		$sql = array();
+
+			// Calendars table.
+			$sql[] = "CREATE TABLE IF NOT EXISTS {$prefix}calendars (
 			   id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
 			   calendar_id varchar(100) NOT NULL,
 			   name varchar(255) NOT NULL,
@@ -128,8 +136,8 @@ class ChurchTools_Suite_Migrations {
 			   UNIQUE KEY calendar_id (calendar_id),
 			   KEY is_selected (is_selected)
 		   ) $charset_collate;";
-		
-		// Events table (v0.9.0: COMPOSITE UNIQUE KEY for appointment + datetime)
+
+		// Events table (v0.9.0: COMPOSITE UNIQUE KEY for appointment + datetime).
 		$sql[] = "CREATE TABLE IF NOT EXISTS {$prefix}events (
 			id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
 			event_id varchar(100) DEFAULT NULL,
@@ -166,8 +174,8 @@ class ChurchTools_Suite_Migrations {
 			KEY last_modified (last_modified),
 			KEY appointment_modified (appointment_modified)
 		) $charset_collate;";
-		
-		// Event Services table
+
+		// Event Services table.
 		$sql[] = "CREATE TABLE IF NOT EXISTS {$prefix}event_services (
 			id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
 			event_id bigint(20) unsigned NOT NULL,
@@ -179,8 +187,8 @@ class ChurchTools_Suite_Migrations {
 			PRIMARY KEY (id),
 			KEY event_id (event_id)
 		) $charset_collate;";
-		
-		// Schedule table
+
+		// Schedule table.
 		$sql[] = "CREATE TABLE IF NOT EXISTS {$prefix}schedule (
 			id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
 			source_type varchar(20) NOT NULL,
@@ -201,8 +209,8 @@ class ChurchTools_Suite_Migrations {
 			KEY calendar_id (calendar_id),
 			KEY start_datetime (start_datetime)
 		) $charset_collate;";
-		
-		// Sync History table
+
+		// Sync History table.
 		$sql[] = "CREATE TABLE IF NOT EXISTS {$prefix}sync_history (
 			id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
 			sync_type varchar(20) NOT NULL DEFAULT 'auto',
@@ -224,8 +232,8 @@ class ChurchTools_Suite_Migrations {
 			KEY status (status),
 			KEY started_at (started_at)
 		) $charset_collate;";
-		
-		// Services table
+
+		// Services table.
 		$sql[] = "CREATE TABLE IF NOT EXISTS {$prefix}services (
 			id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
 			service_id varchar(100) NOT NULL,
@@ -242,8 +250,8 @@ class ChurchTools_Suite_Migrations {
 			KEY service_group_id (service_group_id),
 			KEY is_selected (is_selected)
 		) $charset_collate;";
-		
-		// Service Groups table
+
+		// Service Groups table.
 		$sql[] = "CREATE TABLE IF NOT EXISTS {$prefix}service_groups (
 			id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
 			service_group_id varchar(100) NOT NULL,
@@ -258,8 +266,8 @@ class ChurchTools_Suite_Migrations {
 			UNIQUE KEY service_group_id (service_group_id),
 			KEY is_selected (is_selected)
 		) $charset_collate;";
-		
-		// Shortcode Presets table
+
+		// Shortcode Presets table.
 		$sql[] = "CREATE TABLE IF NOT EXISTS {$prefix}shortcode_presets (
 			id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
 			name varchar(255) NOT NULL,
@@ -272,52 +280,68 @@ class ChurchTools_Suite_Migrations {
 			KEY shortcode_tag (shortcode_tag),
 			KEY is_system (is_system)
 		) $charset_collate;";
-		
+
 		require_once ABSPATH . 'wp-admin/includes/upgrade.php';
 		foreach ( $sql as $query ) {
 			dbDelta( $query );
 		}
-		
-		// Create system presets
+
+		// Create system presets.
 		require_once CHURCHTOOLS_SUITE_PATH . 'includes/repositories/class-churchtools-suite-shortcode-presets-repository.php';
 		$presets_repo = new ChurchTools_Suite_Shortcode_Presets_Repository();
 		$presets_repo->create_system_presets();
 	}
-	
+
 	/**
 	 * Migration 1.1: Add image support to events table
-	 * 
+	 *
 	 * Adds image_attachment_id and image_url columns for local image storage
-	 * 
+	 *
 	 * @since 0.10.5.0
 	 */
 	private static function migrate_to_1_1(): void {
 		global $wpdb;
-		
+
 		$charset_collate = $wpdb->get_charset_collate();
-		$prefix = $wpdb->prefix . CHURCHTOOLS_SUITE_DB_PREFIX;
-		$events_table = $prefix . 'events';
-		
-		// Check if columns already exist
+		$prefix          = $wpdb->prefix . CHURCHTOOLS_SUITE_DB_PREFIX;
+		$events_table    = $prefix . 'events';
+
+		// Check if columns already exist.
 		$wpdb->suppress_errors();
+		// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery -- Custom plugin tables and maintenance queries have no equivalent WordPress query API.
+		// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Plugin-owned table identifiers and generated placeholder lists; query values are prepared separately for WordPress 6.0 compatibility.
 		$columns = $wpdb->get_results( "SHOW COLUMNS FROM {$events_table} LIKE 'image_attachment_id'" );
+		// phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		// phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery
 		$wpdb->show_errors();
-		
+
 		if ( empty( $columns ) ) {
-			// Add image columns after status
-			$wpdb->query( "ALTER TABLE {$events_table} 
+			// Add image columns after status.
+			// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery -- Custom plugin tables and maintenance queries have no equivalent WordPress query API.
+			// phpcs:disable WordPress.DB.DirectDatabaseQuery.SchemaChange -- Explicit plugin schema migration or administrator-requested database rebuild.
+			// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Plugin-owned table identifiers and generated placeholder lists; query values are prepared separately for WordPress 6.0 compatibility.
+			$wpdb->query(
+				"ALTER TABLE {$events_table}
 				ADD COLUMN image_attachment_id bigint(20) unsigned DEFAULT NULL AFTER status,
 				ADD COLUMN image_url varchar(500) DEFAULT NULL AFTER image_attachment_id
-			" );
-			
+			"
+			);
+			// phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+			// phpcs:enable WordPress.DB.DirectDatabaseQuery.SchemaChange
+			// phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery
+
 			if ( class_exists( 'ChurchTools_Suite_Logger' ) ) {
-				ChurchTools_Suite_Logger::log( 'migrations', 'Added image columns to events table', [
-					'table' => $events_table,
-				] );
+				ChurchTools_Suite_Logger::log(
+					'migrations',
+					'Added image columns to events table',
+					array(
+						'table' => $events_table,
+					)
+				);
 			}
 		}
 	}
-	
+
 	/**
 	 * Migration 1.2: Add calendar_image_id to calendars table
 	 *
@@ -326,18 +350,28 @@ class ChurchTools_Suite_Migrations {
 	private static function migrate_to_1_2(): void {
 		global $wpdb;
 		$prefix = $wpdb->prefix . CHURCHTOOLS_SUITE_DB_PREFIX;
-		$table = $prefix . 'calendars';
+		$table  = $prefix . 'calendars';
 		$wpdb->suppress_errors();
+		// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery -- Custom plugin tables and maintenance queries have no equivalent WordPress query API.
+		// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Plugin-owned table identifiers and generated placeholder lists; query values are prepared separately for WordPress 6.0 compatibility.
 		$columns = $wpdb->get_results( "SHOW COLUMNS FROM {$table} LIKE 'calendar_image_id'" );
+		// phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		// phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery
 		$wpdb->show_errors();
 		if ( empty( $columns ) ) {
+			// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery -- Custom plugin tables and maintenance queries have no equivalent WordPress query API.
+			// phpcs:disable WordPress.DB.DirectDatabaseQuery.SchemaChange -- Explicit plugin schema migration or administrator-requested database rebuild.
+			// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Plugin-owned table identifiers and generated placeholder lists; query values are prepared separately for WordPress 6.0 compatibility.
 			$wpdb->query( "ALTER TABLE {$table} ADD COLUMN calendar_image_id bigint(20) unsigned DEFAULT NULL AFTER color" );
+			// phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+			// phpcs:enable WordPress.DB.DirectDatabaseQuery.SchemaChange
+			// phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery
 			if ( class_exists( 'ChurchTools_Suite_Logger' ) ) {
-				ChurchTools_Suite_Logger::log( 'migrations', 'Added calendar_image_id to calendars table', [ 'table' => $table ] );
+				ChurchTools_Suite_Logger::log( 'migrations', 'Added calendar_image_id to calendars table', array( 'table' => $table ) );
 			}
 		}
 	}
-	
+
 	/**
 	 * Migration 1.3: Clean up old files from v1.0.6 refactoring
 	 *
@@ -348,34 +382,39 @@ class ChurchTools_Suite_Migrations {
 	 * @since 1.0.7.0
 	 */
 	private static function migrate_to_1_3(): void {
-		$cleanup_items = [];
-		
-		// Old admin CSS file (moved to assets/css/ in v1.0.7.0)
+		$cleanup_items = array();
+
+		// Old admin CSS file (moved to assets/css/ in v1.0.7.0).
 		$old_admin_css = CHURCHTOOLS_SUITE_PATH . 'admin/css/churchtools-suite-admin.css';
 		if ( file_exists( $old_admin_css ) ) {
+			// phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged, WordPress.WP.AlternativeFunctions.unlink_unlink -- Migration needs the deletion result on WordPress versions where wp_delete_file returns void.
 			if ( @unlink( $old_admin_css ) ) {
 				$cleanup_items[] = 'admin/css/churchtools-suite-admin.css';
 			}
 		}
-		
-		// Remove empty admin/css/ directory
+
+		// Remove empty admin/css/ directory.
 		$old_admin_css_dir = CHURCHTOOLS_SUITE_PATH . 'admin/css';
 		if ( is_dir( $old_admin_css_dir ) ) {
-			$files = @scandir( $old_admin_css_dir );
-			// Check if directory is empty (only . and .. entries)
+			/* phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged -- Best-effort local filesystem operation; failures are handled or must not interrupt diagnostics and cleanup. */ $files = @scandir( $old_admin_css_dir );
+			// Check if directory is empty (only . and .. entries).
 			if ( $files && count( $files ) === 2 ) {
-				if ( @rmdir( $old_admin_css_dir ) ) {
+				/* phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged, WordPress.WP.AlternativeFunctions.file_system_operations_rmdir -- Best-effort local filesystem operation; failures are handled or must not interrupt diagnostics and cleanup. Local temporary-file cleanup or atomic file move; no remote filesystem credentials are involved. */ if ( @rmdir( $old_admin_css_dir ) ) {
 					$cleanup_items[] = 'admin/css/ (empty directory)';
 				}
 			}
 		}
-		
-		// Log cleanup results
+
+		// Log cleanup results.
 		if ( class_exists( 'ChurchTools_Suite_Logger' ) && ! empty( $cleanup_items ) ) {
-			ChurchTools_Suite_Logger::log( 'migrations', 'Cleaned up old files from v1.0.6 refactoring', [
-				'removed_files' => $cleanup_items,
-				'migration' => '1.3',
-			] );
+			ChurchTools_Suite_Logger::log(
+				'migrations',
+				'Cleaned up old files from v1.0.6 refactoring',
+				array(
+					'removed_files' => $cleanup_items,
+					'migration'     => '1.3',
+				)
+			);
 		}
 	}
 
@@ -392,19 +431,27 @@ class ChurchTools_Suite_Migrations {
 		$elementor_updated = self::migrate_elementor_widget_views();
 
 		if ( $gutenberg_updated > 0 || $elementor_updated > 0 ) {
-			update_option( 'churchtools_suite_view_migration_notice', [
-				'gutenberg' => (int) $gutenberg_updated,
-				'elementor' => (int) $elementor_updated,
-				'timestamp' => time(),
-			], false );
+			update_option(
+				'churchtools_suite_view_migration_notice',
+				array(
+					'gutenberg' => (int) $gutenberg_updated,
+					'elementor' => (int) $elementor_updated,
+					'timestamp' => time(),
+				),
+				false
+			);
 		}
 
 		if ( class_exists( 'ChurchTools_Suite_Logger' ) ) {
-			ChurchTools_Suite_Logger::log( 'migrations', 'Migrated stored block/widget view IDs', [
-				'migration' => '1.4',
-				'gutenberg_posts_updated' => $gutenberg_updated,
-				'elementor_posts_updated' => $elementor_updated,
-			] );
+			ChurchTools_Suite_Logger::log(
+				'migrations',
+				'Migrated stored block/widget view IDs',
+				array(
+					'migration'               => '1.4',
+					'gutenberg_posts_updated' => $gutenberg_updated,
+					'elementor_posts_updated' => $elementor_updated,
+				)
+			);
 		}
 	}
 
@@ -424,10 +471,20 @@ class ChurchTools_Suite_Migrations {
 		global $wpdb;
 		$table = $wpdb->prefix . CHURCHTOOLS_SUITE_DB_PREFIX . 'shortcode_presets';
 
-		// Add custom_css column if it doesn't exist yet
+		// Add custom_css column if it doesn't exist yet.
+		// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery -- Custom plugin tables and maintenance queries have no equivalent WordPress query API.
+		// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Plugin-owned table identifiers and generated placeholder lists; query values are prepared separately for WordPress 6.0 compatibility.
 		$columns = $wpdb->get_col( "DESC `{$table}`", 0 );
+		// phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		// phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery
 		if ( ! in_array( 'custom_css', $columns, true ) ) {
+			// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery -- Custom plugin tables and maintenance queries have no equivalent WordPress query API.
+			// phpcs:disable WordPress.DB.DirectDatabaseQuery.SchemaChange -- Explicit plugin schema migration or administrator-requested database rebuild.
+			// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Plugin-owned table identifiers and generated placeholder lists; query values are prepared separately for WordPress 6.0 compatibility.
 			$wpdb->query( "ALTER TABLE `{$table}` ADD COLUMN `custom_css` LONGTEXT DEFAULT NULL AFTER `configuration`" );
+			// phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+			// phpcs:enable WordPress.DB.DirectDatabaseQuery.SchemaChange
+			// phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery
 		}
 	}
 
@@ -459,12 +516,14 @@ class ChurchTools_Suite_Migrations {
 
 		global $wpdb;
 		$needle = '%' . $wpdb->esc_like( 'wp:churchtools-suite/events' ) . '%';
+		// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery -- Custom plugin tables and maintenance queries have no equivalent WordPress query API.
 		$post_ids = $wpdb->get_col(
 			$wpdb->prepare(
 				"SELECT ID FROM {$wpdb->posts} WHERE post_content LIKE %s AND post_status NOT IN ('auto-draft','trash')",
 				$needle
 			)
 		);
+		// phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery
 
 		if ( empty( $post_ids ) ) {
 			return 0;
@@ -475,7 +534,7 @@ class ChurchTools_Suite_Migrations {
 		foreach ( $post_ids as $post_id ) {
 			$post_id = (int) $post_id;
 			$content = get_post_field( 'post_content', $post_id );
-			if ( ! is_string( $content ) || $content === '' ) {
+			if ( ! is_string( $content ) || '' === $content ) {
 				continue;
 			}
 
@@ -485,7 +544,7 @@ class ChurchTools_Suite_Migrations {
 			}
 
 			$changed = false;
-			$blocks = self::migrate_gutenberg_blocks_recursive( $blocks, $changed );
+			$blocks  = self::migrate_gutenberg_blocks_recursive( $blocks, $changed );
 
 			if ( ! $changed ) {
 				continue;
@@ -496,12 +555,14 @@ class ChurchTools_Suite_Migrations {
 				continue;
 			}
 
-			wp_update_post( [
-				'ID' => $post_id,
-				'post_content' => $new_content,
-			] );
+			wp_update_post(
+				array(
+					'ID'           => $post_id,
+					'post_content' => $new_content,
+				)
+			);
 			clean_post_cache( $post_id );
-			$updated++;
+			++$updated;
 		}
 
 		return $updated;
@@ -516,21 +577,21 @@ class ChurchTools_Suite_Migrations {
 	 */
 	private static function migrate_gutenberg_blocks_recursive( array $blocks, bool &$changed ): array {
 		foreach ( $blocks as &$block ) {
-			if ( isset( $block['blockName'] ) && $block['blockName'] === 'churchtools-suite/events' ) {
-				$attrs = ( isset( $block['attrs'] ) && is_array( $block['attrs'] ) ) ? $block['attrs'] : [];
+			if ( isset( $block['blockName'] ) && 'churchtools-suite/events' === $block['blockName'] ) {
+				$attrs = ( isset( $block['attrs'] ) && is_array( $block['attrs'] ) ) ? $block['attrs'] : array();
 
 				$raw_view_type = isset( $attrs['viewType'] ) ? $attrs['viewType'] : ( $attrs['view_type'] ?? 'list' );
-				$view_type = self::normalize_view_type( (string) $raw_view_type );
+				$view_type     = self::normalize_view_type( (string) $raw_view_type );
 				if ( ! isset( $attrs['viewType'] ) || $attrs['viewType'] !== $view_type ) {
 					$attrs['viewType'] = $view_type;
-					$changed = true;
+					$changed           = true;
 				}
 
-				$current_view = isset( $attrs['view'] ) ? (string) $attrs['view'] : '';
+				$current_view    = isset( $attrs['view'] ) ? (string) $attrs['view'] : '';
 				$normalized_view = self::normalize_view_for_type( $view_type, $current_view );
 				if ( $normalized_view !== $current_view ) {
 					$attrs['view'] = $normalized_view;
-					$changed = true;
+					$changed       = true;
 				}
 
 				if ( isset( $attrs['view_type'] ) ) {
@@ -559,6 +620,7 @@ class ChurchTools_Suite_Migrations {
 		global $wpdb;
 		$needle = '%' . $wpdb->esc_like( 'churchtools_suite_events' ) . '%';
 
+		// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery -- Custom plugin tables and maintenance queries have no equivalent WordPress query API.
 		$rows = $wpdb->get_results(
 			$wpdb->prepare(
 				"SELECT post_id, meta_value FROM {$wpdb->postmeta} WHERE meta_key = '_elementor_data' AND meta_value LIKE %s",
@@ -566,6 +628,7 @@ class ChurchTools_Suite_Migrations {
 			),
 			ARRAY_A
 		);
+		// phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery
 
 		if ( empty( $rows ) ) {
 			return 0;
@@ -574,13 +637,13 @@ class ChurchTools_Suite_Migrations {
 		$updated = 0;
 
 		foreach ( $rows as $row ) {
-			$post_id = (int) $row['post_id'];
+			$post_id  = (int) $row['post_id'];
 			$elements = json_decode( (string) $row['meta_value'], true );
 			if ( ! is_array( $elements ) ) {
 				continue;
 			}
 
-			$changed = false;
+			$changed  = false;
 			$elements = self::migrate_elementor_elements_recursive( $elements, $changed );
 
 			if ( ! $changed ) {
@@ -589,7 +652,7 @@ class ChurchTools_Suite_Migrations {
 
 			update_post_meta( $post_id, '_elementor_data', wp_slash( wp_json_encode( $elements ) ) );
 			clean_post_cache( $post_id );
-			$updated++;
+			++$updated;
 		}
 
 		return $updated;
@@ -608,29 +671,29 @@ class ChurchTools_Suite_Migrations {
 				continue;
 			}
 
-			if ( isset( $element['widgetType'] ) && $element['widgetType'] === 'churchtools_suite_events' ) {
-				$settings = ( isset( $element['settings'] ) && is_array( $element['settings'] ) ) ? $element['settings'] : [];
+			if ( isset( $element['widgetType'] ) && 'churchtools_suite_events' === $element['widgetType'] ) {
+				$settings = ( isset( $element['settings'] ) && is_array( $element['settings'] ) ) ? $element['settings'] : array();
 
 				$view_type = self::normalize_view_type( (string) ( $settings['view_type'] ?? 'list' ) );
 				if ( ! isset( $settings['view_type'] ) || $settings['view_type'] !== $view_type ) {
 					$settings['view_type'] = $view_type;
-					$changed = true;
+					$changed               = true;
 				}
 
-				$view_keys = [
-					'list' => 'view_list',
-					'grid' => 'view_grid',
-					'calendar' => 'view_calendar',
+				$view_keys = array(
+					'list'      => 'view_list',
+					'grid'      => 'view_grid',
+					'calendar'  => 'view_calendar',
 					'countdown' => 'view_countdown',
-					'carousel' => 'view_carousel',
-				];
+					'carousel'  => 'view_carousel',
+				);
 
 				foreach ( $view_keys as $type => $key ) {
 					if ( isset( $settings[ $key ] ) ) {
 						$normalized = self::normalize_view_for_type( $type, (string) $settings[ $key ] );
 						if ( $normalized !== $settings[ $key ] ) {
 							$settings[ $key ] = $normalized;
-							$changed = true;
+							$changed          = true;
 						}
 					}
 				}
@@ -639,7 +702,7 @@ class ChurchTools_Suite_Migrations {
 					$normalized_fallback = self::normalize_view_for_type( $view_type, (string) $settings['view'] );
 					if ( $normalized_fallback !== $settings['view'] ) {
 						$settings['view'] = $normalized_fallback;
-						$changed = true;
+						$changed          = true;
 					}
 				}
 
@@ -662,7 +725,7 @@ class ChurchTools_Suite_Migrations {
 	 * @return string
 	 */
 	private static function normalize_view_type( string $view_type ): string {
-		$allowed = [ 'list', 'grid', 'calendar', 'countdown', 'carousel' ];
+		$allowed   = array( 'list', 'grid', 'calendar', 'countdown', 'carousel' );
 		$view_type = strtolower( trim( $view_type ) );
 		return in_array( $view_type, $allowed, true ) ? $view_type : 'list';
 	}
@@ -677,56 +740,56 @@ class ChurchTools_Suite_Migrations {
 	private static function normalize_view_for_type( string $view_type, string $view ): string {
 		$view = strtolower( trim( $view ) );
 
-		$mapping = [
-			'list' => [
-				'classic' => 'list-klassisch',
-				'klassisch' => 'list-klassisch',
-				'list-classic' => 'list-klassisch',
-				'list-klassisch' => 'list-klassisch',
-				'classic-with-images' => 'list-klassisch-mit-bildern',
-				'list-classic-with-images' => 'list-klassisch-mit-bildern',
+		$mapping = array(
+			'list'      => array(
+				'classic'                    => 'list-klassisch',
+				'klassisch'                  => 'list-klassisch',
+				'list-classic'               => 'list-klassisch',
+				'list-klassisch'             => 'list-klassisch',
+				'classic-with-images'        => 'list-klassisch-mit-bildern',
+				'list-classic-with-images'   => 'list-klassisch-mit-bildern',
 				'list-klassisch-mit-bildern' => 'list-klassisch-mit-bildern',
-				'classic-modern' => 'list-klassisch-modern',
-				'list-classic-modern' => 'list-klassisch-modern',
-				'list-klassisch-modern' => 'list-klassisch-modern',
-				'minimal' => 'list-minimal',
-				'list-minimal' => 'list-minimal',
-				'modern' => 'list-modern',
-				'list-modern' => 'list-modern',
-			],
-			'grid' => [
-				'classic' => 'grid-klassisch',
-				'klassisch' => 'grid-klassisch',
-				'grid-classic' => 'grid-klassisch',
-				'grid-klassisch' => 'grid-klassisch',
-				'simple' => 'grid-einfach',
-				'einfach' => 'grid-einfach',
-				'grid-simple' => 'grid-einfach',
-				'grid-einfach' => 'grid-einfach',
-				'minimal' => 'grid-minimal',
-				'grid-minimal' => 'grid-minimal',
-				'modern' => 'grid-modern',
-				'grid-modern' => 'grid-modern',
-				'background-images' => 'grid-hintergrundbilder',
+				'classic-modern'             => 'list-klassisch-modern',
+				'list-classic-modern'        => 'list-klassisch-modern',
+				'list-klassisch-modern'      => 'list-klassisch-modern',
+				'minimal'                    => 'list-minimal',
+				'list-minimal'               => 'list-minimal',
+				'modern'                     => 'list-modern',
+				'list-modern'                => 'list-modern',
+			),
+			'grid'      => array(
+				'classic'                => 'grid-klassisch',
+				'klassisch'              => 'grid-klassisch',
+				'grid-classic'           => 'grid-klassisch',
+				'grid-klassisch'         => 'grid-klassisch',
+				'simple'                 => 'grid-einfach',
+				'einfach'                => 'grid-einfach',
+				'grid-simple'            => 'grid-einfach',
+				'grid-einfach'           => 'grid-einfach',
+				'minimal'                => 'grid-minimal',
+				'grid-minimal'           => 'grid-minimal',
+				'modern'                 => 'grid-modern',
+				'grid-modern'            => 'grid-modern',
+				'background-images'      => 'grid-hintergrundbilder',
 				'grid-background-images' => 'grid-hintergrundbilder',
 				'grid-hintergrundbilder' => 'grid-hintergrundbilder',
-			],
-			'calendar' => [
-				'monthly-simple' => 'monthly-simple',
-				'calendar-monthly-simple' => 'monthly-simple',
+			),
+			'calendar'  => array(
+				'monthly-simple'             => 'monthly-simple',
+				'calendar-monthly-simple'    => 'monthly-simple',
 				'calendar-monatlich-einfach' => 'monthly-simple',
-			],
-			'countdown' => [
-				'classic' => 'countdown-klassisch',
-				'countdown-classic' => 'countdown-klassisch',
+			),
+			'countdown' => array(
+				'classic'             => 'countdown-klassisch',
+				'countdown-classic'   => 'countdown-klassisch',
 				'countdown-klassisch' => 'countdown-klassisch',
-			],
-			'carousel' => [
-				'classic' => 'carousel-klassisch',
-				'carousel-classic' => 'carousel-klassisch',
+			),
+			'carousel'  => array(
+				'classic'            => 'carousel-klassisch',
+				'carousel-classic'   => 'carousel-klassisch',
 				'carousel-klassisch' => 'carousel-klassisch',
-			],
-		];
+			),
+		);
 
 		if ( isset( $mapping[ $view_type ][ $view ] ) ) {
 			return $mapping[ $view_type ][ $view ];
@@ -734,19 +797,19 @@ class ChurchTools_Suite_Migrations {
 
 		return $view;
 	}
-	
+
 	/**
 	 * Get current database version
-	 * 
+	 *
 	 * @return string Current DB version (e.g., '1.0')
 	 */
 	public static function get_current_version(): string {
 		return get_option( self::DB_VERSION_KEY, '0.0' );
 	}
-	
+
 	/**
 	 * Check if migrations are pending
-	 * 
+	 *
 	 * @return bool True if migrations need to run
 	 */
 	public static function has_pending_migrations(): bool {

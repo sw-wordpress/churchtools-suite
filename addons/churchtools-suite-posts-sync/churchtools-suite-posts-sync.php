@@ -1,4 +1,4 @@
-<?php
+<?php /* phpcs:ignore WordPress.Files.FileName.InvalidClassFileName -- Installed WordPress plugin entry point retains its stable filename. */
 /**
  * Plugin Name: ChurchTools Suite – Posts Sync Addon
  * Plugin URI: https://github.com/FEGAschaffenburg/churchtools-suite/tree/main/addons/churchtools-suite-posts-sync
@@ -12,7 +12,7 @@
  * Domain Path: /languages
  * Requires at least: 5.0
  * Requires PHP: 8.0
- * 
+ *
  * @package churchtools_suite_posts_sync
  * @since   0.1.0
  */
@@ -21,15 +21,13 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-// Define constants
+// Define constants.
 define( 'CTS_POSTS_SYNC_VERSION', '0.1.8' );
 define( 'CTS_POSTS_SYNC_PATH', plugin_dir_path( __FILE__ ) );
 define( 'CTS_POSTS_SYNC_URL', plugin_dir_url( __FILE__ ) );
 define( 'CTS_POSTS_SYNC_BASENAME', plugin_basename( __FILE__ ) );
 define( 'CTS_POSTS_SYNC_CPT', 'ct_post' );
 
-// require_once CTS_POSTS_SYNC_PATH . 'includes/class-cts-posts-sync-auto-updater.php';
-// CTS_Posts_Sync_Auto_Updater::init();
 
 class ChurchTools_Suite_Posts_Sync {
 
@@ -39,43 +37,43 @@ class ChurchTools_Suite_Posts_Sync {
 	 * @return array<int, string>
 	 */
 	public static function get_supported_target_types(): array {
-		return [ 'post', 'page', CTS_POSTS_SYNC_CPT ];
+		return array( 'post', 'page', CTS_POSTS_SYNC_CPT );
 	}
 
 	/**
 	 * Register custom post type for ChurchTools posts.
 	 */
 	public static function register_post_type(): void {
-		$labels = [
-			'name' => __( 'ChurchTools Posts', 'churchtools-suite-posts-sync' ),
-			'singular_name' => __( 'ChurchTools Post', 'churchtools-suite-posts-sync' ),
-			'menu_name' => __( 'ChurchTools Posts', 'churchtools-suite-posts-sync' ),
-			'add_new' => __( 'Neu hinzufügen', 'churchtools-suite-posts-sync' ),
-			'add_new_item' => __( 'Neuen ChurchTools Post hinzufügen', 'churchtools-suite-posts-sync' ),
-			'edit_item' => __( 'ChurchTools Post bearbeiten', 'churchtools-suite-posts-sync' ),
-			'new_item' => __( 'Neuer ChurchTools Post', 'churchtools-suite-posts-sync' ),
-			'view_item' => __( 'ChurchTools Post ansehen', 'churchtools-suite-posts-sync' ),
-			'search_items' => __( 'ChurchTools Posts durchsuchen', 'churchtools-suite-posts-sync' ),
-			'not_found' => __( 'Keine ChurchTools Posts gefunden.', 'churchtools-suite-posts-sync' ),
+		$labels = array(
+			'name'               => __( 'ChurchTools Posts', 'churchtools-suite-posts-sync' ),
+			'singular_name'      => __( 'ChurchTools Post', 'churchtools-suite-posts-sync' ),
+			'menu_name'          => __( 'ChurchTools Posts', 'churchtools-suite-posts-sync' ),
+			'add_new'            => __( 'Neu hinzufügen', 'churchtools-suite-posts-sync' ),
+			'add_new_item'       => __( 'Neuen ChurchTools Post hinzufügen', 'churchtools-suite-posts-sync' ),
+			'edit_item'          => __( 'ChurchTools Post bearbeiten', 'churchtools-suite-posts-sync' ),
+			'new_item'           => __( 'Neuer ChurchTools Post', 'churchtools-suite-posts-sync' ),
+			'view_item'          => __( 'ChurchTools Post ansehen', 'churchtools-suite-posts-sync' ),
+			'search_items'       => __( 'ChurchTools Posts durchsuchen', 'churchtools-suite-posts-sync' ),
+			'not_found'          => __( 'Keine ChurchTools Posts gefunden.', 'churchtools-suite-posts-sync' ),
 			'not_found_in_trash' => __( 'Keine ChurchTools Posts im Papierkorb gefunden.', 'churchtools-suite-posts-sync' ),
-		];
+		);
 
 		register_post_type(
 			CTS_POSTS_SYNC_CPT,
-			[
-				'labels' => $labels,
-				'public' => false,
-				'show_ui' => true,
-				'show_in_menu' => false,
-				'show_in_admin_bar' => false,
+			array(
+				'labels'              => $labels,
+				'public'              => false,
+				'show_ui'             => true,
+				'show_in_menu'        => false,
+				'show_in_admin_bar'   => false,
 				'exclude_from_search' => true,
-				'publicly_queryable' => false,
-				'rewrite' => false,
-				'query_var' => false,
-				'map_meta_cap' => true,
-				'taxonomies' => [ 'category' ],
-				'supports' => [ 'title', 'editor', 'excerpt', 'author', 'thumbnail' ],
-			]
+				'publicly_queryable'  => false,
+				'rewrite'             => false,
+				'query_var'           => false,
+				'map_meta_cap'        => true,
+				'taxonomies'          => array( 'category' ),
+				'supports'            => array( 'title', 'editor', 'excerpt', 'author', 'thumbnail' ),
+			)
 		);
 	}
 
@@ -83,31 +81,31 @@ class ChurchTools_Suite_Posts_Sync {
 	 * Initialize the addon
 	 */
 	public static function init() {
-		// Check if main plugin is active
+		// Check if main plugin is active.
 		if ( ! self::is_main_plugin_active() ) {
-			add_action( 'admin_notices', [ __CLASS__, 'admin_notice_missing_main_plugin' ] );
+			add_action( 'admin_notices', array( __CLASS__, 'admin_notice_missing_main_plugin' ) );
 			return;
 		}
 
-		// Load text domain
+		// Load text domain.
 		load_plugin_textdomain(
 			'churchtools-suite-posts-sync',
 			false,
 			dirname( plugin_basename( __FILE__ ) ) . '/languages'
 		);
 
-		// Register hooks
-		add_action( 'init', [ __CLASS__, 'register_post_type' ] );
-		add_action( 'cts_do_sync_posts', [ __CLASS__, 'handle_sync_posts' ], 10, 2 );
-		add_filter( 'cts_register_sync_modules', [ __CLASS__, 'register_sync_module' ] );
+		// Register hooks.
+		add_action( 'init', array( __CLASS__, 'register_post_type' ) );
+		add_action( 'cts_do_sync_posts', array( __CLASS__, 'handle_sync_posts' ), 10, 2 );
+		add_filter( 'cts_register_sync_modules', array( __CLASS__, 'register_sync_module' ) );
 
-		require_once CTS_POSTS_SYNC_PATH . 'includes/class-cts-posts-sync-frontend.php';
+		require_once CTS_POSTS_SYNC_PATH . 'includes/class-churchtools-suite-posts-sync-frontend.php';
 		ChurchTools_Suite_Posts_Sync_Frontend::init();
 
-		// Initialize admin if applicable
+		// Initialize admin if applicable.
 		if ( is_admin() ) {
-			require_once CTS_POSTS_SYNC_PATH . 'includes/class-cts-posts-sync-service.php';
-			require_once CTS_POSTS_SYNC_PATH . 'includes/class-cts-posts-sync-admin.php';
+			require_once CTS_POSTS_SYNC_PATH . 'includes/class-churchtools-suite-posts-sync-service.php';
+			require_once CTS_POSTS_SYNC_PATH . 'includes/class-churchtools-suite-posts-sync-admin.php';
 
 			$admin = new ChurchTools_Suite_Posts_Sync_Admin();
 			$admin->init();
@@ -121,23 +119,23 @@ class ChurchTools_Suite_Posts_Sync {
 	 * @return array<int|string, array<string, mixed>>
 	 */
 	public static function register_sync_module( array $modules ): array {
-		$modules['posts'] = [
-			'id' => 'posts',
-			'label' => __( 'Posts', 'churchtools-suite-posts-sync' ),
-			'capability' => 'manage_churchtools_suite',
-			'dependencies' => [ 'ct_connection' ],
-			'callbacks' => [
-				'render_settings' => [ __CLASS__, 'module_render_settings' ],
-				'save_settings' => [ __CLASS__, 'module_save_settings' ],
-				'run_source_sync' => [ __CLASS__, 'module_run_source_sync' ],
-				'run_data_sync' => [ __CLASS__, 'module_run_data_sync' ],
-				'get_status' => [ __CLASS__, 'module_get_status' ],
-			],
-			'meta' => [
-				'owner' => 'addon:churchtools-suite-posts-sync',
+		$modules['posts'] = array(
+			'id'           => 'posts',
+			'label'        => __( 'Posts', 'churchtools-suite-posts-sync' ),
+			'capability'   => 'manage_churchtools_suite',
+			'dependencies' => array( 'ct_connection' ),
+			'callbacks'    => array(
+				'render_settings' => array( __CLASS__, 'module_render_settings' ),
+				'save_settings'   => array( __CLASS__, 'module_save_settings' ),
+				'run_source_sync' => array( __CLASS__, 'module_run_source_sync' ),
+				'run_data_sync'   => array( __CLASS__, 'module_run_data_sync' ),
+				'get_status'      => array( __CLASS__, 'module_get_status' ),
+			),
+			'meta'         => array(
+				'owner'         => 'addon:churchtools-suite-posts-sync',
 				'settings_slug' => 'posts',
-			],
-		];
+			),
+		);
 
 		return $modules;
 	}
@@ -154,7 +152,7 @@ class ChurchTools_Suite_Posts_Sync {
 	 *
 	 * @param array<string, mixed> $post_data Raw post data.
 	 */
-	public static function module_save_settings( array $post_data = [] ): void {
+	public static function module_save_settings( array $post_data = array() ): void {
 		do_action( 'cts_posts_settings_save', $post_data );
 	}
 
@@ -169,7 +167,7 @@ class ChurchTools_Suite_Posts_Sync {
 				require_once ABSPATH . 'wp-admin/includes/plugin.php';
 			}
 
-			require_once CTS_POSTS_SYNC_PATH . 'includes/class-cts-posts-sync-admin.php';
+			require_once CTS_POSTS_SYNC_PATH . 'includes/class-churchtools-suite-posts-sync-admin.php';
 
 			$admin = new ChurchTools_Suite_Posts_Sync_Admin();
 			return $admin->run_groups_source_sync();
@@ -181,10 +179,10 @@ class ChurchTools_Suite_Posts_Sync {
 				return $result;
 			}
 			if ( is_wp_error( $result ) ) {
-				return [
-					'status' => 'error',
+				return array(
+					'status'  => 'error',
 					'message' => $result->get_error_message(),
-				];
+				);
 			}
 		}
 
@@ -199,10 +197,10 @@ class ChurchTools_Suite_Posts_Sync {
 	 */
 	public static function module_run_data_sync( $ct_client ) {
 		if ( ! self::is_enabled() ) {
-			$disabled_result = [
-				'status' => 'skipped',
+			$disabled_result = array(
+				'status'  => 'skipped',
 				'message' => __( 'Posts-Sync ist deaktiviert.', 'churchtools-suite-posts-sync' ),
-			];
+			);
 
 			if ( class_exists( 'ChurchTools_Suite_Sync_Runtime' ) ) {
 				ChurchTools_Suite_Sync_Runtime::record_result( 'posts', 'data_sync', $disabled_result );
@@ -212,7 +210,7 @@ class ChurchTools_Suite_Posts_Sync {
 		}
 
 		$runner = static function () use ( $ct_client ) {
-			require_once CTS_POSTS_SYNC_PATH . 'includes/class-cts-posts-sync-service.php';
+			require_once CTS_POSTS_SYNC_PATH . 'includes/class-churchtools-suite-posts-sync-service.php';
 
 			$service = new ChurchTools_Suite_Posts_Sync_Service( $ct_client );
 			return $service->sync_posts();
@@ -233,31 +231,31 @@ class ChurchTools_Suite_Posts_Sync {
 	public static function module_get_status(): array {
 		$status = class_exists( 'ChurchTools_Suite_Sync_Runtime' )
 			? ChurchTools_Suite_Sync_Runtime::get_module_status( 'posts' )
-			: [];
+			: array();
 
-		$last_result = get_option( 'churchtools_suite_posts_sync_last_result', [] );
+		$last_result      = get_option( 'churchtools_suite_posts_sync_last_result', array() );
 		$groups_last_sync = (string) get_option( 'churchtools_suite_ct_posts_groups_last_sync', '' );
-		$enabled = self::is_enabled();
+		$enabled          = self::is_enabled();
 
 		$state = isset( $status['state'] ) ? (string) $status['state'] : 'idle';
 		if ( ! $enabled ) {
 			$state = 'disabled';
-		} elseif ( $state === 'idle' && is_array( $last_result ) ) {
-			$stats = isset( $last_result['stats'] ) && is_array( $last_result['stats'] ) ? $last_result['stats'] : [];
+		} elseif ( 'idle' === $state && is_array( $last_result ) ) {
+			$stats  = isset( $last_result['stats'] ) && is_array( $last_result['stats'] ) ? $last_result['stats'] : array();
 			$errors = isset( $stats['errors'] ) ? (int) $stats['errors'] : 0;
-			$state = $errors > 0 ? 'error' : 'ok';
+			$state  = $errors > 0 ? 'error' : 'ok';
 		}
 
-		$status_last_result = isset( $status['last_result'] ) && is_array( $status['last_result'] ) ? $status['last_result'] : [];
+		$status_last_result = isset( $status['last_result'] ) && is_array( $status['last_result'] ) ? $status['last_result'] : array();
 
-		return [
-			'state' => $state,
-			'enabled' => $enabled,
-			'last_source_sync_at' => $groups_last_sync !== '' ? $groups_last_sync : (string) ( $status['last_source_sync_at'] ?? '' ),
+		return array(
+			'state'                  => $state,
+			'enabled'                => $enabled,
+			'last_source_sync_at'    => '' !== $groups_last_sync ? $groups_last_sync : (string) ( $status['last_source_sync_at'] ?? '' ),
 			'last_selection_save_at' => (string) ( $status['last_selection_save_at'] ?? '' ),
-			'last_data_sync_at' => (string) ( $status['last_data_sync_at'] ?? ( is_array( $last_result ) ? (string) ( $last_result['run_at'] ?? '' ) : '' ) ),
-			'last_result' => $status_last_result !== [] ? $status_last_result : ( is_array( $last_result ) ? $last_result : [] ),
-		];
+			'last_data_sync_at'      => (string) ( $status['last_data_sync_at'] ?? ( is_array( $last_result ) ? (string) ( $last_result['run_at'] ?? '' ) : '' ) ),
+			'last_result'            => array() !== $status_last_result ? $status_last_result : ( is_array( $last_result ) ? $last_result : array() ),
+		);
 	}
 
 	/**
@@ -281,7 +279,7 @@ class ChurchTools_Suite_Posts_Sync {
 	 * @deprecated 0.1.6 Umgebungseinschränkung entfernt – Plugin ist jetzt für alle Umgebungen freigegeben.
 	 */
 	private static function deactivate_if_not_allowed_environment() {
-		// No longer used – kept for backward compatibility only
+		// No longer used – kept for backward compatibility only.
 	}
 
 	/**
@@ -302,7 +300,7 @@ class ChurchTools_Suite_Posts_Sync {
 
 	/**
 	 * Handle the sync_posts hook from main plugin
-	 * 
+	 *
 	 * @param object $ct_client ChurchTools_Suite_CT_Client instance
 	 * @param array  $result    Sync result array (by reference)
 	 */
@@ -311,21 +309,21 @@ class ChurchTools_Suite_Posts_Sync {
 			return;
 		}
 
-		require_once CTS_POSTS_SYNC_PATH . 'includes/class-cts-posts-sync-service.php';
+		require_once CTS_POSTS_SYNC_PATH . 'includes/class-churchtools-suite-posts-sync-service.php';
 
-		$service = new ChurchTools_Suite_Posts_Sync_Service( $ct_client );
+		$service          = new ChurchTools_Suite_Posts_Sync_Service( $ct_client );
 		$post_sync_result = $service->sync_posts();
 
 		if ( is_wp_error( $post_sync_result ) ) {
 			$result['ct_posts_error'] = $post_sync_result->get_error_message();
 		} elseif ( is_array( $post_sync_result ) ) {
-			$result['ct_posts_found'] = $post_sync_result['posts_found'] ?? 0;
-			$result['ct_posts_created'] = $post_sync_result['posts_created'] ?? 0;
-			$result['ct_posts_updated'] = $post_sync_result['posts_updated'] ?? 0;
-			$result['ct_posts_skipped'] = $post_sync_result['posts_skipped'] ?? 0;
+			$result['ct_posts_found']           = $post_sync_result['posts_found'] ?? 0;
+			$result['ct_posts_created']         = $post_sync_result['posts_created'] ?? 0;
+			$result['ct_posts_updated']         = $post_sync_result['posts_updated'] ?? 0;
+			$result['ct_posts_skipped']         = $post_sync_result['posts_skipped'] ?? 0;
 			$result['ct_posts_missing_checked'] = $post_sync_result['posts_missing_checked'] ?? 0;
-			$result['ct_posts_privated'] = $post_sync_result['posts_privated'] ?? 0;
-			$result['ct_posts_errors'] = $post_sync_result['errors'] ?? 0;
+			$result['ct_posts_privated']        = $post_sync_result['posts_privated'] ?? 0;
+			$result['ct_posts_errors']          = $post_sync_result['errors'] ?? 0;
 		}
 	}
 
@@ -337,5 +335,5 @@ class ChurchTools_Suite_Posts_Sync {
 	}
 }
 
-// Initialize addon on plugins_loaded
-add_action( 'plugins_loaded', [ 'ChurchTools_Suite_Posts_Sync', 'init' ] );
+// Initialize addon on plugins_loaded.
+add_action( 'plugins_loaded', array( 'ChurchTools_Suite_Posts_Sync', 'init' ) );

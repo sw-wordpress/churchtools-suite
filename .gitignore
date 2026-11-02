@@ -38,3 +38,8 @@ scripts/*.zip
 # SSH Keys & sensitive info (local only)
 SSH-KEYS.md
 .ssh/
+
+# Code quality tooling
+.phpcs.cache
+.phpstan.cache
+composer.lock.bak

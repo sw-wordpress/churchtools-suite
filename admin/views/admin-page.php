@@ -10,9 +10,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-$active_tab = isset( $_GET['tab'] ) ? sanitize_key( $_GET['tab'] ) : 'dashboard';
-$advanced_mode = get_option( 'churchtools_suite_advanced_mode', 0 );
-$feedback_state = get_option( 'churchtools_suite_feedback_status', [] );
+/* phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only navigation, display filters, or status messages; no state is changed by these query arguments. */ $active_tab = isset( $_GET['tab'] ) ? sanitize_key( $_GET['tab'] ) : 'dashboard';
+$advanced_mode   = get_option( 'churchtools_suite_advanced_mode', 0 );
+$feedback_state  = get_option( 'churchtools_suite_feedback_status', array() );
 $feedback_status = '';
 if ( is_array( $feedback_state ) ) {
 	$feedback_status = (string) ( $feedback_state['status'] ?? '' );
@@ -24,10 +24,13 @@ $feedback_result = get_transient( 'churchtools_suite_feedback_flash' );
 if ( ! empty( $feedback_result ) ) {
 	delete_transient( 'churchtools_suite_feedback_flash' );
 }
-$feedback_redirect = add_query_arg( [
-	'page' => 'churchtools-suite',
-	'tab' => $active_tab,
-], admin_url( 'admin.php' ) );
+$feedback_redirect = add_query_arg(
+	array(
+		'page' => 'churchtools-suite',
+		'tab'  => $active_tab,
+	),
+	admin_url( 'admin.php' )
+);
 ?>
 
 <div class="wrap cts-wrap">
@@ -40,31 +43,31 @@ $feedback_redirect = add_query_arg( [
 		<p class="cts-subtitle"><?php esc_html_e( 'WordPress-Integration für ChurchTools', 'churchtools-suite' ); ?></p>
 	</div>
 
-	<?php if ( $feedback_result === 'sent' ) : ?>
+	<?php if ( 'sent' === $feedback_result ) : ?>
 		<div class="notice notice-success" style="margin: 12px 0 16px;"><p><?php esc_html_e( 'Danke! Die Rückmeldung wurde automatisch per Mail gesendet.', 'churchtools-suite' ); ?></p></div>
-	<?php elseif ( $feedback_result === 'declined' ) : ?>
+	<?php elseif ( 'declined' === $feedback_result ) : ?>
 		<div class="notice notice-info" style="margin: 12px 0 16px;"><p><?php esc_html_e( 'Alles klar – es wurde keine Rückmeldung gesendet.', 'churchtools-suite' ); ?></p></div>
-	<?php elseif ( $feedback_result === 'error' ) : ?>
+	<?php elseif ( 'error' === $feedback_result ) : ?>
 		<div class="notice notice-error" style="margin: 12px 0 16px;"><p><?php esc_html_e( 'Die Mail konnte nicht gesendet werden. Bitte Mail-Konfiguration prüfen.', 'churchtools-suite' ); ?></p></div>
 	<?php endif; ?>
 
 	<div class="cts-tabs">
-		<a href="?page=churchtools-suite&tab=dashboard" class="cts-tab <?php echo $active_tab === 'dashboard' ? 'active' : ''; ?>">
+		<a href="?page=churchtools-suite&tab=dashboard" class="cts-tab <?php echo 'dashboard' === $active_tab ? 'active' : ''; ?>">
 			<span>📊</span>
 			<?php esc_html_e( 'Dashboard', 'churchtools-suite' ); ?>
 		</a>
-		<a href="?page=churchtools-suite&tab=settings" class="cts-tab <?php echo $active_tab === 'settings' ? 'active' : ''; ?>">
+		<a href="?page=churchtools-suite&tab=settings" class="cts-tab <?php echo 'settings' === $active_tab ? 'active' : ''; ?>">
 			<span>⚙️</span>
 			<?php esc_html_e( 'Einstellungen', 'churchtools-suite' ); ?>
 		</a>
 		<!-- Daten tab removed from main navigation; moved to separate submenu -->
-		<a href="?page=churchtools-suite&tab=sync" class="cts-tab <?php echo $active_tab === 'sync' ? 'active' : ''; ?>">
+		<a href="?page=churchtools-suite&tab=sync" class="cts-tab <?php echo 'sync' === $active_tab ? 'active' : ''; ?>">
 			<span>🔄</span>
 			<?php esc_html_e( 'Synchronisation', 'churchtools-suite' ); ?>
 		</a>
-		   <!-- Dokumentation Tab entfernt -->
+			<!-- Dokumentation Tab entfernt -->
 		<?php if ( $advanced_mode ) : ?>
-		<a href="?page=churchtools-suite&tab=debug" class="cts-tab <?php echo $active_tab === 'debug' ? 'active' : ''; ?>">
+		<a href="?page=churchtools-suite&tab=debug" class="cts-tab <?php echo 'debug' === $active_tab ? 'active' : ''; ?>">
 			<span>🔧</span>
 			<?php esc_html_e( 'Erweitert', 'churchtools-suite' ); ?>
 		</a>
@@ -72,54 +75,54 @@ $feedback_redirect = add_query_arg( [
 	</div>
 
 	<?php
-	   switch ( $active_tab ) {
-		   case 'settings':
-			   include __DIR__ . '/tab-settings.php';
-			   break;
-		   case 'data':
-			   include __DIR__ . '/tab-data.php';
-			   break;
-		   case 'sync':
-			   include __DIR__ . '/tab-sync.php';
-			   break;
-		   case 'debug':
-			   if ( $advanced_mode ) {
-			   	echo '<div class="cts-settings">'; // Wrapper für konsistente Darstellung
-			   	
-			   	$subtab = isset( $_GET['subtab'] ) ? sanitize_key( wp_unslash( $_GET['subtab'] ) ) : '';
+	switch ( $active_tab ) {
+		case 'settings':
+			include __DIR__ . '/tab-settings.php';
+			break;
+		case 'data':
+			include __DIR__ . '/tab-data.php';
+			break;
+		case 'sync':
+			include __DIR__ . '/tab-sync.php';
+			break;
+		case 'debug':
+			if ( $advanced_mode ) {
+				echo '<div class="cts-settings">'; // Wrapper für konsistente Darstellung.
 
-               	// Statically defined Debug subtabs to keep behavior consistent with Settings subtabs
-               	$subtabs = array(
-               		'uebersicht' => __( 'Übersicht', 'churchtools-suite' ),
-               		'manuelle-trigger' => __( 'Manuelle Trigger', 'churchtools-suite' ),
-               		'logs' => __( 'Logs', 'churchtools-suite' ),
-               		'reset-cleanup' => __( 'Reset & Cleanup', 'churchtools-suite' ),
-               	);
+				/* phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only navigation, display filters, or status messages; no state is changed by these query arguments. */ $subtab = isset( $_GET['subtab'] ) ? sanitize_key( wp_unslash( $_GET['subtab'] ) ) : '';
 
-               	if ( empty( $subtab ) ) {
-               		$subtab = 'uebersicht';
-               	}
+				// Statically defined Debug subtabs to keep behavior consistent with Settings subtabs.
+				$subtabs = array(
+					'uebersicht'       => __( 'Übersicht', 'churchtools-suite' ),
+					'manuelle-trigger' => __( 'Manuelle Trigger', 'churchtools-suite' ),
+					'logs'             => __( 'Logs', 'churchtools-suite' ),
+					'reset-cleanup'    => __( 'Reset & Cleanup', 'churchtools-suite' ),
+				);
 
-               	// expose variables for shared partial
-               	$subtab_active = $subtab;
-               	$subtab_parent_tab = 'debug';
-               	include __DIR__ . '/partials/render-subtabs.php';
+				if ( empty( $subtab ) ) {
+					$subtab = 'uebersicht';
+				}
 
-               	$subtab_file = __DIR__ . '/debug/subtab-' . $subtab . '.php';
-               	if ( file_exists( $subtab_file ) ) {
-               		include $subtab_file;
-               	} else {
-               		include __DIR__ . '/tab-debug-minimal.php';
-               	}
-               	
-               	echo '</div>'; // Close wrapper
-               }
-			   break;
-		   case 'dashboard':
-		   default:
-			   include __DIR__ . '/tab-dashboard.php';
-			   break;
-	   }
+				// expose variables for shared partial.
+				$subtab_active     = $subtab;
+				$subtab_parent_tab = 'debug';
+				include __DIR__ . '/partials/render-subtabs.php';
+
+				$subtab_file = __DIR__ . '/debug/subtab-' . $subtab . '.php';
+				if ( file_exists( $subtab_file ) ) {
+					include $subtab_file;
+				} else {
+					include __DIR__ . '/tab-debug-minimal.php';
+				}
+
+				echo '</div>'; // Close wrapper.
+			}
+			break;
+		case 'dashboard':
+		default:
+			include __DIR__ . '/tab-dashboard.php';
+			break;
+	}
 	?>
 
 </div>

@@ -13,6 +13,8 @@
  * License URI: https://www.gnu.org/licenses/gpl-3.0.html
  * Text Domain: churchtools-suite-presentations
  * Domain Path: /languages
+ *
+ * @package ChurchTools_Suite
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -24,32 +26,42 @@ define( 'CTS_PRESENTATIONS_PATH', plugin_dir_path( __FILE__ ) );
 define( 'CTS_PRESENTATIONS_URL', plugin_dir_url( __FILE__ ) );
 define( 'CTS_PRESENTATIONS_BASENAME', plugin_basename( __FILE__ ) );
 
-add_action( 'plugins_loaded', function () {
-	if ( ! class_exists( 'ChurchTools_Suite' ) ) {
-		add_action( 'admin_notices', function () {
-			if ( ! current_user_can( 'activate_plugins' ) ) {
-				return;
-			}
+add_action(
+	'plugins_loaded',
+	function () {
+		if ( ! class_exists( 'ChurchTools_Suite' ) ) {
+			add_action(
+				'admin_notices',
+				function () {
+					if ( ! current_user_can( 'activate_plugins' ) ) {
+						return;
+					}
 
-			echo '<div class="notice notice-error"><p><strong>ChurchTools Suite - Presentations</strong> benötigt das aktive Plugin <strong>ChurchTools Suite</strong>.</p></div>';
-		} );
-		return;
-	}
+					echo '<div class="notice notice-error"><p><strong>ChurchTools Suite - Presentations</strong> benötigt das aktive Plugin <strong>ChurchTools Suite</strong>.</p></div>';
+				}
+			);
+			return;
+		}
 
-	if ( ! function_exists( 'churchtools_suite_get_repository' ) ) {
-		add_action( 'admin_notices', function () {
-			if ( ! current_user_can( 'activate_plugins' ) ) {
-				return;
-			}
+		if ( ! function_exists( 'churchtools_suite_get_repository' ) ) {
+			add_action(
+				'admin_notices',
+				function () {
+					if ( ! current_user_can( 'activate_plugins' ) ) {
+						return;
+					}
 
-			echo '<div class="notice notice-error"><p><strong>ChurchTools Suite - Presentations</strong> benötigt eine aktuelle ChurchTools Suite Version.</p></div>';
-		} );
-		return;
-	}
+					echo '<div class="notice notice-error"><p><strong>ChurchTools Suite - Presentations</strong> benötigt eine aktuelle ChurchTools Suite Version.</p></div>';
+				}
+			);
+			return;
+		}
 
-	require_once CTS_PRESENTATIONS_PATH . 'includes/class-cts-presentations.php';
-	require_once CTS_PRESENTATIONS_PATH . 'includes/class-cts-presentations-admin.php';
-	require_once CTS_PRESENTATIONS_PATH . 'includes/class-cts-presentations-renderer.php';
+		require_once CTS_PRESENTATIONS_PATH . 'includes/class-cts-presentations.php';
+		require_once CTS_PRESENTATIONS_PATH . 'includes/class-cts-presentations-admin.php';
+		require_once CTS_PRESENTATIONS_PATH . 'includes/class-cts-presentations-renderer.php';
 
-	CTS_Presentations::init();
-}, 20 );
+		CTS_Presentations::init();
+	},
+	20
+);

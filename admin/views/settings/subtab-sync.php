@@ -10,7 +10,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-// Form processing
+// Form processing.
 if ( isset( $_POST['cts_save_sync'] ) && check_admin_referer( 'cts_settings' ) ) {
 	update_option( 'churchtools_suite_sync_days_past', absint( $_POST['sync_days_past'] ?? 7 ) );
 	update_option( 'churchtools_suite_sync_days_future', absint( $_POST['sync_days_future'] ?? 90 ) );
@@ -21,27 +21,27 @@ if ( isset( $_POST['cts_save_sync'] ) && check_admin_referer( 'cts_settings' ) )
 
 	$auto_sync_enabled = isset( $_POST['auto_sync_enabled'] ) ? 1 : 0;
 	update_option( 'churchtools_suite_auto_sync_enabled', $auto_sync_enabled );
-	update_option( 'churchtools_suite_auto_sync_interval', sanitize_text_field( $_POST['auto_sync_interval'] ?? 'hourly' ) );
+	update_option( 'churchtools_suite_auto_sync_interval', sanitize_text_field( wp_unslash( $_POST['auto_sync_interval'] ?? 'hourly' ) ) );
 
 	// Allow addons to save their own sync-related settings in this existing tab.
 	do_action( 'cts_sync_settings_save', $_POST );
-	
+
 	require_once CHURCHTOOLS_SUITE_PATH . 'includes/class-churchtools-suite-cron.php';
 	ChurchTools_Suite_Cron::update_sync_schedule();
-	
+
 	echo '<div class="cts-notice cts-notice-success"><p>' . esc_html__( 'Sync-Einstellungen gespeichert.', 'churchtools-suite' ) . '</p></div>';
 }
 
-$sync_days_past = get_option( 'churchtools_suite_sync_days_past', 7 );
-$sync_days_future = get_option( 'churchtools_suite_sync_days_future', 90 );
-$delete_expired_events = get_option( 'churchtools_suite_delete_expired_events', 0 );
+$sync_days_past            = get_option( 'churchtools_suite_sync_days_past', 7 );
+$sync_days_future          = get_option( 'churchtools_suite_sync_days_future', 90 );
+$delete_expired_events     = get_option( 'churchtools_suite_delete_expired_events', 0 );
 $expired_events_after_days = get_option( 'churchtools_suite_expired_events_after_days', 30 );
-$auto_sync_enabled = get_option( 'churchtools_suite_auto_sync_enabled', 0 );
-$auto_sync_interval = get_option( 'churchtools_suite_auto_sync_interval', 'daily' ); // v0.10.2.0: Default 'daily'
-$last_auto_sync = get_option( 'churchtools_suite_last_auto_sync', '' );
+$auto_sync_enabled         = get_option( 'churchtools_suite_auto_sync_enabled', 0 );
+$auto_sync_interval        = get_option( 'churchtools_suite_auto_sync_interval', 'daily' ); // Use the daily interval by default.
+$last_auto_sync            = get_option( 'churchtools_suite_last_auto_sync', '' );
 
-$registered_modules = class_exists( 'ChurchTools_Suite_Sync_Modules' ) ? ChurchTools_Suite_Sync_Modules::get_registered_modules() : [];
-$module_statuses = [];
+$registered_modules = class_exists( 'ChurchTools_Suite_Sync_Modules' ) ? ChurchTools_Suite_Sync_Modules::get_registered_modules() : array();
+$module_statuses    = array();
 if ( ! empty( $registered_modules ) && class_exists( 'ChurchTools_Suite_Sync_Modules' ) ) {
 	foreach ( $registered_modules as $module_id => $module_config ) {
 		$module_statuses[ $module_id ] = ChurchTools_Suite_Sync_Modules::get_module_status( (string) $module_id );
@@ -76,35 +76,35 @@ if ( ! empty( $registered_modules ) && class_exists( 'ChurchTools_Suite_Sync_Mod
 				<tbody>
 					<?php foreach ( $registered_modules as $module_id => $module_config ) : ?>
 						<?php
-						$module_status = isset( $module_statuses[ $module_id ] ) && is_array( $module_statuses[ $module_id ] ) ? $module_statuses[ $module_id ] : [];
-						$module_label = isset( $module_config['label'] ) ? (string) $module_config['label'] : (string) $module_id;
-						$state = isset( $module_status['state'] ) ? (string) $module_status['state'] : 'idle';
-						$state_label_map = [
-							'idle' => __( 'Bereit', 'churchtools-suite' ),
-							'running' => __( 'Läuft', 'churchtools-suite' ),
-							'ok' => __( 'OK', 'churchtools-suite' ),
-							'error' => __( 'Fehler', 'churchtools-suite' ),
+						$module_status       = isset( $module_statuses[ $module_id ] ) && is_array( $module_statuses[ $module_id ] ) ? $module_statuses[ $module_id ] : array();
+						$module_label        = isset( $module_config['label'] ) ? (string) $module_config['label'] : (string) $module_id;
+						$state               = isset( $module_status['state'] ) ? (string) $module_status['state'] : 'idle';
+						$state_label_map     = array(
+							'idle'     => __( 'Bereit', 'churchtools-suite' ),
+							'running'  => __( 'Läuft', 'churchtools-suite' ),
+							'ok'       => __( 'OK', 'churchtools-suite' ),
+							'error'    => __( 'Fehler', 'churchtools-suite' ),
 							'disabled' => __( 'Deaktiviert', 'churchtools-suite' ),
-						];
-						$state_label = isset( $state_label_map[ $state ] ) ? (string) $state_label_map[ $state ] : $state;
+						);
+						$state_label         = isset( $state_label_map[ $state ] ) ? (string) $state_label_map[ $state ] : $state;
 						$last_source_sync_at = isset( $module_status['last_source_sync_at'] ) ? (string) $module_status['last_source_sync_at'] : '';
-						$last_data_sync_at = isset( $module_status['last_data_sync_at'] ) ? (string) $module_status['last_data_sync_at'] : '';
-						$last_result = isset( $module_status['last_result'] ) && is_array( $module_status['last_result'] ) ? $module_status['last_result'] : [];
-						$last_message = isset( $last_result['message'] ) ? (string) $last_result['message'] : '';
+						$last_data_sync_at   = isset( $module_status['last_data_sync_at'] ) ? (string) $module_status['last_data_sync_at'] : '';
+						$last_result         = isset( $module_status['last_result'] ) && is_array( $module_status['last_result'] ) ? $module_status['last_result'] : array();
+						$last_message        = isset( $last_result['message'] ) ? (string) $last_result['message'] : '';
 
-						if ( $last_source_sync_at !== '' ) {
+						if ( '' !== $last_source_sync_at ) {
 							$last_source_sync_at = get_date_from_gmt( $last_source_sync_at, get_option( 'date_format' ) . ' ' . get_option( 'time_format' ) );
 						}
-						if ( $last_data_sync_at !== '' ) {
+						if ( '' !== $last_data_sync_at ) {
 							$last_data_sync_at = get_date_from_gmt( $last_data_sync_at, get_option( 'date_format' ) . ' ' . get_option( 'time_format' ) );
 						}
 						?>
 						<tr>
 							<td><strong><?php echo esc_html( $module_label ); ?></strong> <code><?php echo esc_html( (string) $module_id ); ?></code></td>
 							<td><?php echo esc_html( $state_label ); ?></td>
-							<td><?php echo esc_html( $last_source_sync_at !== '' ? $last_source_sync_at : '—' ); ?></td>
-							<td><?php echo esc_html( $last_data_sync_at !== '' ? $last_data_sync_at : '—' ); ?></td>
-							<td><?php echo esc_html( $last_message !== '' ? $last_message : '—' ); ?></td>
+							<td><?php echo esc_html( '' !== $last_source_sync_at ? $last_source_sync_at : '—' ); ?></td>
+							<td><?php echo esc_html( '' !== $last_data_sync_at ? $last_data_sync_at : '—' ); ?></td>
+							<td><?php echo esc_html( '' !== $last_message ? $last_message : '—' ); ?></td>
 						</tr>
 					<?php endforeach; ?>
 				</tbody>
@@ -127,13 +127,13 @@ if ( ! empty( $registered_modules ) && class_exists( 'ChurchTools_Suite_Sync_Mod
 				</th>
 				<td>
 					<input type="number" 
-						   id="sync_days_past" 
-						   name="sync_days_past" 
-						   value="<?php echo esc_attr( $sync_days_past ); ?>" 
-						   class="cts-form-input"
-						   min="0"
-						   max="365"
-						   style="max-width: 120px;">
+							id="sync_days_past"
+							name="sync_days_past"
+							value="<?php echo esc_attr( $sync_days_past ); ?>"
+							class="cts-form-input"
+							min="0"
+							max="365"
+							style="max-width: 120px;">
 					<span class="cts-form-description"><?php esc_html_e( 'Wie viele Tage in der Vergangenheit sollen synchronisiert werden? (Standard: 7)', 'churchtools-suite' ); ?></span>
 				</td>
 			</tr>
@@ -143,13 +143,13 @@ if ( ! empty( $registered_modules ) && class_exists( 'ChurchTools_Suite_Sync_Mod
 				</th>
 				<td>
 					<input type="number" 
-						   id="sync_days_future" 
-						   name="sync_days_future" 
-						   value="<?php echo esc_attr( $sync_days_future ); ?>" 
-						   class="cts-form-input"
-						   min="1"
-						   max="730"
-						   style="max-width: 120px;">
+							id="sync_days_future"
+							name="sync_days_future"
+							value="<?php echo esc_attr( $sync_days_future ); ?>"
+							class="cts-form-input"
+							min="1"
+							max="730"
+							style="max-width: 120px;">
 					<span class="cts-form-description"><?php esc_html_e( 'Wie viele Tage in der Zukunft sollen synchronisiert werden? (Standard: 90)', 'churchtools-suite' ); ?></span>
 				</td>
 			</tr>
@@ -179,9 +179,9 @@ if ( ! empty( $registered_modules ) && class_exists( 'ChurchTools_Suite_Sync_Mod
 			</tr>
 		</table>
 		<?php
-		$from_date = date_i18n( get_option( 'date_format' ), current_time( 'timestamp' ) - absint( $sync_days_past ) * DAY_IN_SECONDS );
-		$to_date = date_i18n( get_option( 'date_format' ), current_time( 'timestamp' ) + absint( $sync_days_future ) * DAY_IN_SECONDS );
-		$delete_before_date = date_i18n( get_option( 'date_format' ), current_time( 'timestamp' ) - absint( $expired_events_after_days ) * DAY_IN_SECONDS );
+		$from_date          = wp_date( get_option( 'date_format' ), current_datetime()->modify( '-' . absint( $sync_days_past ) . ' days' )->getTimestamp() );
+		$to_date            = wp_date( get_option( 'date_format' ), current_datetime()->modify( '+' . absint( $sync_days_future ) . ' days' )->getTimestamp() );
+		$delete_before_date = wp_date( get_option( 'date_format' ), current_datetime()->modify( '-' . absint( $expired_events_after_days ) . ' days' )->getTimestamp() );
 		?>
 		
 		<div class="cts-info-box">
@@ -189,19 +189,19 @@ if ( ! empty( $registered_modules ) && class_exists( 'ChurchTools_Suite_Sync_Mod
 				<strong>📅 Berechneter Zeitraum:</strong>
 			</p>
 			<p style="margin: 0; font-family: monospace; font-size: 14px;">
-				<strong>Von:</strong> <?php echo esc_html( $from_date ); ?> 
+				<strong>Von:</strong> <?php echo esc_html( (string) ( $from_date ) ); ?>
 				<span style="color: #646970; margin: 0 8px;">|</span>
-				<strong>Bis:</strong> <?php echo esc_html( $to_date ); ?>
+				<strong>Bis:</strong> <?php echo esc_html( (string) ( $to_date ) ); ?>
 			</p>
 			<p style="margin: 8px 0 0 0; font-size: 12px; color: #646970;">
 				<?php esc_html_e( 'Dieser Zeitraum wird bei der nächsten Synchronisation verwendet.', 'churchtools-suite' ); ?>
 			</p>
-			<?php if ( (int) $delete_expired_events === 1 ) : ?>
+			<?php if ( (int) 1 === $delete_expired_events ) : ?>
 				<p style="margin: 8px 0 0 0; font-size: 12px; color: #b32d2e;">
 					<?php
 					echo esc_html(
 						sprintf(
-							__( 'Termine bis einschließlich %s werden gelöscht.', 'churchtools-suite' ),
+							/* translators: %s: Last date included in the deletion. */                            __( 'Termine bis einschließlich %s werden gelöscht.', 'churchtools-suite' ),
 							$delete_before_date
 						)
 					);
@@ -222,10 +222,10 @@ if ( ! empty( $registered_modules ) && class_exists( 'ChurchTools_Suite_Sync_Mod
 				<td>
 					<label class="cts-toggle">
 						<input type="checkbox" 
-							   id="auto_sync_enabled" 
-							   name="auto_sync_enabled" 
-							   value="1" 
-							   <?php checked( $auto_sync_enabled, 1 ); ?>>
+								id="auto_sync_enabled"
+								name="auto_sync_enabled"
+								value="1"
+								<?php checked( $auto_sync_enabled, 1 ); ?>>
 						<span class="cts-toggle-slider"></span>
 					</label>
 					<span class="cts-form-description"><?php esc_html_e( 'Termine automatisch im Hintergrund synchronisieren', 'churchtools-suite' ); ?></span>

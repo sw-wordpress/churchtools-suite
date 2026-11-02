@@ -14,14 +14,14 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 class ChurchTools_Suite_Event_Services_Repository extends ChurchTools_Suite_Repository_Base {
-	
+
 	/**
 	 * Constructor
 	 */
 	public function __construct() {
 		parent::__construct( CHURCHTOOLS_SUITE_DB_PREFIX . 'event_services' );
 	}
-	
+
 	/**
 	 * Insert or update a service
 	 *
@@ -40,60 +40,70 @@ class ChurchTools_Suite_Event_Services_Repository extends ChurchTools_Suite_Repo
 	 */
 	public function upsert( array $data ) {
 		global $wpdb;
-		
-		// Validate required fields
+
+		// Validate required fields.
 		if ( empty( $data['event_id'] ) || empty( $data['service_name'] ) ) {
 			return false;
 		}
-		
+
 		$table = $wpdb->prefix . $this->table;
-		
-		// Check if service already exists for this event
-		$existing = $wpdb->get_row( $wpdb->prepare(
-			"SELECT id FROM {$table} WHERE event_id = %d AND service_name = %s",
-			$data['event_id'],
-			$data['service_name']
-		) );
-		
-		$defaults = [
-			'service_id' => null,
+
+		// Check if service already exists for this event.
+		// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery -- Custom plugin tables and maintenance queries have no equivalent WordPress query API.
+		// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Plugin-owned table identifiers and generated placeholder lists; query values are prepared separately for WordPress 6.0 compatibility.
+		$existing = $wpdb->get_row(
+			$wpdb->prepare(
+				"SELECT id FROM {$table} WHERE event_id = %d AND service_name = %s",
+				$data['event_id'],
+				$data['service_name']
+			)
+		);
+		// phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		// phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery
+
+		$defaults = array(
+			'service_id'  => null,
 			'person_name' => null,
-		];
-		$data = wp_parse_args( $data, $defaults );
-		
-		// Prepare data
-		$db_data = [
-			'event_id' => $data['event_id'],
-			'service_id' => $data['service_id'],
+		);
+		$data     = wp_parse_args( $data, $defaults );
+
+		// Prepare data.
+		$db_data = array(
+			'event_id'     => $data['event_id'],
+			'service_id'   => $data['service_id'],
 			'service_name' => $data['service_name'],
-			'person_name' => $data['person_name'],
-			'updated_at' => current_time( 'mysql' ),
-		];
-		
-		$format = [ '%d', '%s', '%s', '%s', '%s' ];
-		
+			'person_name'  => $data['person_name'],
+			'updated_at'   => current_time( 'mysql' ),
+		);
+
+		$format = array( '%d', '%s', '%s', '%s', '%s' );
+
 		if ( $existing ) {
-			// Update existing service
+			// Update existing service.
+			// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery -- Custom plugin tables and maintenance queries have no equivalent WordPress query API.
 			$result = $wpdb->update(
 				$table,
 				$db_data,
-				[ 'id' => $existing->id ],
+				array( 'id' => $existing->id ),
 				$format,
-				[ '%d' ]
+				array( '%d' )
 			);
-			
-			return $result !== false ? $existing->id : false;
+			// phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery
+
+			return false !== $result ? $existing->id : false;
 		} else {
-			// Insert new service
+			// Insert new service.
 			$db_data['created_at'] = current_time( 'mysql' );
-			$format[] = '%s';
-			
+			$format[]              = '%s';
+
+			// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery -- Custom plugin tables and maintenance queries have no equivalent WordPress query API.
 			$result = $wpdb->insert( $table, $db_data, $format );
-			
+			// phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery
+
 			return $result ? $wpdb->insert_id : false;
 		}
 	}
-	
+
 	/**
 	 * Get all services for an event
 	 *
@@ -102,17 +112,23 @@ class ChurchTools_Suite_Event_Services_Repository extends ChurchTools_Suite_Repo
 	 */
 	public function get_for_event( int $event_id ): array {
 		global $wpdb;
-		
+
 		$table = $wpdb->prefix . $this->table;
-		
-		$services = $wpdb->get_results( $wpdb->prepare(
-			"SELECT * FROM {$table} WHERE event_id = %d ORDER BY service_name ASC",
-			$event_id
-		) );
-		
-		return $services ?: [];
+
+		// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery -- Custom plugin tables and maintenance queries have no equivalent WordPress query API.
+		// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Plugin-owned table identifiers and generated placeholder lists; query values are prepared separately for WordPress 6.0 compatibility.
+		$services = $wpdb->get_results(
+			$wpdb->prepare(
+				"SELECT * FROM {$table} WHERE event_id = %d ORDER BY service_name ASC",
+				$event_id
+			)
+		);
+		// phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		// phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery
+
+		return $services ?: array();
 	}
-	
+
 	/**
 	 * Alias for get_for_event() - for consistency with other repositories
 	 *
@@ -122,7 +138,7 @@ class ChurchTools_Suite_Event_Services_Repository extends ChurchTools_Suite_Repo
 	public function get_by_event_id( int $event_id ): array {
 		return $this->get_for_event( $event_id );
 	}
-	
+
 	/**
 	 * Delete all services for an event
 	 *
@@ -133,16 +149,18 @@ class ChurchTools_Suite_Event_Services_Repository extends ChurchTools_Suite_Repo
 	 */
 	public function delete_for_event( int $event_id ) {
 		global $wpdb;
-		
+
 		$table = $wpdb->prefix . $this->table;
-		
+
+		// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery -- Custom plugin tables and maintenance queries have no equivalent WordPress query API.
 		return $wpdb->delete(
 			$table,
-			[ 'event_id' => $event_id ],
-			[ '%d' ]
+			array( 'event_id' => $event_id ),
+			array( '%d' )
 		);
+		// phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery
 	}
-	
+
 	/**
 	 * Get all unique service names
 	 *
@@ -153,19 +171,23 @@ class ChurchTools_Suite_Event_Services_Repository extends ChurchTools_Suite_Repo
 	 */
 	public function get_unique_service_names(): array {
 		global $wpdb;
-		
+
 		$table = $wpdb->prefix . $this->table;
-		
+
+		// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery -- Custom plugin tables and maintenance queries have no equivalent WordPress query API.
+		// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Plugin-owned table identifiers and generated placeholder lists; query values are prepared separately for WordPress 6.0 compatibility.
 		$names = $wpdb->get_col(
 			"SELECT DISTINCT service_name 
 			FROM {$table} 
 			WHERE service_name IS NOT NULL 
 			ORDER BY service_name ASC"
 		);
-		
-		return $names ?: [];
+		// phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		// phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery
+
+		return $names ?: array();
 	}
-	
+
 	/**
 	 * Get service count by service name
 	 *
@@ -176,22 +198,28 @@ class ChurchTools_Suite_Event_Services_Repository extends ChurchTools_Suite_Repo
 	 */
 	public function get_service_stats( int $limit = 20 ): array {
 		global $wpdb;
-		
+
 		$table = $wpdb->prefix . $this->table;
-		
-		$stats = $wpdb->get_results( $wpdb->prepare(
-			"SELECT service_name, COUNT(*) as count 
+
+		// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery -- Custom plugin tables and maintenance queries have no equivalent WordPress query API.
+		// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Plugin-owned table identifiers and generated placeholder lists; query values are prepared separately for WordPress 6.0 compatibility.
+		$stats = $wpdb->get_results(
+			$wpdb->prepare(
+				"SELECT service_name, COUNT(*) as count
 			FROM {$table} 
 			WHERE service_name IS NOT NULL 
 			GROUP BY service_name 
 			ORDER BY count DESC 
 			LIMIT %d",
-			$limit
-		) );
-		
-		return $stats ?: [];
+				$limit
+			)
+		);
+		// phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		// phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery
+
+		return $stats ?: array();
 	}
-	
+
 	/**
 	 * Get total service count
 	 *
@@ -199,14 +227,18 @@ class ChurchTools_Suite_Event_Services_Repository extends ChurchTools_Suite_Repo
 	 */
 	public function get_total_count(): int {
 		global $wpdb;
-		
+
 		$table = $wpdb->prefix . $this->table;
-		
+
+		// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery -- Custom plugin tables and maintenance queries have no equivalent WordPress query API.
+		// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Plugin-owned table identifiers and generated placeholder lists; query values are prepared separately for WordPress 6.0 compatibility.
 		$count = $wpdb->get_var( "SELECT COUNT(*) FROM {$table}" );
-		
+		// phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		// phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery
+
 		return (int) $count;
 	}
-	
+
 	/**
 	 * Get services by service name
 	 *
@@ -216,21 +248,27 @@ class ChurchTools_Suite_Event_Services_Repository extends ChurchTools_Suite_Repo
 	 */
 	public function get_by_service_name( string $service_name, int $limit = 100 ): array {
 		global $wpdb;
-		
+
 		$table = $wpdb->prefix . $this->table;
-		
-		$services = $wpdb->get_results( $wpdb->prepare(
-			"SELECT * FROM {$table} 
+
+		// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery -- Custom plugin tables and maintenance queries have no equivalent WordPress query API.
+		// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Plugin-owned table identifiers and generated placeholder lists; query values are prepared separately for WordPress 6.0 compatibility.
+		$services = $wpdb->get_results(
+			$wpdb->prepare(
+				"SELECT * FROM {$table}
 			WHERE service_name = %s 
 			ORDER BY created_at DESC 
 			LIMIT %d",
-			$service_name,
-			$limit
-		) );
-		
-		return $services ?: [];
+				$service_name,
+				$limit
+			)
+		);
+		// phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		// phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery
+
+		return $services ?: array();
 	}
-	
+
 	/**
 	 * Search services by person name
 	 *
@@ -240,23 +278,29 @@ class ChurchTools_Suite_Event_Services_Repository extends ChurchTools_Suite_Repo
 	 */
 	public function search_by_person( string $person_name, int $limit = 100 ): array {
 		global $wpdb;
-		
+
 		$table = $wpdb->prefix . $this->table;
-		
+
 		$search_term = '%' . $wpdb->esc_like( $person_name ) . '%';
-		
-		$services = $wpdb->get_results( $wpdb->prepare(
-			"SELECT * FROM {$table} 
+
+		// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery -- Custom plugin tables and maintenance queries have no equivalent WordPress query API.
+		// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Plugin-owned table identifiers and generated placeholder lists; query values are prepared separately for WordPress 6.0 compatibility.
+		$services = $wpdb->get_results(
+			$wpdb->prepare(
+				"SELECT * FROM {$table}
 			WHERE person_name LIKE %s 
 			ORDER BY created_at DESC 
 			LIMIT %d",
-			$search_term,
-			$limit
-		) );
-		
-		return $services ?: [];
+				$search_term,
+				$limit
+			)
+		);
+		// phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		// phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery
+
+		return $services ?: array();
 	}
-	
+
 	/**
 	 * Delete all services
 	 *
@@ -266,9 +310,13 @@ class ChurchTools_Suite_Event_Services_Repository extends ChurchTools_Suite_Repo
 	 */
 	public function delete_all() {
 		global $wpdb;
-		
+
 		$table = $wpdb->prefix . $this->table;
-		
+
+		// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery -- Custom plugin tables and maintenance queries have no equivalent WordPress query API.
+		// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Plugin-owned table identifiers and generated placeholder lists; query values are prepared separately for WordPress 6.0 compatibility.
 		return $wpdb->query( "DELETE FROM {$table}" );
+		// phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		// phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery
 	}
 }

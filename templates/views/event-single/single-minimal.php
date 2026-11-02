@@ -1,9 +1,9 @@
 <?php
 /**
  * Event Single - Minimal
- * 
+ *
  * Sehr einfache Single-Page ohne Schnörkel - nur die Basics
- * 
+ *
  * @package ChurchTools_Suite
  * @since   0.9.9.85
  */
@@ -12,19 +12,19 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-// Get event ID from query parameter
-$event_id = isset( $_GET['event_id'] ) ? intval( $_GET['event_id'] ) : 0;
+// Get event ID from query parameter.
+/* phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only navigation, display filters, or status messages; no state is changed by these query arguments. */ $event_id = isset( $_GET['event_id'] ) ? intval( $_GET['event_id'] ) : 0;
 
 if ( ! $event_id ) {
 	echo '<p>Event nicht gefunden.</p>';
 	return;
 }
 
-// Load repositories (v1.0.8.0: Factory)
-$events_repo = churchtools_suite_get_repository( 'events' );
+// Load repositories (v1.0.8.0: Factory).
+$events_repo    = churchtools_suite_get_repository( 'events' );
 $calendars_repo = churchtools_suite_get_repository( 'calendars' );
 
-// Get event
+// Get event.
 $event = $events_repo->get_by_id( $event_id );
 
 if ( ! $event ) {
@@ -32,24 +32,24 @@ if ( ! $event ) {
 	return;
 }
 
-// Get calendar
+// Get calendar.
 $calendar = null;
 if ( ! empty( $event->calendar_id ) ) {
 	$calendar = $calendars_repo->get_by_calendar_id( $event->calendar_id );
 }
 
-// Format date
+// Format date.
 $date_format = get_option( 'date_format', 'd.m.Y' );
 $time_format = get_option( 'time_format', 'H:i' );
 
 $start_date = $event->start_datetime ? get_date_from_gmt( $event->start_datetime, $date_format ) : '';
 $start_time = $event->start_datetime ? get_date_from_gmt( $event->start_datetime, $time_format ) : '';
-$end_time = $event->end_datetime ? get_date_from_gmt( $event->end_datetime, $time_format ) : '';
+$end_time   = $event->end_datetime ? get_date_from_gmt( $event->end_datetime, $time_format ) : '';
 
-// Descriptions
-$event_description = $event->event_description ?? '';
+// Descriptions.
+$event_description       = $event->event_description ?? '';
 $appointment_description = $event->appointment_description ?? '';
-$full_description = '';
+$full_description        = '';
 
 if ( ! empty( $event_description ) ) {
 	$full_description = $event_description;
@@ -63,14 +63,14 @@ if ( ! empty( $appointment_description ) ) {
 
 $full_description = wpautop( wp_kses_post( $full_description ) );
 
-// Kalenderfarben-Unterstützung (v1.1.4.4)
-$calendar_color = ( $calendar && ! empty( $calendar->color ) ) ? $calendar->color : '#3498db';
-$container_style = sprintf( 
+// Kalenderfarben-Unterstützung (v1.1.4.4).
+$calendar_color  = ( $calendar && ! empty( $calendar->color ) ) ? $calendar->color : '#3498db';
+$container_style = sprintf(
 	'--cts-calendar-color: %s; --cts-primary-color: %s;',
 	esc_attr( $calendar_color ),
 	esc_attr( $calendar_color )
 );
-$label_style = sprintf( 
+$label_style     = sprintf(
 	'background-color: %s; color: #ffffff;',
 	esc_attr( $calendar_color )
 );
@@ -78,19 +78,19 @@ $label_style = sprintf(
 $resolved_back_link = '';
 if ( ! empty( $back_link ) ) {
 	$resolved_back_link = (string) $back_link;
-} elseif ( isset( $_GET['event_id'] ) && absint( $_GET['event_id'] ) > 0 ) {
-	$resolved_back_link = remove_query_arg( [ 'event_id', 'template', 'ctse_context' ] );
-}
-?>
+	/* phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only navigation, display filters, or status messages; no state is changed by these query arguments. */ } elseif ( isset( $_GET['event_id'] ) && absint( $_GET['event_id'] ) > 0 ) {
+	$resolved_back_link = remove_query_arg( array( 'event_id', 'template', 'ctse_context' ) );
+	}
+	?>
 
-<div class="cts-single-minimal" style="<?php echo $container_style; ?>">
+<div class="cts-single-minimal" style="<?php echo esc_attr( $container_style ); ?>">
 	<?php if ( ! empty( $include_back_button ) && ! empty( $resolved_back_link ) ) : ?>
 		<div class="cts-back-button-wrapper"><a href="<?php echo esc_url( $resolved_back_link ); ?>" class="cts-back-button">&larr; <?php esc_html_e( 'Zurück zur Übersicht', 'churchtools-suite' ); ?></a></div>
 	<?php endif; ?>
 
 	<div class="cts-single-header">
 		<?php if ( $calendar && ! empty( $calendar->name ) ) : ?>
-			<span class="cts-calendar-label" style="<?php echo $label_style; ?>"><?php echo esc_html( $calendar->name ); ?></span>
+			<span class="cts-calendar-label" style="<?php echo esc_attr( $label_style ); ?>"><?php echo esc_html( $calendar->name ); ?></span>
 		<?php endif; ?>
 		<h1><?php echo esc_html( $event->title ); ?></h1>
 	</div>
@@ -135,7 +135,7 @@ if ( ! empty( $back_link ) ) {
 
 	<?php if ( ! empty( $full_description ) ) : ?>
 		<div class="cts-single-description">
-			<?php echo $full_description; ?>
+			<?php echo wp_kses_post( $full_description ); ?>
 		</div>
 	<?php endif; ?>
 </div>

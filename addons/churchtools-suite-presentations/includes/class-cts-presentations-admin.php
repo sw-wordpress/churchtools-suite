@@ -1,4 +1,9 @@
 <?php
+/**
+ * Class cts presentations admin.
+ *
+ * @package ChurchTools_Suite
+ */
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
@@ -6,9 +11,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 class CTS_Presentations_Admin {
 	public static function init(): void {
-		add_action( 'admin_menu', [ __CLASS__, 'register_submenu' ], 55 );
-		add_action( 'admin_post_cts_presentations_save', [ __CLASS__, 'handle_save' ] );
-		add_action( 'admin_post_cts_presentations_create_page', [ __CLASS__, 'handle_create_page' ] );
+		add_action( 'admin_menu', array( __CLASS__, 'register_submenu' ), 55 );
+		add_action( 'admin_post_cts_presentations_save', array( __CLASS__, 'handle_save' ) );
+		add_action( 'admin_post_cts_presentations_create_page', array( __CLASS__, 'handle_create_page' ) );
 	}
 
 	public static function register_submenu(): void {
@@ -22,7 +27,7 @@ class CTS_Presentations_Admin {
 			__( 'ChurchTools Präsentation', 'churchtools-suite-presentations' ),
 			'manage_churchtools_suite',
 			'churchtools-suite-presentations',
-			[ __CLASS__, 'render_page' ]
+			array( __CLASS__, 'render_page' )
 		);
 	}
 
@@ -31,25 +36,25 @@ class CTS_Presentations_Admin {
 			wp_die( esc_html__( 'Keine Berechtigung.', 'churchtools-suite-presentations' ) );
 		}
 
-		$events = CTS_Presentations::get_upcoming_events_for_select();
-		$views = CTS_Presentations::get_view_options_flat();
-		$event_id = (int) get_option( CTS_Presentations::OPTION_EVENT_ID, 0 );
-		$auto_create = (int) get_option( CTS_Presentations::OPTION_AUTO_CREATE, 0 );
+		$events          = CTS_Presentations::get_upcoming_events_for_select();
+		$views           = CTS_Presentations::get_view_options_flat();
+		$event_id        = (int) get_option( CTS_Presentations::OPTION_EVENT_ID, 0 );
+		$auto_create     = (int) get_option( CTS_Presentations::OPTION_AUTO_CREATE, 0 );
 		$require_builder = (int) get_option( CTS_Presentations::OPTION_REQUIRE_BUILDER, 1 );
-		$special_tags = (string) get_option( CTS_Presentations::OPTION_SPECIAL_TAGS, '' );
-		$slide_seconds = (int) get_option( CTS_Presentations::OPTION_SLIDE_SECONDS, 10 );
-		$slide_1_view = (string) get_option( CTS_Presentations::OPTION_SLIDE_1_VIEW, 'list-classic' );
-		$slide_2_view = (string) get_option( CTS_Presentations::OPTION_SLIDE_2_VIEW, 'grid-modern' );
-		$page_id = (int) get_option( CTS_Presentations::OPTION_PAGE_ID, 0 );
+		$special_tags    = (string) get_option( CTS_Presentations::OPTION_SPECIAL_TAGS, '' );
+		$slide_seconds   = (int) get_option( CTS_Presentations::OPTION_SLIDE_SECONDS, 10 );
+		$slide_1_view    = (string) get_option( CTS_Presentations::OPTION_SLIDE_1_VIEW, 'list-classic' );
+		$slide_2_view    = (string) get_option( CTS_Presentations::OPTION_SLIDE_2_VIEW, 'grid-modern' );
+		$page_id         = (int) get_option( CTS_Presentations::OPTION_PAGE_ID, 0 );
 		$active_builders = CTS_Presentations::get_active_page_builder_labels();
 
-		$message = isset( $_GET['cts_msg'] ) ? sanitize_text_field( wp_unslash( (string) $_GET['cts_msg'] ) ) : '';
-		$is_error = isset( $_GET['cts_err'] ) ? (int) $_GET['cts_err'] === 1 : false;
+		/* phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only navigation, display filters, or status messages; no state is changed by these query arguments. */ $message  = isset( $_GET['cts_msg'] ) ? sanitize_text_field( wp_unslash( (string) $_GET['cts_msg'] ) ) : '';
+		/* phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only navigation, display filters, or status messages; no state is changed by these query arguments. */ $is_error = isset( $_GET['cts_err'] ) ? 1 === (int) $_GET['cts_err'] : false;
 		?>
 		<div class="wrap">
 			<h1><?php esc_html_e( 'ChurchTools Präsentation', 'churchtools-suite-presentations' ); ?></h1>
 
-			<?php if ( $message !== '' ) : ?>
+			<?php if ( '' !== $message ) : ?>
 				<div class="notice <?php echo $is_error ? 'notice-error' : 'notice-success'; ?> is-dismissible">
 					<p><?php echo esc_html( $message ); ?></p>
 				</div>
@@ -170,13 +175,13 @@ class CTS_Presentations_Admin {
 
 		check_admin_referer( 'cts_presentations_save' );
 
-		$event_id = isset( $_POST['cts_presentations_event_id'] ) ? absint( wp_unslash( (string) $_POST['cts_presentations_event_id'] ) ) : 0;
-		$auto_create = isset( $_POST['cts_presentations_auto_create'] ) ? 1 : 0;
+		$event_id        = isset( $_POST['cts_presentations_event_id'] ) ? absint( wp_unslash( (string) $_POST['cts_presentations_event_id'] ) ) : 0;
+		$auto_create     = isset( $_POST['cts_presentations_auto_create'] ) ? 1 : 0;
 		$require_builder = isset( $_POST['cts_presentations_require_builder'] ) ? 1 : 0;
-		$special_tags = isset( $_POST['cts_presentations_special_tags'] ) ? sanitize_text_field( wp_unslash( (string) $_POST['cts_presentations_special_tags'] ) ) : '';
-		$slide_seconds = isset( $_POST['cts_presentations_slide_seconds'] ) ? absint( wp_unslash( (string) $_POST['cts_presentations_slide_seconds'] ) ) : 10;
-		$slide_1_view = isset( $_POST['cts_presentations_slide_1_view'] ) ? sanitize_key( wp_unslash( (string) $_POST['cts_presentations_slide_1_view'] ) ) : 'list-classic';
-		$slide_2_view = isset( $_POST['cts_presentations_slide_2_view'] ) ? sanitize_key( wp_unslash( (string) $_POST['cts_presentations_slide_2_view'] ) ) : 'grid-modern';
+		$special_tags    = isset( $_POST['cts_presentations_special_tags'] ) ? sanitize_text_field( wp_unslash( (string) $_POST['cts_presentations_special_tags'] ) ) : '';
+		$slide_seconds   = isset( $_POST['cts_presentations_slide_seconds'] ) ? absint( wp_unslash( (string) $_POST['cts_presentations_slide_seconds'] ) ) : 10;
+		$slide_1_view    = isset( $_POST['cts_presentations_slide_1_view'] ) ? sanitize_key( wp_unslash( (string) $_POST['cts_presentations_slide_1_view'] ) ) : 'list-classic';
+		$slide_2_view    = isset( $_POST['cts_presentations_slide_2_view'] ) ? sanitize_key( wp_unslash( (string) $_POST['cts_presentations_slide_2_view'] ) ) : 'grid-modern';
 
 		$views = CTS_Presentations::get_view_options_flat();
 		if ( ! isset( $views[ $slide_1_view ] ) ) {
@@ -196,7 +201,7 @@ class CTS_Presentations_Admin {
 		update_option( CTS_Presentations::OPTION_SLIDE_1_VIEW, $slide_1_view, false );
 		update_option( CTS_Presentations::OPTION_SLIDE_2_VIEW, $slide_2_view, false );
 
-		if ( $auto_create === 1 ) {
+		if ( 1 === $auto_create ) {
 			CTS_Presentations::maybe_auto_create_page();
 		}
 
@@ -211,9 +216,9 @@ class CTS_Presentations_Admin {
 
 		check_admin_referer( 'cts_presentations_create_page' );
 
-		$result = CTS_Presentations::create_or_update_presentation_page();
+		$result  = CTS_Presentations::create_or_update_presentation_page();
 		$message = isset( $result['message'] ) ? (string) $result['message'] : __( 'Unbekanntes Ergebnis.', 'churchtools-suite-presentations' );
-		$err = isset( $result['ok'] ) && $result['ok'] ? false : true;
+		$err     = isset( $result['ok'] ) && $result['ok'] ? false : true;
 
 		wp_safe_redirect( self::build_redirect_url( $message, $err ) );
 		exit;
@@ -221,11 +226,11 @@ class CTS_Presentations_Admin {
 
 	private static function build_redirect_url( string $message, bool $error ): string {
 		$url = add_query_arg(
-			[
-				'page' => 'churchtools-suite-presentations',
+			array(
+				'page'    => 'churchtools-suite-presentations',
 				'cts_msg' => $message,
 				'cts_err' => $error ? 1 : 0,
-			],
+			),
 			admin_url( 'admin.php' )
 		);
 
