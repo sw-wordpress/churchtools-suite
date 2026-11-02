@@ -1,9 +1,9 @@
-name: Build release zip
+name: Build release zips
 
 on:
   push:
     tags:
-      # Matches version tags like 1.2.1.4, 1.2.1.4-01, v1.2.1.4, v1.2.1.4-01
+      # Version tags like 1.3.0.14, 1.3.0.14-01, v1.3.0.14, v1.3.0.14-01
       - '[0-9]+.[0-9]+.[0-9]+*'
       - 'v[0-9]+.[0-9]+.[0-9]+*'
 
@@ -12,31 +12,79 @@ permissions:
 
 jobs:
   build:
-    name: Build release zip
+    name: Build release zips
     runs-on: ubuntu-latest
+
     steps:
-    - name: Checkout
-      uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
 
-    - name: Determine version
-      id: version
-      run: |
-        RAW="${GITHUB_REF_NAME}"
-        VERSION="${RAW#v}"        # strip leading "v"
-        VERSION="${VERSION%-*}"   # strip "-01" build suffix
-        echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+      - name: Determine version
+        id: metadata
+        run: |
+          RAW="${GITHUB_REF_NAME}"
+          VERSION="${RAW#v}"        # strip leading "v"
+          VERSION="${VERSION%-*}"   # strip "-01" build suffix
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
 
-    - name: Bundle repo into churchtools-suite folder
-      run: |
-        VERSION="${{ steps.version.outputs.version }}"
-        STAGING="$RUNNER_TEMP/staging/churchtools-suite"
-        mkdir -p "$STAGING"
-        # Copy the complete repo into the churchtools-suite/ folder, excluding VCS internals
-        rsync -a --exclude='.git' ./ "$STAGING/"
-        ( cd "$RUNNER_TEMP/staging" && zip -r "$GITHUB_WORKSPACE/churchtools-suite-${VERSION}.zip" churchtools-suite )
+      - name: Verify tag matches plugin version
+        env:
+          VERSION: ${{ steps.metadata.outputs.version }}
+        run: |
+          HEADER="$(grep -m1 -E '^\s*\*?\s*Version:' churchtools-suite.php | awk '{print $NF}' | tr -d '\r')"
+          CONSTANT="$(grep -m1 "define( 'CHURCHTOOLS_SUITE_VERSION'" churchtools-suite.php | sed -E "s/.*'([0-9.]+)'.*/\1/")"
+          echo "tag=$VERSION header=$HEADER constant=$CONSTANT"
+          if [ "$VERSION" != "$HEADER" ] || [ "$VERSION" != "$CONSTANT" ]; then
+            echo "Tag, plugin header and CHURCHTOOLS_SUITE_VERSION must be identical" >&2
+            exit 1
+          fi
 
-    - name: Create release and attach zip
-      uses: softprops/action-gh-release@v2
-      with:
-        name: ${{ steps.version.outputs.version }}
-        files: churchtools-suite-${{ steps.version.outputs.version }}.zip
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: zip, mbstring, fileinfo, openssl
+          tools: composer:v2
+          coverage: none
+
+      - name: Validate Composer configuration
+        run: composer validate --strict
+
+      - name: Install dev tools
+        run: composer install --no-interaction --no-progress
+
+      # Report only: the legacy code base still has many findings (see CLAUDE.md).
+      # Make these steps blocking by removing `continue-on-error` once the baseline is clean.
+      - name: Code style (report only)
+        continue-on-error: true
+        run: composer cs
+
+      - name: Static analysis (report only)
+        continue-on-error: true
+        run: composer stan
+
+      - name: Build ZIPs
+        run: bash bin/build-zip.sh "$RUNNER_TEMP/dist"
+
+      - name: Verify ZIP contents
+        run: |
+          shopt -s nullglob
+          ZIPS=("$RUNNER_TEMP"/dist/*.zip)
+          [ "${#ZIPS[@]}" -ge 1 ] || { echo "No ZIPs built" >&2; exit 1; }
+          for zip in "${ZIPS[@]}"; do
+            unzip -t "$zip" >/dev/null
+            unzip -Z1 "$zip" > "$RUNNER_TEMP/zip-contents.txt"
+            slug="$(head -1 "$RUNNER_TEMP/zip-contents.txt" | cut -d/ -f1)"
+            grep -Fx "$slug/$slug.php" "$RUNNER_TEMP/zip-contents.txt"
+            if grep -Eq "^$slug/(vendor|node_modules|bin|tests|\.git|\.github|addons)/" "$RUNNER_TEMP/zip-contents.txt"; then
+              echo "Unexpected development files in $zip" >&2
+              exit 1
+            fi
+            echo "OK: $zip"
+          done
+
+      - name: Create release and attach ZIPs
+        uses: softprops/action-gh-release@v2
+        with:
+          name: ${{ steps.metadata.outputs.version }}
+          files: ${{ runner.temp }}/dist/*.zip

@@ -1,99 +1,109 @@
-# ChurchTools Integration Suite
+# ChurchTools Integration Suite (Fork)
 
-Repository fuer das WordPress-Hauptplugin ChurchTools Integration Suite. Die Addons werden in eigenen Repositories entwickelt und veroeffentlicht.
+WordPress-Plugin, das Kalender, Termine und Dienste aus [ChurchTools](https://church.tools) nach WordPress synchronisiert und im Frontend darstellt.
 
-## Repository-Status
+Dieses Repository ist ein **Fork** von [feg-aschaffenburg/churchtools-suite](https://github.com/feg-aschaffenburg/churchtools-suite). Anders als im Original liegen die Addons hier weiterhin im selben Repository (Monorepo).
 
-Stand: 2026-08-28
+## Danke an das Upstream-Projekt
 
-Diese README ist die zentrale Dokumentation des aktuellen technischen Stands. Historische Details werden in der Git-Historie bewahrt.
+Dieses Plugin wäre ohne die Arbeit des Teams der **FEG Aschaffenburg** nicht möglich. Sie haben die ChurchTools Integration Suite entworfen, gebaut und über viele Releases gepflegt. Die Architektur mit Repository-Pattern, zweistufigem Event-Sync, Template-System und Shortcodes, die Dokumentation und die laufende Weiterentwicklung sind großartig umgesetzt. Dieser Fork baut direkt darauf auf und bleibt über den `upstream`-Remote mit dem Original verbunden. Vielen Dank dafür!
 
-### Enthaltene Plugins
+Wenn du das Plugin ohne die Anpassungen dieses Forks nutzen willst, schau im Original-Repository vorbei.
 
-| Paket | Typ | Version | Einstiegspunkt | Status |
-| --- | --- | --- | --- | --- |
-| ChurchTools Integration Suite | Hauptplugin | 1.3.0.11 | `churchtools-suite.php` | aktiv entwickelt |
-| Elementor Integration | Addon | 1.0.0.3 | [eigenes Repository](https://github.com/feg-aschaffenburg/churchtools-suite-elementor) | eigenständiges Plugin |
-| Posts Sync Addon | Addon | 0.2.0.3 | [eigenes Repository](https://github.com/feg-aschaffenburg/churchtools-suite-posts-sync) | eigenständiges Plugin |
-| Presentations Addon | Addon | 0.1.3 | [eigenes Repository](https://github.com/feg-aschaffenburg/churchtools-suite-presentations) | eigenständiges Plugin |
-| ChurchTools Suite Demo | optionales Plugin | 1.1.4.1 | separat | nur Dokumentation/Demo |
+## Inhalt des Repositories
 
-### Abhaengigkeiten
+| Paket | Typ | Version | Pfad |
+| --- | --- | --- | --- |
+| ChurchTools Integration Suite | Hauptplugin | 1.3.0.14 | `churchtools-suite.php` |
+| Elementor Integration | Addon | 1.0.0.1 | `addons/churchtools-suite-elementor/` |
+| Posts Sync | Addon | 0.1.8 | `addons/churchtools-suite-posts-sync/` |
+| Presentations | Addon | 0.1.1 | `addons/churchtools-suite-presentations/` |
+
+Das Upstream-Projekt hat die Addons inzwischen in eigene Repositories ausgelagert ([Elementor](https://github.com/feg-aschaffenburg/churchtools-suite-elementor), [Posts Sync](https://github.com/feg-aschaffenburg/churchtools-suite-posts-sync), [Presentations](https://github.com/feg-aschaffenburg/churchtools-suite-presentations)). In diesem Fork bleiben sie im Monorepo. Änderungen aus den Upstream-Addons werden bei Bedarf von Hand übernommen.
+
+### Unterschiede zum Upstream
+
+- **Addons im Monorepo:** Die drei Addons liegen unter `addons/`.
+- **Posts Sync:** Der Fork enthält eigene Erweiterungen (Markdown-Parser, Bildausrichtung in Posts, Beitragsablauf, archivierte Posts werden automatisch auf privat gesetzt). Der Stand weicht deshalb von `churchtools-suite-posts-sync` im Upstream ab.
+- **Bild-Import:** Bilder aus ChurchTools werden mit der gespeicherten ChurchTools-Session heruntergeladen und lokal in die Mediathek importiert. Die geschützten Bild-URLs liefern sonst nur eine Login-Seite.
+- **Kalender-Darstellung:** Eigene CSS-Anpassungen im Monatskalender (gleiche Spaltenbreiten, Zeilenhöhe).
+- **Updater deaktiviert:** Der GitHub-Updater ist abgeschaltet (`ChurchTools_Suite_Auto_Updater::GITHUB_UPDATES_ENABLED = false`). Updates werden manuell eingespielt.
+
+### Abhängigkeiten
 
 - Hauptplugin: WordPress >= 6.0, PHP >= 8.2
-- Elementor-Addon: ChurchTools Integration Suite >= 1.3.0.6, Elementor, WordPress >= 6.0, PHP >= 8.2
-- Posts-Sync-Addon: ChurchTools Integration Suite >= 1.3.0.6, WordPress >= 5.0, PHP >= 8.2
-- Presentations-Addon: ChurchTools Integration Suite, WordPress >= 6.0, PHP >= 8.0
+- Elementor-Addon: ChurchTools Integration Suite, Elementor, PHP >= 8.2
+- Posts-Sync-Addon: ChurchTools Integration Suite, PHP >= 8.0
+- Presentations-Addon: ChurchTools Integration Suite, PHP >= 8.0
 
-Das Demo-Plugin und das Demo-Theme sind nicht Bestandteil des Hauptplugins und werden für Produktivinstallationen nicht benötigt.
-
-## Letzter Plugin-Check
-
-Der technische Basis-Check wurde lokal mit PHP 8.2.29 ausgefuehrt.
-
-| Bereich | Gepruefte PHP-Dateien | Ergebnis |
-| --- | ---: | --- |
-| Hauptplugin | 119 | OK |
-| Elementor-Addon | 5 | OK |
-| Posts-Sync-Addon | 5 | OK |
-
-Gepruefte Punkte:
-
-- PHP-CLI unter Laragon laeuft lokal fehlerfrei
-- PHP-Syntaxpruefung ueber Hauptplugin und beide Addons erfolgreich
-- VS-Code-Workspace ist auf den lokalen PHP-Interpreter konfiguriert
-- Lokale SSH-Hosts fuer Deployment und Server-Tests sind vorhanden
-
-## Aktueller Arbeitsstand
-
-Im Arbeitsbaum liegen aktuell uncommittete Aenderungen. Der Schwerpunkt liegt momentan auf zwei Bereichen:
-
-1. Frontend-Filter fuer Event-Listen in Hauptplugin und Elementor-Integration
-2. Sync-Bereinigung fuer geloeschte Events/Appointments im Hauptplugin
-
-Zusaetzlich wurden alte Backup-Templates unter `templates-backup-20260222-211402/` aus dem Arbeitsbaum entfernt.
-
-### Betroffene Bereiche im aktuellen Worktree
-
-- Frontend-Assets: `assets/css/`, `assets/js/`
-- Block- und Shortcode-Logik: `includes/class-churchtools-suite-blocks.php`, `includes/class-churchtools-suite-shortcodes.php`
-- Event-Sync und Repository: `includes/repositories/`, `includes/services/`
-- Elementor-Widget: separates Repository `churchtools-suite-elementor`
-- Aktive List-Templates: `templates/views/event-list/`
-
-## Entwicklung lokal und auf Servern
-
-- Lokaler PHP-Pfad in Local: `C:\Users\KasseFeg\AppData\Roaming\Local\lightning-services\php-8.2.29+0\bin\win64\php.exe`
-- Deployment-Skripte nutzen lokale SSH-Host-Aliase aus der Benutzerkonfiguration
-- Standardziel der Deploy-Skripte fuer Testsysteme ist `plugin-test`
-
-## Empfohlene naechste Schritte
-
-1. Frontend-Filter in WordPress manuell mit echten Event-Daten pruefen
-2. Sync-Cleanup mit einem Vollsync gegen ein Testsystem verifizieren
-3. Danach Readme/Changelog pro Release fortschreiben und Release-ZIPs bauen
-
-## Aktuelle Funktionen
+## Funktionen
 
 - Kalender-, Termin-, Dienst-, Gruppen- und Gruppenpost-Synchronisation
 - Shortcodes und Gutenberg-Views für Liste, Grid, Kalender, Countdown und Carousel
 - Kalenderfilter über `calendar`, `calendars` und `calendar_ids`
-- Custom CSS pro Shortcode, Preset und Block-Instanz
-- CSS wird je Ausgabe über eine stabile Instanz-ID begrenzt
-- Custom CSS kann im Shortcode-Manager und über die Block-/Shortcode-API verwendet werden
-- Standalone-Addons für Elementor, Posts Sync und Presentations
+- Custom CSS pro Shortcode, Preset und Block-Instanz, begrenzt über eine stabile Instanz-ID
 - Automatische Synchronisation über WordPress-Cron
-- Der Auto-Updater installiert ausschließlich geprüfte WordPress-Release-ZIPs.
+- Löschen abgelaufener Termine (einstellbar) inklusive der importierten Bilder
+- Template-System mit Theme-Override unter `{theme}/churchtools-suite/`
 
-## Beispiele:
+Eine Übersicht aller Shortcode-Parameter steht in [docs/SHORTCODES.md](docs/SHORTCODES.md).
+
+## Beispiele
 
 Moderne Liste von Events mit Bildern:
 
 ```
-[cts_list view="list-modern-with-images" limit="20" link_search="false" show_location="true show_services="true" show_appointment_description="true" show_event_description="true" use_calendar_colors="true"]
+[cts_list view="list-modern-with-images" limit="20" link_search="false" show_location="true" show_services="true" show_appointment_description="true" show_event_description="true" use_calendar_colors="true"]
 ```
 
-Kalendar Ansicht:
+Kalenderansicht:
+
 ```
 [cts_calendar view="monthly-simple" use_calendar_colors="true"]
 ```
+
+## Entwicklung
+
+### Code-Qualität
+
+PHPCS mit WordPress-Standard, PHPStan Level 8:
+
+```bash
+composer install
+composer cs      # PHP_CodeSniffer
+composer cs:fix  # automatisch behebbare Verstöße korrigieren
+composer stan    # PHPStan
+composer check   # cs + stan
+```
+
+### Syntaxcheck
+
+```bash
+find . -name "*.php" -not -path "./vendor/*" -not -path "./node_modules/*" | xargs -n50 php -l | grep -v "No syntax errors"
+```
+
+### Lokale Testumgebung
+
+`@wordpress/env` ist konfiguriert (`.wp-env.json`):
+
+```bash
+npm install
+npm run env:start
+```
+
+### Upstream-Änderungen übernehmen
+
+```bash
+git fetch upstream
+git checkout -b merge-upstream
+git merge upstream/main
+```
+
+Bei Konflikten in `addons/` die eigene Version behalten und Änderungen aus den Upstream-Addon-Repositories gezielt übernehmen.
+
+## Weitere Dokumentation
+
+- [CLAUDE.md](CLAUDE.md): Architektur und Konventionen
+- [ROADMAP.md](ROADMAP.md): Roadmap
+- [docs/CHANGELOG.md](docs/CHANGELOG.md): Änderungen
+- [docs/CHURCHTOOLS-API-INTEGRATION.md](docs/CHURCHTOOLS-API-INTEGRATION.md): ChurchTools-API

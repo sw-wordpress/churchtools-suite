@@ -1,0 +1,25 @@
+version: 2
+# Fewer, coherent PRs: security fixes first, then routine dev-tool and workflow updates.
+updates:
+  - package-ecosystem: composer
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 5
+    groups:
+      composer-security:
+        applies-to: security-updates
+        patterns: ['*']
+      php-dev-tools:
+        dependency-type: development
+        update-types: [minor, patch]
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    groups:
+      github-actions:
+        patterns: ['*']
