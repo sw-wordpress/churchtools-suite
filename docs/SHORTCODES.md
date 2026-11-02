@@ -376,3 +376,8 @@ slide 2 = `grid-modern`; minimum slide duration is `3` seconds.
 - **Single-event pages:** Any event view linked with `event_action="page"`
   points to the single-event page, rendered with the
   `churchtools_suite_single_template` option (default `professional`).
+
+### Gemeinsame Darstellung mit CloudCalendar
+
+Die bestehenden `cts_*`-Shortcodes bleiben unverändert. Für eine gemeinsame Darstellung mehrerer Kalender mit
+anderen Plugin-Quellen können stattdessen CloudCalendar-Ansichten eingebunden werden; siehe [Anbindung](CLOUDCALENDAR.md).

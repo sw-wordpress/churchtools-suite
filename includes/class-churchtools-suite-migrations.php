@@ -274,6 +274,7 @@ class ChurchTools_Suite_Migrations {
 			description text DEFAULT NULL,
 			shortcode_tag varchar(100) NOT NULL,
 			configuration longtext NOT NULL,
+			custom_css longtext DEFAULT NULL,
 			is_system tinyint(1) DEFAULT 0,
 			created_at datetime DEFAULT CURRENT_TIMESTAMP,
 			PRIMARY KEY (id),
