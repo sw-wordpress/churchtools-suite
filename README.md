@@ -62,6 +62,11 @@ Kalenderansicht:
 [cts_calendar view="monthly-simple" use_calendar_colors="true"]
 ```
 
+## SW CloudCalendar
+
+Die Suite kann ihre ausgewählten Kalender direkt an CloudCalendar liefern, ohne einen zweiten Event-Speicher.
+Einrichtung und Tests: [CloudCalendar-Anbindung](docs/CLOUDCALENDAR.md).
+
 ## Entwicklung
 
 ### Code-Qualität

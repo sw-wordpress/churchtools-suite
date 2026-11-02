@@ -26,6 +26,7 @@
         }
     },
     "scripts": {
+        "test:cloudcalendar": "@php ../sw-cloudcalendar/tests/wp/vendor/bin/phpunit -c tests/phpunit.xml.dist",
         "stan": "phpstan analyse --memory-limit=1G",
         "cs": "phpcs --runtime-set ignore_warnings_on_exit 1",
         "cs:fix": "phpcbf",

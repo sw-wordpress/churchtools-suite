@@ -77,3 +77,13 @@ churchtools_suite_run();
 // Integrate Posts sync per default.
 require_once CHURCHTOOLS_SUITE_PATH . 'addons/churchtools-suite-posts-sync/churchtools-suite-posts-sync.php';
 // require_once CHURCHTOOLS_SUITE_PATH . "addons/churchtools-suite-presentations/churchtools-suite-presentations.php";.
+
+/** Register the external adapter lazily; ChurchTools works without CloudCalendar installed. */
+add_action(
+	'sw_calendar_register_local_sources',
+	static function ( $registry ): void {
+		require_once CHURCHTOOLS_SUITE_PATH . 'includes/integrations/class-churchtools-suite-calendar-reader.php';
+		require_once CHURCHTOOLS_SUITE_PATH . 'includes/integrations/class-churchtools-suite-cloudcalendar-source.php';
+		$registry->register( 'churchtools-suite', new ChurchTools_Suite_CloudCalendar_Source(), 1 );
+	}
+);

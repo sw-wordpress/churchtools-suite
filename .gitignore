@@ -43,3 +43,8 @@ SSH-KEYS.md
 .phpcs.cache
 .phpstan.cache
 composer.lock.bak
+
+/coverage/
+/.phpunit.result.cache
+
+/tests/.phpunit.result.cache
