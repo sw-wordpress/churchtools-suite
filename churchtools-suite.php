@@ -75,7 +75,7 @@ function churchtools_suite_run(): void {
 churchtools_suite_run();
 
 // Integrate Posts sync per default.
-require_once CHURCHTOOLS_SUITE_PATH . 'addons/churchtools-suite-posts-sync/churchtools-suite-posts-sync.php';
+// require_once CHURCHTOOLS_SUITE_PATH . 'addons/churchtools-suite-posts-sync/churchtools-suite-posts-sync.php';
 // require_once CHURCHTOOLS_SUITE_PATH . "addons/churchtools-suite-presentations/churchtools-suite-presentations.php";.
 
 /** Register the external adapter lazily; ChurchTools works without CloudCalendar installed. */
