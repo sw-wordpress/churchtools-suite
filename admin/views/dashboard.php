@@ -409,15 +409,15 @@ if ( $debug_tab_has_trigger ) {
 <div class="cts-card-body">
 <table class="cts-system-table">
 <tr>
-<td><?php esc_html_e( 'Plugin-Version', 'churchtools-suite' ); ?></td>
+<th scope="row"><?php esc_html_e( 'Plugin-Version', 'churchtools-suite' ); ?></th>
 <td><strong><?php echo esc_html( CHURCHTOOLS_SUITE_VERSION ); ?></strong></td>
 </tr>
 <tr>
-<td><?php esc_html_e( 'WordPress-Version', 'churchtools-suite' ); ?></td>
+<th scope="row"><?php esc_html_e( 'WordPress-Version', 'churchtools-suite' ); ?></th>
 <td><strong><?php echo esc_html( get_bloginfo( 'version' ) ); ?></strong></td>
 </tr>
 <tr>
-<td><?php esc_html_e( 'PHP-Version', 'churchtools-suite' ); ?></td>
+<th scope="row"><?php esc_html_e( 'PHP-Version', 'churchtools-suite' ); ?></th>
 <td><strong><?php echo esc_html( PHP_VERSION ); ?></strong></td>
 </tr>
 </table>

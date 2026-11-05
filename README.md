@@ -14,7 +14,7 @@ Wenn du das Plugin ohne die Anpassungen dieses Forks nutzen willst, schau im Ori
 
 | Paket | Typ | Version | Pfad |
 | --- | --- | --- | --- |
-| ChurchTools Integration Suite | Hauptplugin | 1.4.0.3 | `churchtools-suite.php` |
+| ChurchTools Integration Suite | Hauptplugin | 1.4.0.4 | `churchtools-suite.php` |
 | Elementor Integration | Addon | 1.0.0.1 | `addons/churchtools-suite-elementor/` |
 | Posts Sync | Addon | 0.1.11 | `addons/churchtools-suite-posts-sync/` |
 | Presentations | Addon | 0.1.1 | `addons/churchtools-suite-presentations/` |
@@ -112,7 +112,7 @@ npm run test:ui:coverage
 composer coverage:check
 ```
 
-Reports: `coverage/php.xml`, `coverage/ui.json`. `coverage:check` verlangt für PHP und JavaScript jeweils **>80 %** aller produktiven Dateien. Stand dieser Überarbeitung: PHP gesamt **18,11 %**, JavaScript gesamt **18,00 %**; Screen-Registry **>96 %**, neues Shell-JavaScript **89,45 %**. Die Gesamtvorgabe ist weiterhin **nicht erfüllt**. Insbesondere echte Sync-/API-Abläufe und Frontend-Varianten benötigen weitere Tests. CI meldet diese bestehende Lücke ausdrücklich; der Coverage-Schritt ist bis dahin berichtend, die Funktionstests sind blockierend. `composer cs`/`composer stan` melden weiterhin Befunde im Altbestand.
+Reports: `coverage/php.xml`, `coverage/ui.json`. `coverage:check` verlangt für PHP und JavaScript jeweils **>80 %** aller produktiven Dateien. Stand dieser Überarbeitung: PHP gesamt **17,73 %**, JavaScript gesamt **18,00 %**; Screen-Registry **>96 %**, neues Shell-JavaScript **89,45 %**. Die Gesamtvorgabe ist weiterhin **nicht erfüllt**. Insbesondere echte Sync-/API-Abläufe und Frontend-Varianten benötigen weitere Tests. CI meldet diese bestehende Lücke ausdrücklich; der Coverage-Schritt ist bis dahin berichtend, die Funktionstests sind blockierend. `composer cs`/`composer stan` melden weiterhin Befunde im Altbestand.
 
 ### Release-ZIP
 

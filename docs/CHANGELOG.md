@@ -1,10 +1,12 @@
 # Integration Suite - Changelog
 
-## Unreleased
+## v1.4.0.4 - Quality Gate und Tests (5. November 2026)
 
 - Zusätzliche Integrationstests für wiederkehrende Termine, idempotente Aktualisierung, Erhalt von Kalenderauswahl/Fallback-Bildern und validierte Zugangsdaten einschließlich Tenant-Grenzen und Benutzerwechsel.
 - Validierung: 172 PHP-Tests (796 Assertions) und 35 Browser-/JavaScript-Prüfungen erfolgreich. PHP-Gesamt-Coverage steigt auf 18,11 %; die Vorgabe >80 % bleibt offen.
 - PHP- und Browser-Suiten laufen in GitHub Actions ausschließlich für Pull Requests. Push-, manuelle und wiederverwendbare Test-Trigger entfernt; der Release-Workflow ruft die Suiten nicht mehr auf. Überholte Läufe desselben PR werden abgebrochen.
+- Sonar-Funde behoben: Tabellenüberschriften und Toggle-Beschriftungen, redundante Bedingungen, Bash-Prüfungen und gepinnte CI-Actions. Chromium wird über die bereits per Lockfile installierte Playwright-CLI eingerichtet.
+- Wiederholte Unterseitenregistrierung und Modulstatus-Tabellen zusammengeführt; bestehende URLs, Reihenfolge und Sichtbarkeit bleiben erhalten. 176 PHP-Tests (831 Assertions) und 36 Browser-/JavaScript-Prüfungen bestehen; Build-ZIPs geprüft.
 
 ## v1.4.0.3 - Übersichten und Diagnose (5. November 2026)
 

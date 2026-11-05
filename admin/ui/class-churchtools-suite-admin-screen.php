@@ -124,77 +124,28 @@ class ChurchTools_Suite_Admin_Screen {
 			)
 		);
 
-		// Settings sub-screens.
-		self::add_screen(
-			'settings/api',
-			array(
-				'title'  => __( 'API & Verbindung', 'churchtools-suite' ),
-				'icon'   => 'dashicons-admin-network',
-				'view'   => 'settings/api.php',
-				'parent' => 'settings',
-				'group'  => 'main',
-			)
+		// Settings share routing and visibility; only labels and icons vary.
+		$settings = array(
+			'api'       => array( __( 'API & Verbindung', 'churchtools-suite' ), 'dashicons-admin-network' ),
+			'sync'      => array( __( 'Sync-Einstellungen', 'churchtools-suite' ), 'dashicons-backup' ),
+			'calendars' => array( __( 'Kalender', 'churchtools-suite' ), 'dashicons-calendar-alt' ),
+			'services'  => array( __( 'Dienste', 'churchtools-suite' ), 'dashicons-groups' ),
+			'posts'     => array( __( 'Posts', 'churchtools-suite' ), 'dashicons-post-status' ),
+			'templates' => array( __( 'Darstellung', 'churchtools-suite' ), 'dashicons-layout' ),
+			'advanced'  => array( __( 'Erweitert', 'churchtools-suite' ), 'dashicons-admin-generic' ),
 		);
-		self::add_screen(
-			'settings/sync',
-			array(
-				'title'  => __( 'Sync-Einstellungen', 'churchtools-suite' ),
-				'icon'   => 'dashicons-backup',
-				'view'   => 'settings/sync.php',
-				'parent' => 'settings',
-				'group'  => 'main',
-			)
-		);
-		self::add_screen(
-			'settings/calendars',
-			array(
-				'title'  => __( 'Kalender', 'churchtools-suite' ),
-				'icon'   => 'dashicons-calendar-alt',
-				'view'   => 'settings/calendars.php',
-				'parent' => 'settings',
-				'group'  => 'main',
-			)
-		);
-		self::add_screen(
-			'settings/services',
-			array(
-				'title'  => __( 'Dienste', 'churchtools-suite' ),
-				'icon'   => 'dashicons-groups',
-				'view'   => 'settings/services.php',
-				'parent' => 'settings',
-				'group'  => 'main',
-			)
-		);
-		self::add_screen(
-			'settings/posts',
-			array(
-				'title'  => __( 'Posts', 'churchtools-suite' ),
-				'icon'   => 'dashicons-post-status',
-				'view'   => 'settings/posts.php',
-				'parent' => 'settings',
-				'group'  => 'main',
-			)
-		);
-		self::add_screen(
-			'settings/templates',
-			array(
-				'title'  => __( 'Darstellung', 'churchtools-suite' ),
-				'icon'   => 'dashicons-layout',
-				'view'   => 'settings/templates.php',
-				'parent' => 'settings',
-				'group'  => 'main',
-			)
-		);
-		self::add_screen(
-			'settings/advanced',
-			array(
-				'title'  => __( 'Erweitert', 'churchtools-suite' ),
-				'icon'   => 'dashicons-admin-generic',
-				'view'   => 'settings/advanced.php',
-				'parent' => 'settings',
-				'group'  => 'main',
-			)
-		);
+		foreach ( $settings as $slug => $definition ) {
+			self::add_screen(
+				'settings/' . $slug,
+				array(
+					'title'  => $definition[0],
+					'icon'   => $definition[1],
+					'view'   => 'settings/' . $slug . '.php',
+					'parent' => 'settings',
+					'group'  => 'main',
+				)
+			);
+		}
 
 		// Data overviews (previously the "Übersichten" flyout).
 		// Overview section: the parent is a pure group, its children are the screens.
@@ -260,50 +211,25 @@ class ChurchTools_Suite_Admin_Screen {
 				'sub_menu' => true,
 			)
 		);
-		self::add_screen(
-			'advanced/uebersicht',
-			array(
-				'title'    => __( 'Übersicht', 'churchtools-suite' ),
-				'icon'     => 'dashicons-dashboard',
-				'view'     => 'debug/uebersicht.php',
-				'parent'   => 'advanced',
-				'group'    => 'extensions',
-				'advanced' => true,
-			)
+		$diagnostics = array(
+			'uebersicht'       => array( __( 'Übersicht', 'churchtools-suite' ), 'dashicons-dashboard' ),
+			'manuelle-trigger' => array( __( 'Manuelle Trigger', 'churchtools-suite' ), 'dashicons-controls-forward' ),
+			'logs'             => array( __( 'Logs', 'churchtools-suite' ), 'dashicons-media-document' ),
+			'reset-cleanup'    => array( __( 'Reset & Aufräumen', 'churchtools-suite' ), 'dashicons-delete' ),
 		);
-		self::add_screen(
-			'advanced/manuelle-trigger',
-			array(
-				'title'    => __( 'Manuelle Trigger', 'churchtools-suite' ),
-				'icon'     => 'dashicons-controls-forward',
-				'view'     => 'debug/manuelle-trigger.php',
-				'parent'   => 'advanced',
-				'group'    => 'extensions',
-				'advanced' => true,
-			)
-		);
-		self::add_screen(
-			'advanced/logs',
-			array(
-				'title'    => __( 'Logs', 'churchtools-suite' ),
-				'icon'     => 'dashicons-media-document',
-				'view'     => 'debug/logs.php',
-				'parent'   => 'advanced',
-				'group'    => 'extensions',
-				'advanced' => true,
-			)
-		);
-		self::add_screen(
-			'advanced/reset-cleanup',
-			array(
-				'title'    => __( 'Reset & Aufräumen', 'churchtools-suite' ),
-				'icon'     => 'dashicons-delete',
-				'view'     => 'debug/reset-cleanup.php',
-				'parent'   => 'advanced',
-				'group'    => 'extensions',
-				'advanced' => true,
-			)
-		);
+		foreach ( $diagnostics as $slug => $definition ) {
+			self::add_screen(
+				'advanced/' . $slug,
+				array(
+					'title'    => $definition[0],
+					'icon'     => $definition[1],
+					'view'     => 'debug/' . $slug . '.php',
+					'parent'   => 'advanced',
+					'group'    => 'extensions',
+					'advanced' => true,
+				)
+			);
+		}
 
 		// Addons and legal/info pages.
 		self::add_screen(

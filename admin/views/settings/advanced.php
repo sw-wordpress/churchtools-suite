@@ -69,14 +69,14 @@ $auto_update_level   = get_option( 'churchtools_suite_auto_update_level', 'none'
 <label for="advanced_mode"><?php esc_html_e( 'Erweiteter Modus', 'churchtools-suite' ); ?></label>
 </th>
 <td>
-<label class="cts-toggle">
+<span class="cts-toggle">
 <input type="checkbox"
 								id="advanced_mode"
 								name="advanced_mode"
 								value="1"
 <?php checked( $advanced_mode, 1 ); ?>>
 <span class="cts-toggle-slider"></span>
-</label>
+</span>
 <span class="cts-form-description">
 <?php esc_html_e( 'Zeigt zusätzliche Funktionen wie Debug-Logs und erweiterte Statistiken in der Navigation an.', 'churchtools-suite' ); ?>
 </span>
@@ -115,14 +115,14 @@ $auto_update_level   = get_option( 'churchtools_suite_auto_update_level', 'none'
 <label for="cts_auto_update_enabled"><?php esc_html_e( 'Auto‑Updates erlauben', 'churchtools-suite' ); ?></label>
 </th>
 <td>
-<label class="cts-toggle">
+<span class="cts-toggle">
 <input type="checkbox"
 								id="cts_auto_update_enabled"
 								name="cts_auto_update_enabled"
 								value="1"
 <?php checked( $auto_update_enabled, 1 ); ?>>
 <span class="cts-toggle-slider"></span>
-</label>
+</span>
 <span class="cts-form-description">
 <?php esc_html_e( 'Wenn aktiviert, werden Updates automatisch gemäß der gewählten Stufe installiert.', 'churchtools-suite' ); ?>
 </span>

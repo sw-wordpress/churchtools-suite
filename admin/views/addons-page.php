@@ -136,7 +136,7 @@ $posts_sync_installed   = isset( $all_plugins[ $posts_sync_plugin_file ] );
 <tbody>
 		<?php foreach ( $addons as $plugin_file => $addon ) : ?>
 			<?php
-						$status_icon    = $addon['is_active'] ? '' : '';
+						$status_icon    = '';
 						$is_coming_soon = in_array( (string) $addon['plugin_slug'], array( 'churchtools-suite-presentations' ), true );
 						$is_virtual     = ! empty( $addon['is_virtual'] );
 			if ( $is_coming_soon ) {

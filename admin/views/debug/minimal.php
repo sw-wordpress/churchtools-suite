@@ -43,9 +43,9 @@ $sync_history = $wpdb->get_results( "SELECT * FROM {$sync_history_table} ORDER B
 
 				echo '<table class="cts-debug-table">';
 				echo '<tr>';
-				echo '<td><strong>' . esc_html__( 'Aufgabe', 'churchtools-suite' ) . '</strong></td>';
-				echo '<td><strong>' . esc_html__( 'Nächste Ausführung', 'churchtools-suite' ) . '</strong></td>';
-				echo '<td><strong>' . esc_html__( 'Intervall', 'churchtools-suite' ) . '</strong></td>';
+				echo '<th scope="col">' . esc_html__( 'Aufgabe', 'churchtools-suite' ) . '</th>';
+				echo '<th scope="col">' . esc_html__( 'Nächste Ausführung', 'churchtools-suite' ) . '</th>';
+				echo '<th scope="col">' . esc_html__( 'Intervall', 'churchtools-suite' ) . '</th>';
 				echo '</tr>';
 
 				foreach ( $our_hooks as $hook ) {
@@ -102,12 +102,12 @@ $sync_history = $wpdb->get_results( "SELECT * FROM {$sync_history_table} ORDER B
 <?php else : ?>
 <table class="cts-debug-table">
 <tr>
-<td><strong><?php esc_html_e( 'Zeitpunkt', 'churchtools-suite' ); ?></strong></td>
-<td><strong><?php esc_html_e( 'Status', 'churchtools-suite' ); ?></strong></td>
-<td><strong><?php esc_html_e( 'Kalender', 'churchtools-suite' ); ?></strong></td>
-<td><strong><?php esc_html_e( 'Events', 'churchtools-suite' ); ?></strong></td>
-<td><strong><?php esc_html_e( 'Services', 'churchtools-suite' ); ?></strong></td>
-<td><strong><?php esc_html_e( 'Dauer', 'churchtools-suite' ); ?></strong></td>
+<th scope="col"><?php esc_html_e( 'Zeitpunkt', 'churchtools-suite' ); ?></th>
+<th scope="col"><?php esc_html_e( 'Status', 'churchtools-suite' ); ?></th>
+<th scope="col"><?php esc_html_e( 'Kalender', 'churchtools-suite' ); ?></th>
+<th scope="col"><?php esc_html_e( 'Events', 'churchtools-suite' ); ?></th>
+<th scope="col"><?php esc_html_e( 'Services', 'churchtools-suite' ); ?></th>
+<th scope="col"><?php esc_html_e( 'Dauer', 'churchtools-suite' ); ?></th>
 </tr>
 	<?php foreach ( $sync_history as $entry ) : ?>
 <tr>

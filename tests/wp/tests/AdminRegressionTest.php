@@ -199,6 +199,22 @@ final class AdminRegressionTest extends CTS_TestCase {
 		$this->assertStringNotContainsString( "action', value:'cts_fetch_events_list'", $html );
 	}
 
+	public function test_both_sync_pages_render_and_escape_the_same_module_status(): void {
+		add_filter( 'cts_register_sync_modules', static function ( $modules ) {
+			$modules['quality-test'] = array(
+				'label' => '<em>Review module</em>',
+				'callbacks' => array( 'get_status' => static fn () => array( 'state' => 'error', 'last_result' => array( 'message' => '<script>alert(1)</script>' ) ) ),
+			);
+			return $modules;
+		} );
+		foreach ( array( array( 'sync', '' ), array( 'settings', 'sync' ) ) as $page ) {
+			$html = $this->render_admin( $page[0], $page[1] );
+			$this->assertStringContainsString( '&lt;em&gt;Review module&lt;/em&gt;', $html );
+			$this->assertStringContainsString( '&lt;script&gt;alert(1)&lt;/script&gt;', $html );
+			$this->assertStringNotContainsString( '<script>alert(1)</script>', $html );
+		}
+	}
+
 	private function load_posts_addon(): ChurchTools_Suite_Posts_Sync_Admin {
 		require_once CHURCHTOOLS_SUITE_PATH . 'addons/churchtools-suite-posts-sync/churchtools-suite-posts-sync.php';
 		require_once CTS_POSTS_SYNC_PATH . 'includes/class-churchtools-suite-posts-sync-service.php';

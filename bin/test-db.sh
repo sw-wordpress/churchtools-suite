@@ -10,7 +10,7 @@ SOCKET="$DIR/mysql.sock"
 
 case "${1:-}" in
   start)
-    if [ -S "$SOCKET" ] && mariadb-admin --socket="$SOCKET" ping >/dev/null 2>&1; then echo "already running"; exit 0; fi
+    if [[ -S "$SOCKET" ]] && mariadb-admin --socket="$SOCKET" ping >/dev/null 2>&1; then echo "already running"; exit 0; fi
     rm -rf "$DIR"; mkdir -p "$DIR/data"
     mariadb-install-db --no-defaults --datadir="$DIR/data" --auth-root-authentication-method=normal >/dev/null
     nohup mariadbd --no-defaults --datadir="$DIR/data" --socket="$SOCKET" --port="$PORT" --bind-address=127.0.0.1 \
@@ -25,7 +25,7 @@ case "${1:-}" in
     echo "started on 127.0.0.1:$PORT (user cts / cts, strict SQL mode)"
     ;;
   stop)
-    [ -f "$DIR/mysql.pid" ] && kill "$(cat "$DIR/mysql.pid")" 2>/dev/null || true
+    [[ -f "$DIR/mysql.pid" ]] && kill "$(cat "$DIR/mysql.pid")" 2>/dev/null || true
     echo stopped
     ;;
   status)

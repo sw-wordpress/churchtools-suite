@@ -25,9 +25,9 @@ package() {
   local untracked="$STAGE/untracked-$slug.txt"
   if git -C "$ROOT" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
     local prefix="${src#"$ROOT"/}"
-    [ "$src" = "$ROOT" ] && prefix=""
+    [[ "$src" = "$ROOT" ]] && prefix=""
     git -C "$ROOT" ls-files --others --exclude-standard -- "${prefix:-.}" \
-      | { [ -n "$prefix" ] && sed "s|^$prefix/||" || cat; } | sed 's|^|/|' > "$untracked" || true
+      | { [[ -n "$prefix" ]] && sed "s|^$prefix/||" || cat; } | sed 's|^|/|' > "$untracked" || true
   else
     : > "$untracked"
   fi
@@ -62,9 +62,9 @@ package() {
 EXCLUDES
 
   # Catch incomplete working-tree packages (new source files must be known to Git).
-  if [ "$slug" = "churchtools-suite" ]; then
-    for required in admin/ui/class-churchtools-suite-admin-screen.php assets/css/churchtools-suite-admin-ui.css assets/js/churchtools-suite-admin-ui.js includes/functions/addon-admin.php includes/functions/connection-state.php includes/functions/connection-settings.php includes/functions/diagnostics.php admin/views/debug/system.php admin/views/dashboard.php admin/views/settings.php admin/views/debug.php; do
-      [ -f "$dest/$required" ] || { echo "Missing required source in ZIP: $required (add new files to Git before building)" >&2; exit 1; }
+  if [[ "$slug" = "churchtools-suite" ]]; then
+    for required in admin/ui/class-churchtools-suite-admin-screen.php assets/css/churchtools-suite-admin-ui.css assets/js/churchtools-suite-admin-ui.js includes/functions/addon-admin.php includes/functions/connection-state.php includes/functions/connection-settings.php includes/functions/diagnostics.php admin/views/debug/system.php admin/views/partials/module-status.php admin/views/dashboard.php admin/views/settings.php admin/views/debug.php; do
+      [[ -f "$dest/$required" ]] || { echo "Missing required source in ZIP: $required (add new files to Git before building)" >&2; exit 1; }
     done
   fi
 
@@ -74,7 +74,7 @@ EXCLUDES
   done < <(find "$dest" -name '*.php' -print0)
   local version
   version="$(plugin_version "$dest/$main")"
-  [ -n "$version" ] || { echo "No Version header in $slug/$main" >&2; exit 1; }
+  [[ -n "$version" ]] || { echo "No Version header in $slug/$main" >&2; exit 1; }
 
   local zip="$OUT/$slug-$version.zip"
   rm -f "$zip"
@@ -87,6 +87,6 @@ package churchtools-suite "$ROOT" churchtools-suite.php --exclude=/addons
 
 for addon in "$ROOT"/addons/*/; do
   slug="$(basename "$addon")"
-  [ -f "$addon/$slug.php" ] || continue
+  [[ -f "$addon/$slug.php" ]] || continue
   package "$slug" "${addon%/}" "$slug.php"
 done

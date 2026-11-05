@@ -647,7 +647,7 @@ $shortcodes = array(
 <div class="cts-card">
 <div class="cts-card-header" style="display: flex; justify-content: space-between; align-items: center;">
 <div style="display: flex; align-items: center; gap: 8px;">
-<span class="cts-card-icon"><?php echo $is_system ? '' : ''; ?></span>
+<span class="dashicons dashicons-editor-code cts-card-icon" aria-hidden="true"></span>
 <h3><?php echo esc_html( $preset['name'] ); ?></h3>
 </div>
 			<?php if ( $is_system ) : ?>

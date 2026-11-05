@@ -262,7 +262,7 @@ $total_pages = ceil( $total / $limit );
 		$type_label           = ! empty( $event->appointment_id )
 			? __( 'Termin', 'churchtools-suite' )
 			: __( 'Event', 'churchtools-suite' );
-		$type_icon            = ! empty( $event->appointment_id ) ? '' : '';
+		$type_icon            = '';
 		$last_modified        = ! empty( $event->last_modified ) ? get_date_from_gmt( $event->last_modified ) : '';
 		$appointment_modified = ! empty( $event->appointment_modified ) ? get_date_from_gmt( $event->appointment_modified ) : '';
 		$raw                  = ! empty( $event->raw_payload ) ? json_decode( $event->raw_payload, true ) : array();

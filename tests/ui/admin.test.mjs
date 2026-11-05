@@ -529,3 +529,15 @@ test('event filters navigate with all criteria and retain the shared table layou
   assert.deepEqual(ajax,[]);
   await close(page);
 });
+
+
+test('diagnostic tables have headers and settings toggles expose one visible label', async () => {
+  for (const [section, sub] of [['dashboard',''],['advanced',''],['settings','sync'],['settings','advanced']]) {
+    const page = await open(section, sub);
+    const unnamedToggles = await page.locator('.cts-toggle input').evaluateAll(inputs => inputs.filter(input => ![...input.labels].some(label => label.textContent.trim())).map(input => input.id));
+    assert.deepEqual(unnamedToggles, [], `${section}/${sub}: unnamed toggle`);
+    const tables = await page.locator('.cts-system-table, .cts-debug-table').evaluateAll(tables => tables.filter(table => !table.querySelector('th')).length);
+    assert.equal(tables,0,`${section}/${sub}: table without headers`);
+    await close(page);
+  }
+});

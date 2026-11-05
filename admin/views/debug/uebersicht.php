@@ -35,10 +35,10 @@ $state_labels = array(
 <?php else : ?>
 <table class="cts-debug-table">
 <tr>
-<td><strong><?php esc_html_e( 'Modul', 'churchtools-suite' ); ?></strong></td>
-<td><strong><?php esc_html_e( 'Status', 'churchtools-suite' ); ?></strong></td>
-<td><strong><?php esc_html_e( 'Letzter Daten-Sync', 'churchtools-suite' ); ?></strong></td>
-<td><strong><?php esc_html_e( 'Letztes Ergebnis', 'churchtools-suite' ); ?></strong></td>
+<th scope="col"><?php esc_html_e( 'Modul', 'churchtools-suite' ); ?></th>
+<th scope="col"><?php esc_html_e( 'Status', 'churchtools-suite' ); ?></th>
+<th scope="col"><?php esc_html_e( 'Letzter Daten-Sync', 'churchtools-suite' ); ?></th>
+<th scope="col"><?php esc_html_e( 'Letztes Ergebnis', 'churchtools-suite' ); ?></th>
 </tr>
 	<?php foreach ( $registered_modules as $module ) : ?>
 			<?php

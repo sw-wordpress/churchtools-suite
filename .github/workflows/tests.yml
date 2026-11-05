@@ -32,14 +32,14 @@ jobs:
           --health-cmd="mysqladmin ping -h localhost -proot"
           --health-interval=10s --health-timeout=5s --health-retries=10
     steps:
-      - uses: actions/checkout@v4
-      - uses: shivammathur/setup-php@v2
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: shivammathur/setup-php@d52fc211a0436f8839a587b3b5b8efddab4744ea # v2
         with:
           php-version: '8.2'
           extensions: mysqli, mbstring, fileinfo, openssl, dom
           tools: composer:v2
           coverage: xdebug
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: '22'
           cache: npm
@@ -47,7 +47,7 @@ jobs:
         run: |
           composer install --working-dir=tests/wp --no-interaction --no-progress
           npm ci --ignore-scripts --no-audit --no-fund
-          npx playwright-core install --with-deps chromium
+          node node_modules/playwright-core/cli.js install --with-deps chromium
       - name: PHP integration tests and coverage
         run: composer test:coverage
       # The browser exporter resets the same disposable test DB: keep these steps sequential.
@@ -55,7 +55,7 @@ jobs:
         run: npm run test:ui:coverage
       - name: Upload coverage reports
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: backend-coverage
           path: coverage/

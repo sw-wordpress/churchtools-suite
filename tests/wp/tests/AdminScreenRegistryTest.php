@@ -15,6 +15,22 @@ final class AdminScreenRegistryTest extends CTS_TestCase {
 		}
 	}
 
+	public function test_shared_subscreen_registration_preserves_order_parent_and_advanced_visibility(): void {
+		$this->assertSame( array( 'api', 'sync', 'calendars', 'services', 'posts', 'templates', 'advanced' ), array_map( static fn ( $screen ) => basename( $screen['slug'] ), array_values( ChurchTools_Suite_Admin_Screen::children( 'settings' ) ) ) );
+		foreach ( ChurchTools_Suite_Admin_Screen::screens() as $slug => $screen ) {
+			if ( str_starts_with( $slug, 'settings/' ) ) {
+				$this->assertSame( 'settings', $screen['parent'] );
+				$this->assertSame( $slug . '.php', $screen['view'] );
+			}
+			if ( str_starts_with( $slug, 'advanced/' ) ) {
+				$this->assertSame( 'advanced', $screen['parent'] );
+				$this->assertFalse( ChurchTools_Suite_Admin_Screen::is_visible( $screen ) );
+			}
+		}
+		update_option( 'churchtools_suite_advanced_mode', 1 );
+		$this->assertCount( 4, ChurchTools_Suite_Admin_Screen::children( 'advanced' ) );
+	}
+
 	public function test_every_view_file_exists(): void {
 		foreach ( ChurchTools_Suite_Admin_Screen::screens() as $slug => $screen ) {
 			if ( '' === $screen['view'] ) {
