@@ -103,7 +103,7 @@ bin/test-db.sh stop
 
 Die Browserprüfungen rendern echte WordPress-Views in der isolierten Testinstallation. ChurchTools-/AJAX-Antworten sind Fixtures; die Tests starten keine echten Synchronisationen und löschen keine produktiven Daten. PHP- und Browserläufe nacheinander ausführen, da der Browserexport dieselbe Testdatenbank neu installiert. Für vorhandenes Chromium kann `CHROME=/pfad/zu/chrome` gesetzt werden.
 
-Abgedeckt sind Seitenauflösung und alte URLs, Menüs, Rechte/Nonces, Speichern der Einstellungen, mehrfaches Rendern, aktive/inaktive Posts-Integration, einzelne AJAX-Aufrufe, Verbindungstests mit ungespeicherten Formulardaten und gespeicherten Geheimnissen, Fehlerfälle, Löschbestätigungen, Light/Dark und alle Screens bei 390/1440 Pixeln. `.github/workflows/tests.yml` führt beide Suiten bei Branch-Pushes/PRs und vor Release-Builds aus; riskante PHPUnit-Tests führen zum Fehlschlag.
+Abgedeckt sind Seitenauflösung und alte URLs, Menüs, Rechte/Nonces, Speichern der Einstellungen, mehrfaches Rendern, aktive/inaktive Posts-Integration, wiederkehrende Termine mit getrennten Vorkommen, Erhalt von Kalenderauswahl und Fallback-Bildern beim Sync, Tenant-Validierung und Geheimniswiederverwendung, einzelne AJAX-Aufrufe, Verbindungstests mit ungespeicherten Formulardaten und gespeicherten Geheimnissen, Fehlerfälle, Löschbestätigungen, Light/Dark und alle Screens bei 390/1440 Pixeln. `.github/workflows/tests.yml` führt beide Suiten ausschließlich bei Pull Requests aus (auch bei neuen Commits auf einem offenen PR); neuere PR-Läufe ersetzen laufende ältere Prüfungen. Branch-Pushes ohne PR und Release-Tags starten die Tests nicht; riskante PHPUnit-Tests führen zum Fehlschlag.
 
 ```bash
 bin/test-db.sh start
@@ -112,7 +112,7 @@ npm run test:ui:coverage
 composer coverage:check
 ```
 
-Reports: `coverage/php.xml`, `coverage/ui.json`. `coverage:check` verlangt für PHP und JavaScript jeweils **>80 %** aller produktiven Dateien. Stand dieser Überarbeitung: PHP gesamt **17,48 %**, JavaScript gesamt **18,00 %**; Screen-Registry **>96 %**, neues Shell-JavaScript **89,45 %**. Die Gesamtvorgabe ist weiterhin **nicht erfüllt**. Insbesondere echte Sync-/API-Abläufe und Frontend-Varianten benötigen weitere Tests. CI meldet diese bestehende Lücke ausdrücklich; der Coverage-Schritt ist bis dahin berichtend, die Funktionstests sind blockierend. `composer cs`/`composer stan` melden weiterhin Befunde im Altbestand.
+Reports: `coverage/php.xml`, `coverage/ui.json`. `coverage:check` verlangt für PHP und JavaScript jeweils **>80 %** aller produktiven Dateien. Stand dieser Überarbeitung: PHP gesamt **18,11 %**, JavaScript gesamt **18,00 %**; Screen-Registry **>96 %**, neues Shell-JavaScript **89,45 %**. Die Gesamtvorgabe ist weiterhin **nicht erfüllt**. Insbesondere echte Sync-/API-Abläufe und Frontend-Varianten benötigen weitere Tests. CI meldet diese bestehende Lücke ausdrücklich; der Coverage-Schritt ist bis dahin berichtend, die Funktionstests sind blockierend. `composer cs`/`composer stan` melden weiterhin Befunde im Altbestand.
 
 ### Release-ZIP
 

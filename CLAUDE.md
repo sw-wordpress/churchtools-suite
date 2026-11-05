@@ -181,7 +181,7 @@ Releases run on GitHub Actions (set up after the `sw-*` plugins; the old PowerSh
 
 1. Raise the version in the plugin header **and** `CHURCHTOOLS_SUITE_VERSION` (addons: their own header/constant), commit, push.
 2. Tag and push: `git tag 1.3.0.15 && git push origin 1.3.0.15` (also `v1.3.0.15` or `1.3.0.15-01` work; the `-NN` suffix is stripped).
-3. `.github/workflows/main.yml` first requires the PHP/browser checks from `.github/workflows/tests.yml`, then: checks that tag = plugin header = `CHURCHTOOLS_SUITE_VERSION`, runs `composer validate`, `composer cs` and `composer stan` (report only, `continue-on-error`, make them blocking once the baseline is clean), builds the ZIPs with `bin/build-zip.sh`, verifies their contents and attaches them to a GitHub release.
+3. `.github/workflows/tests.yml` runs PHP/browser tests only for pull requests, cancelling superseded runs. Release tags do not invoke this suite. `.github/workflows/main.yml` checks that tag = plugin header = `CHURCHTOOLS_SUITE_VERSION`, runs `composer validate`, `composer cs` and `composer stan` (report only, `continue-on-error`, make them blocking once the baseline is clean), builds the ZIPs with `bin/build-zip.sh`, verifies their contents and attaches them to a GitHub release.
 
 `bin/build-zip.sh [output-dir]` can be run locally (needs php, rsync, zip). It produces `churchtools-suite-<version>.zip` (without `addons/`) and one ZIP per addon (`churchtools-suite-elementor-<version>.zip`, ...). Untracked files are never shipped. The ZIP root folder is the plugin slug.
 

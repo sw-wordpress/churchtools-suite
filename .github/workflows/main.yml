@@ -11,12 +11,8 @@ permissions:
   contents: write
 
 jobs:
-  checks:
-    uses: ./.github/workflows/tests.yml
-
   build:
     name: Build release zips
-    needs: checks
     runs-on: ubuntu-latest
 
     steps:

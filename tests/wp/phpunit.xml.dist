@@ -9,6 +9,8 @@
             <file>tests/AdminScreenRegistryTest.php</file>
             <file>tests/AdminPageShellTest.php</file>
             <file>tests/ConnectionStateTest.php</file>
+            <file>tests/SyncRepositoryTest.php</file>
+            <file>tests/ConnectionSettingsTest.php</file>
             <file>tests/ConnectionPreviewTest.php</file>
             <file>tests/AdminUiStyleTest.php</file>
             <file>tests/AdminDesignSystemTest.php</file>

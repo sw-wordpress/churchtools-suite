@@ -1,11 +1,11 @@
 name: Backend tests
 
 on:
-  push:
-    branches: ['**']
   pull_request:
-  workflow_dispatch:
-  workflow_call:
+
+concurrency:
+  group: backend-pr-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
 
 permissions:
   contents: read

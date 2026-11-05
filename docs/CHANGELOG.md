@@ -1,5 +1,11 @@
 # Integration Suite - Changelog
 
+## Unreleased
+
+- Zusätzliche Integrationstests für wiederkehrende Termine, idempotente Aktualisierung, Erhalt von Kalenderauswahl/Fallback-Bildern und validierte Zugangsdaten einschließlich Tenant-Grenzen und Benutzerwechsel.
+- Validierung: 172 PHP-Tests (796 Assertions) und 35 Browser-/JavaScript-Prüfungen erfolgreich. PHP-Gesamt-Coverage steigt auf 18,11 %; die Vorgabe >80 % bleibt offen.
+- PHP- und Browser-Suiten laufen in GitHub Actions ausschließlich für Pull Requests. Push-, manuelle und wiederverwendbare Test-Trigger entfernt; der Release-Workflow ruft die Suiten nicht mehr auf. Überholte Läufe desselben PR werden abgebrochen.
+
 ## v1.4.0.3 - Übersichten und Diagnose (5. November 2026)
 
 - Vorlagenbilder, ihre Kalenderauswahl und die sechs mitgelieferten SVG-Dateien entfernt. Vorhandene Mediathek-Bilder und eigene Kalenderbilder bleiben erhalten; die Einstellungsseite importiert keine Bilder mehr.
