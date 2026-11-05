@@ -11,8 +11,12 @@ permissions:
   contents: write
 
 jobs:
+  checks:
+    uses: ./.github/workflows/tests.yml
+
   build:
     name: Build release zips
+    needs: checks
     runs-on: ubuntu-latest
 
     steps:
@@ -43,7 +47,7 @@ jobs:
         uses: shivammathur/setup-php@v2
         with:
           php-version: '8.2'
-          extensions: zip, mbstring, fileinfo, openssl
+          extensions: zip, mbstring, fileinfo, openssl, mysqli
           tools: composer:v2
           coverage: none
 
@@ -76,7 +80,7 @@ jobs:
             unzip -Z1 "$zip" > "$RUNNER_TEMP/zip-contents.txt"
             slug="$(head -1 "$RUNNER_TEMP/zip-contents.txt" | cut -d/ -f1)"
             grep -Fx "$slug/$slug.php" "$RUNNER_TEMP/zip-contents.txt"
-            if grep -Eq "^$slug/(vendor|node_modules|bin|tests|\.git|\.github|addons)/" "$RUNNER_TEMP/zip-contents.txt"; then
+            if grep -Eq "^$slug/(vendor|node_modules|bin|tests|coverage|\.git|\.github|addons)/" "$RUNNER_TEMP/zip-contents.txt"; then
               echo "Unexpected development files in $zip" >&2
               exit 1
             fi

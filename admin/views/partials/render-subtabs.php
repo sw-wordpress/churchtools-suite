@@ -24,6 +24,6 @@ $active = isset( $subtab_active ) ? (string) $subtab_active : '';
 <!-- Sub-Navigation -->
 <div class="cts-sub-tabs">
 	<?php foreach ( $subtabs as $key => $label ) : ?>
-		<a href="?page=churchtools-suite&tab=<?php echo esc_attr( $parent_tab ); ?>&subtab=<?php echo esc_attr( $key ); ?>" class="cts-sub-tab <?php echo $active === (string) $key ? 'active' : ''; ?>"><?php echo esc_html( $label ); ?></a>
+<a href="?page=churchtools-suite&tab=<?php echo esc_attr( $parent_tab ); ?>&subtab=<?php echo esc_attr( $key ); ?>" class="cts-sub-tab <?php echo $active === (string) $key ? 'active' : ''; ?>"><?php echo esc_html( $label ); ?></a>
 	<?php endforeach; ?>
 </div>

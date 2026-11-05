@@ -26,6 +26,10 @@
         }
     },
     "scripts": {
+        "test": "@php tests/wp/vendor/bin/phpunit -c tests/wp/phpunit.xml.dist",
+        "test:coverage": "@php tests/wp/vendor/bin/phpunit -c tests/wp/phpunit.xml.dist --coverage-text --coverage-clover coverage/php.xml",
+        "test:db:start": "bin/test-db.sh start",
+        "test:db:stop": "bin/test-db.sh stop",
         "test:cloudcalendar": "@php ../sw-cloudcalendar/tests/wp/vendor/bin/phpunit -c tests/phpunit.xml.dist",
         "stan": "phpstan analyse --memory-limit=1G",
         "cs": "phpcs --runtime-set ignore_warnings_on_exit 1",
@@ -33,6 +37,7 @@
         "check": [
             "@cs",
             "@stan"
-        ]
+        ],
+        "coverage:check": "@php bin/check-coverage.php"
     }
 }

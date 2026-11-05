@@ -58,9 +58,27 @@ class ChurchTools_Suite_CT_Client {
 	private $cookies;
 
 	/**
-	 * Constructor
+	 * Whether authentication state belongs to the saved configuration.
+	 *
+	 * @var bool
 	 */
-	public function __construct() {
+	private bool $persist_authentication = true;
+
+	/**
+	 * @param array{url:string,auth_method:string,username:string,password:string,token:string}|null $credentials Preview values; null uses the saved account.
+	 */
+	public function __construct( ?array $credentials = null ) {
+		if ( null !== $credentials ) {
+			$this->url                    = $credentials['url'];
+			$this->auth_method            = $credentials['auth_method'];
+			$this->username               = $credentials['username'];
+			$this->password               = $credentials['password'];
+			$this->token                  = $credentials['token'];
+			$this->cookies                = array();
+			$this->persist_authentication = false;
+			return;
+		}
+
 		$this->url         = get_option( 'churchtools_suite_ct_url', '' );
 		$this->username    = get_option( 'churchtools_suite_ct_username', '' );
 		$this->password    = get_option( 'churchtools_suite_ct_password', '' );
@@ -70,7 +88,7 @@ class ChurchTools_Suite_CT_Client {
 		$this->cookies     = get_option( 'churchtools_suite_ct_cookies', array() );
 
 		// Migrate old plaintext token storage to encrypted format.
-		if ( ! empty( $this->token ) && ! empty( $stored_token ) && ! ChurchTools_Suite_Secret_Storage::is_encrypted( $stored_token ) ) {
+		if ( $this->persist_authentication && ! empty( $this->token ) && ! empty( $stored_token ) && ! ChurchTools_Suite_Secret_Storage::is_encrypted( $stored_token ) ) {
 			update_option( 'churchtools_suite_ct_token', ChurchTools_Suite_Secret_Storage::encrypt( $this->token ) );
 		}
 	}
@@ -90,7 +108,11 @@ class ChurchTools_Suite_CT_Client {
 				);
 			}
 
-			update_option( 'churchtools_suite_ct_last_login', current_time( 'mysql' ) );
+			if ( $this->persist_authentication ) {
+
+				update_option( 'churchtools_suite_ct_last_login', current_time( 'mysql' ) );
+
+			}
 
 			return array(
 				'success' => true,
@@ -123,7 +145,7 @@ class ChurchTools_Suite_CT_Client {
 					'Content-Type' => 'application/json',
 				),
 				'body'      => wp_json_encode( $login_data ),
-				'timeout'   => 60, // Increased from 30 to 60 seconds for SSL connection timeout.
+				'timeout'   => $this->persist_authentication ? 60 : 15, // Preview requests are bounded; saved-account requests retain their timeout.
 				'sslverify' => false, // Disable SSL verification to avoid SSL certificate issues.
 			)
 		);
@@ -187,15 +209,21 @@ class ChurchTools_Suite_CT_Client {
 		$this->cookies = $cookie_array;
 
 		// Save cookies to database.
-		update_option( 'churchtools_suite_ct_cookies', $this->cookies );
+		if ( $this->persist_authentication ) {
+			update_option( 'churchtools_suite_ct_cookies', $this->cookies );
+		}
 
 		// Save user info if available.
 		if ( ! empty( $data['data']['personId'] ) ) {
-			update_option( 'churchtools_suite_ct_person_id', $data['data']['personId'] );
+			if ( $this->persist_authentication ) {
+				update_option( 'churchtools_suite_ct_person_id', $data['data']['personId'] );
+			}
 		}
 
 		// Update last login time.
-		update_option( 'churchtools_suite_ct_last_login', current_time( 'mysql' ) );
+		if ( $this->persist_authentication ) {
+			update_option( 'churchtools_suite_ct_last_login', current_time( 'mysql' ) );
+		}
 
 		return array(
 			'success'   => true,
@@ -220,7 +248,7 @@ class ChurchTools_Suite_CT_Client {
 		$whoami_url = trailingslashit( $this->url ) . 'api/whoami';
 
 		$args = array(
-			'timeout'   => 60, // Increased from 30 to 60 seconds for SSL connection timeout.
+			'timeout'   => $this->persist_authentication ? 60 : 15, // Preview requests are bounded; saved-account requests retain their timeout.
 			'sslverify' => false, // Disable SSL verification to avoid SSL certificate issues.
 		);
 
@@ -301,7 +329,9 @@ class ChurchTools_Suite_CT_Client {
 
 		// Save user info.
 		if ( ! empty( $data['data'] ) ) {
-			update_option( 'churchtools_suite_ct_user_info', $data['data'] );
+			if ( $this->persist_authentication ) {
+				update_option( 'churchtools_suite_ct_user_info', $data['data'] );
+			}
 		}
 
 		return array(
@@ -415,7 +445,7 @@ class ChurchTools_Suite_CT_Client {
 				'Content-Type' => 'application/json',
 				'Accept'       => 'application/json',
 			),
-			'timeout'   => 60, // Increased from 30 to 60 seconds for SSL connection timeout.
+			'timeout'   => 60, // Preview requests are bounded; saved-account requests retain their timeout.
 			'sslverify' => false, // Disable SSL verification to avoid SSL certificate issues.
 		);
 

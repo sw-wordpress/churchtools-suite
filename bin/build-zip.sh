@@ -45,9 +45,13 @@ package() {
 /vendor
 /node_modules
 /dist
+/coverage
 /bin
 /package.json
 /package-lock.json
+/tests
+/phpunit*.xml.dist
+/.phpunit*
 /.wp-env.json
 /composer.json
 /composer.lock
@@ -56,6 +60,13 @@ package() {
 /CLAUDE.md
 /ROADMAP.md
 EXCLUDES
+
+  # Catch incomplete working-tree packages (new source files must be known to Git).
+  if [ "$slug" = "churchtools-suite" ]; then
+    for required in admin/ui/class-churchtools-suite-admin-screen.php assets/css/churchtools-suite-admin-ui.css assets/js/churchtools-suite-admin-ui.js includes/functions/addon-admin.php includes/functions/connection-state.php includes/functions/connection-settings.php includes/functions/diagnostics.php admin/views/debug/system.php admin/views/dashboard.php admin/views/settings.php admin/views/debug.php; do
+      [ -f "$dest/$required" ] || { echo "Missing required source in ZIP: $required (add new files to Git before building)" >&2; exit 1; }
+    done
+  fi
 
   # Every PHP file in the package must parse; the main file must carry a version.
   while IFS= read -r -d '' file; do

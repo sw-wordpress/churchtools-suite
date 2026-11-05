@@ -1,5 +1,52 @@
 # Integration Suite - Changelog
 
+## v1.4.0.3 - Übersichten und Diagnose (5. November 2026)
+
+- Vorlagenbilder, ihre Kalenderauswahl und die sechs mitgelieferten SVG-Dateien entfernt. Vorhandene Mediathek-Bilder und eigene Kalenderbilder bleiben erhalten; die Einstellungsseite importiert keine Bilder mehr.
+- Hinweise und Statusmeldungen verwenden einheitliche Flächen, Innenabstände und Farben. Icons in Sync-Buttons sind zentriert; Button-Gruppen umbrechen mit gleichmäßigen Abständen.
+- Terminfilter sind bündig ausgerichtet. Die Terminliste fasst Beschreibung/Tags beim Titel und den Typ beim Datum zusammen; sieben lesbare Spalten ersetzen elf gequetschte Spalten. Breite Termin-, Dienste- und Posts-Tabellen scrollen innerhalb ihres Bereichs. Filter verwenden den gemeinsamen Seitenrenderer per GET; ein alter AJAX-Sonderrenderer mit abweichenden Spalten entfällt aus der Oberfläche, sodass auch Zähler und aktive Filter aktuell bleiben.
+- „Posts“ wird durchgängig verwendet. Ohne aktives Posts-Sync-Addon erklärt die Einstellungsseite die Voraussetzung und verlinkt die Plugin-Verwaltung. Posts Sync 0.1.11 enthält die Layoutkorrekturen seiner Übersicht.
+- Diagnose nach Vorbild von sw-cloudcalendar: Versionen, PHP-Erweiterungen, Umgebung, Verbindungszustand und Datenbestand; Hinweise zu deaktiviertem WP-Cron und fehlendem Auto-Sync-Termin. JSON-Export enthält nur lokale Zustände und Zähler, keine Zugangsdaten oder Termin-Inhalte. Nicht benötigte Cron-Aufgaben und der deaktivierte Updater werden nicht als Fehler dargestellt.
+- Validiert mit 156 PHP-Tests und 35 Browser-/JavaScript-Prüfungen; Installationspaket auf entfernte Bilder und vollständige Diagnosequellen geprüft. Bestehende Gesamt-Coverage-Lücke siehe README.
+
+## v1.4.0.2 - Admin-Skripte und Anmeldemethode (5. November 2026)
+
+- Fehlende Frontend-Skriptabhängigkeit im Backend entfernt: WordPress lädt das Admin-Skript wieder, sodass Anmeldemethoden umschalten und „Verbindung testen“ seine AJAX-Anfrage auslöst.
+- Inaktive Zugangsfelder sind bereits beim Rendern verborgen. Ungültige Eingaben zeigen beim Verbindungstest zusätzlich eine Rückmeldung am Formular.
+- Regressionstest prüft die tatsächliche WordPress-Skriptausgabe; Browser-Fixtures verwenden jetzt dieselbe Abhängigkeitsauflösung statt manuell eingebundener Plugin-Skripte. 149 PHP-Tests (711 Assertions) und 30 Browser-/JavaScript-Prüfungen bestehen.
+
+## v1.4.0.1 - Formulare und Verbindungstest (5. November 2026)
+
+- Die Kopfleiste zeigt nur die Breadcrumbs; die Seitenüberschrift bleibt für Screenreader erhalten.
+- Einstellungskarten und Formulare nutzen die verfügbare Breite. Der alte äußere Tab-Rahmen und feste Kartenbreiten entfallen; Feldgruppen, Hilfetexte und Aktionsabstände sind auch mobil vereinheitlicht.
+- „Verbindung testen“ sendet die aktuellen Formularwerte. Die Vorschau verändert weder gespeicherte Zugangsdaten noch die aktive Sitzung. Alte AJAX-Aufrufe ohne Formularwerte prüfen weiterhin die gespeicherte Konfiguration.
+- Fortschritt, Timeout und Fehler erscheinen direkt am Formular. Passwort-/Token-Felder bleiben leer; bestehende Geheimnisse können für denselben Account weiterverwendet werden und werden nie in das HTML übernommen.
+- Fehlende Feldbeschriftungen in Kalendern, Diensten, Filtern und Presets ergänzt. Preset-Parametergruppen lassen sich per Tastatur öffnen und bleiben nach dem Einklappen erreichbar.
+- Posts Sync 0.1.10 enthält die Beschriftungskorrekturen für seine Einstellungen.
+- 147 PHP-Tests und 30 Browser-/JavaScript-Prüfungen; darunter echte WordPress-AJAX-Aufrufe mit simuliertem ChurchTools-Login/Whoami und eine Formularprüfung aller Screens.
+
+## v1.4.0.0 - Backend-UI (4. November 2026)
+
+### Änderungen
+- Der Backend-Bereich folgt dem Design der SW-Plugins (Design-Tokens, Karten, Chips, Status-Kacheln, Light/Dark).
+- Navigation durch eine linke Rail; Tab-Leiste, Sub-Tabs und das jQuery-Flyout im Admin-Menü entfallen.
+- Screens, Gruppen und Menueinträge stammen aus einer Registry (`ChurchTools_Suite_Admin_Screen`); URLs bleiben kompatibel (`?page=churchtools-suite&tab=&subtab=`).
+- Seitenstruktur: Dashboard | Einstellungen | Synchronisation | Übersichten (Termine, Importierte Dienste, Shortcode-Vorlagen, Posts) | Addons | Erweiterte Diagnose.
+- Verknüpfte Seiten (z. B. „Übersicht Posts“ des Posts-Sync-Addons) liegen jetzt im Plugin-Bereich; der Debug-Bereich heißt „Erweiterte Diagnose“ und bleibt über den Schalter in den Einstellungen sichtbar.
+- Emoji als Icons durch Dashicons ersetzt; globale Sync-Aktion und Verbindungsstatus sitzen in der Kopfleiste.
+- Verwaiste Views (`admin-page.php`, `tab-data.php`) entfernt; geteilte Connection-Logik in `includes/functions/connection-state.php`.
+
+### Tests
+- Eigenständige WordPress-Integrationstestumgebung unter `tests/wp` (private MariaDB): 137 Tests für Rendering, Routing, Rechte/Nonces, Einstellungen und Posts-Integration.
+- 16 Chromium-Tests prüfen alle Screens bei 390/1440 Pixeln, Farbschemata, einzelne AJAX-Aufrufe, Fehlerfälle und Löschbestätigungen. Keine echten ChurchTools-Aufrufe.
+- Rekursive Diagnose-Startseite, doppelte Sync-/Keepalive-/Update-Handler, ungültiges Kalender-Script und verschachtelte Layout-Wrapper behoben. Alte Admin-URLs bleiben registriert; Untermenüs haben eigene Ziele.
+- Mobile Navigation einklappbar; Kartenüberschriften nutzen auch bei geladenem Frontend-CSS die Designfarben.
+- Posts Sync 0.1.9 rendert seine Übersicht in der gemeinsamen Shell und lädt die zugehörigen Assets.
+- Tests schließen keine fremden Ausgabepuffer und booten WordPress-Hooks nur einmal; PHPUnit scheitert bei riskanten Tests.
+- PHP-/JS-Gesamtabdeckung wird ohne Dateiausschlüsse gemessen; >80 % sind im Altbestand noch nicht erreicht (Details: README).
+- Release-ZIP enthält keine Tests oder Coverage-Artefakte. Der Build lehnt Pakete mit fehlenden neuen UI-Quelldateien ab.
+- Branch-/PR-Checks und Release verwenden dieselben PHP-/Browserprüfungen mit eigenem MySQL-Dienst.
+
 ## v1.3.0.11 - Admin-Bootstrap-Fix (28. August 2026)
 
 ### Fixes

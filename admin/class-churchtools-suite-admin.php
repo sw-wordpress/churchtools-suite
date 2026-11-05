@@ -10,6 +10,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+require_once __DIR__ . '/ui/class-churchtools-suite-admin-screen.php';
+
 class ChurchTools_Suite_Admin {
 
 	/**
@@ -154,19 +156,25 @@ class ChurchTools_Suite_Admin {
 	}
 
 	/**
-	 * Enqueue admin styles
+	 * Enqueue admin styles and scripts.
 	 *
-	 * @since 0.6.1.0 Always load (no conditional check)
-	 * @since 0.6.1.5 Load public CSS first, then admin CSS (correct order)
+	 * @since 0.6.1.0 Always load (no conditional check).
+	 * @since 0.6.1.5 Load public CSS first, then admin CSS (correct order).
+	 * @since 1.4.0.0 Design system CSS (admin-ui.css) and the shell script; the jQuery based
+	 *                admin-menu flyout is gone because the in-page rail replaces it.
 	 */
 	public function enqueue_styles() {
-		if ( ! $this->is_churchtools_admin_page() ) {
+		if ( ! ChurchTools_Suite_Admin_Screen::is_plugin_screen() ) {
 			return;
 		}
 
+		// The page shell colours the whole screen area, so the body class must be known before
+		// the markup is sent.
+		add_filter( 'admin_body_class', array( $this, 'admin_body_class' ) );
+
 		wp_enqueue_style( 'dashicons' );
 
-		// Load public CSS first (for demos in admin area).
+		// Load public CSS first (for demos in the admin area).
 		wp_enqueue_style(
 			'churchtools-suite-public',
 			CHURCHTOOLS_SUITE_URL . 'assets/css/churchtools-suite-public.css',
@@ -174,7 +182,7 @@ class ChurchTools_Suite_Admin {
 			$this->version
 		);
 
-		// Load admin CSS after (depends on public CSS).
+		// Legacy admin styles (kept for backwards compatible view markup).
 		wp_enqueue_style(
 			'churchtools-suite-admin',
 			CHURCHTOOLS_SUITE_URL . 'assets/css/churchtools-suite-admin.css',
@@ -182,226 +190,174 @@ class ChurchTools_Suite_Admin {
 			$this->version
 		);
 
-		wp_add_inline_style(
-			'churchtools-suite-admin',
-			'
-#adminmenu #toplevel_page_churchtools-suite .wp-submenu li.cts-overviews-parent { position: relative; }
-#adminmenu #toplevel_page_churchtools-suite .wp-submenu li.cts-overviews-parent > a { display: flex; justify-content: space-between; align-items: center; }
-#adminmenu #toplevel_page_churchtools-suite .wp-submenu li.cts-overviews-parent > a::after { content: "›"; opacity: 0.8; font-size: 14px; margin-left: 10px; }
-#adminmenu #toplevel_page_churchtools-suite .wp-submenu li.cts-overviews-parent .cts-overviews-flyout {
-	display: none;
-	position: absolute;
-	left: 100%;
-	top: 0;
-	min-width: 220px;
-	margin: 0;
-	padding: 6px 0;
-	list-style: none;
-	background: #1d2327;
-	border-radius: 3px;
-	box-shadow: 0 6px 16px rgba(0,0,0,0.35);
-	z-index: 100000;
-}
-#adminmenu #toplevel_page_churchtools-suite .wp-submenu li.cts-overviews-parent .cts-overviews-flyout li { margin: 0; padding: 0; }
-#adminmenu #toplevel_page_churchtools-suite .wp-submenu li.cts-overviews-parent .cts-overviews-flyout a {
-	display: block;
-	padding: 8px 12px;
-	color: #f0f0f1;
-	text-decoration: none;
-	white-space: nowrap;
-}
-#adminmenu #toplevel_page_churchtools-suite .wp-submenu li.cts-overviews-parent .cts-overviews-flyout a:hover,
-#adminmenu #toplevel_page_churchtools-suite .wp-submenu li.cts-overviews-parent .cts-overviews-flyout a:focus {
-	background: #2271b1;
-			'
+		// Design system: loads last so it wins over the legacy rules.
+		wp_enqueue_style(
+			'churchtools-suite-admin-ui',
+			CHURCHTOOLS_SUITE_URL . 'assets/css/churchtools-suite-admin-ui.css',
+			array( 'churchtools-suite-admin' ),
+			$this->version
 		);
 
-		// Main admin script (jQuery-based).
+		// Main admin script (jQuery based, drives the sync/selection/log interactions).
 		wp_enqueue_script(
 			'churchtools-suite-admin',
 			CHURCHTOOLS_SUITE_URL . 'assets/js/churchtools-suite-admin.js',
-			array( 'jquery', 'churchtools-suite-public' ),
+			array( 'jquery' ),
 			$this->version,
 			true
 		);
 
-		wp_localize_script(
-			'churchtools-suite-admin',
-			'churchtoolsSuite',
-			array(
-				'ajaxUrl' => admin_url( 'admin-ajax.php' ),
-				'nonce'   => wp_create_nonce( 'churchtools_suite_admin' ),
-				'version' => $this->version,
+		// Page shell: rail, colour scheme, global sync action.
+		wp_enqueue_script(
+			'churchtools-suite-admin-ui',
+			CHURCHTOOLS_SUITE_URL . 'assets/js/churchtools-suite-admin-ui.js',
+			array( 'churchtools-suite-admin' ),
+			$this->version,
+			true
+		);
+
+		$this->localize_admin_config();
+	}
+
+	/**
+	 * Pass the admin config to the scripts (ajax endpoint, nonce, deep links).
+	 *
+	 * Registering the object through wp_add_inline_script() once keeps the inline data free of
+	 * duplicates when the assets are enqueued more than once in a request.
+	 *
+	 * @since 1.4.0.0
+	 */
+	private function localize_admin_config(): void {
+		$config = array(
+			'ajaxUrl'          => admin_url( 'admin-ajax.php' ),
+			'nonce'            => wp_create_nonce( ChurchTools_Suite_Admin_Screen::NONCE ),
+			'version'          => $this->version,
+			'documentationUrl' => ChurchTools_Suite_Admin_Screen::DOCUMENTATION_URL,
+			'urls'             => array(
+				'events' => admin_url( 'admin.php?page=' . ChurchTools_Suite_Admin_Screen::TOP_LEVEL . '&tab=data&subtab=events' ),
+				'posts'  => admin_url( 'admin.php?page=' . ChurchTools_Suite_Admin_Screen::TOP_LEVEL . '&tab=data&subtab=posts' ),
+			),
+			'postsSyncActive'  => class_exists( 'ChurchTools_Suite_Posts_Sync' ) ? 1 : 0,
+		);
+
+		$inline = 'window.churchtoolsSuite = ' . wp_json_encode( $config ) . ';';
+
+		// enqueue_styles() may run more than once per request; keep a single config statement.
+		$existing = (array) wp_scripts()->get_data( 'churchtools-suite-admin', 'before' );
+		foreach ( $existing as $cts_index => $cts_existing ) {
+			if ( false !== strpos( (string) $cts_existing, 'window.churchtoolsSuite =' ) ) {
+				$existing[ $cts_index ] = $inline;
+				wp_scripts()->add_data( 'churchtools-suite-admin', 'before', $existing );
+				return;
+			}
+		}
+
+		wp_add_inline_script( 'churchtools-suite-admin', $inline, 'before' );
+	}
+
+	/**
+	 * Body class of the plugin screens (used for the full-bleed shell and the dark scheme).
+	 *
+	 * @param string $classes Existing body classes.
+	 *
+	 * @return string
+	 * @since 1.4.0.0
+	 */
+	public function admin_body_class( $classes ) {
+		return trim( (string) $classes . ' cts-admin-page' );
+	}
+
+	/**
+	 * Add the plugin menu and its submenu entries.
+	 *
+	 * The entries are derived from the screen registry; the jQuery based flyout of earlier
+	 * versions is gone.
+	 *
+	 * @since 1.4.0.0 Registry based menu.
+	 */
+	public function add_plugin_admin_menu() {
+		ChurchTools_Suite_Admin_Screen::register_defaults();
+
+		ChurchTools_Suite_Admin_Screen::set_menu_hook(
+			(string) add_menu_page(
+				__( 'ChurchTools Integration', 'churchtools-suite' ),
+				__( 'ChurchTools Integration', 'churchtools-suite' ),
+				ChurchTools_Suite_Admin_Screen::CAPABILITY,
+				ChurchTools_Suite_Admin_Screen::TOP_LEVEL,
+				array( $this, 'display_admin_page' ),
+				'dashicons-calendar-alt',
+				30
 			)
 		);
 
-		$events_overview_url     = admin_url( 'admin.php?page=churchtools-suite-data&subtab=events' );
-		$reports_overview_url    = admin_url( 'admin.php?page=churchtools-suite-posts-overview' );
-		$posts_sync_active       = class_exists( 'ChurchTools_Suite_Posts_Sync' );
-		$documentation_url       = 'https://plugin.feg-aschaffenburg.de/';
-		$events_overview_url_js  = wp_json_encode( $events_overview_url );
-		$reports_overview_url_js = wp_json_encode( $reports_overview_url );
-		$posts_sync_active_js    = wp_json_encode( $posts_sync_active );
-		$documentation_url_js    = wp_json_encode( $documentation_url );
-
-		$inline_menu_script = 'jQuery(function($){
-			var menuRoot = $("#toplevel_page_churchtools-suite");
-			if (!menuRoot.length) { return; }
-
-			var parentLink = menuRoot.find(".wp-submenu a[href*=\"page=churchtools-suite-overviews\"]").first();
-			if (!parentLink.length) { return; }
-
-			var parentItem = parentLink.parent("li");
-			if (!parentItem.length) { return; }
-
-			parentItem.addClass("cts-overviews-parent");
-
-			var eventsUrl = ' . $events_overview_url_js . ';
-			var postsUrl = ' . $reports_overview_url_js . ';
-			var postsSyncActive = ' . $posts_sync_active_js . ';
-
-			var flyout = parentItem.find(".cts-overviews-flyout").first();
-			if (!flyout.length) {
-				flyout = $("<ul class=\"cts-overviews-flyout\" />");
-				flyout.append("<li><a href=\"" + eventsUrl + "\">📋 Übersicht Termine</a></li>");
-				if (postsSyncActive) {
-					flyout.append("<li><a href=\"" + postsUrl + "\">📝 Übersicht Posts</a></li>");
-				}
-				parentItem.append(flyout);
-			}
-
-			var closeTimer = null;
-			function openFlyout() {
-				if (closeTimer) { clearTimeout(closeTimer); }
-				parentItem.addClass("cts-flyout-open");
-			}
-
-			function closeFlyout() {
-				closeTimer = setTimeout(function(){
-					parentItem.removeClass("cts-flyout-open");
-				}, 120);
-			}
-
-			parentLink.on("click", function(e){
-				e.preventDefault();
-				parentItem.toggleClass("cts-flyout-open");
-			});
-
-			parentItem.on("mouseenter focusin", openFlyout);
-			parentItem.on("mouseleave focusout", closeFlyout);
-
-			$(document).on("click", function(e){
-				if (!parentItem.is(e.target) && parentItem.has(e.target).length === 0) {
-					parentItem.removeClass("cts-flyout-open");
-				}
-			});
-
-			var docsLink = menuRoot.find(".wp-submenu a[href*=\"page=churchtools-suite-docs\"]").first();
-			if (docsLink.length) {
-				docsLink.attr("href", ' . $documentation_url_js . ');
-				docsLink.attr("target", "_blank");
-				docsLink.attr("rel", "noopener noreferrer");
-			}
-		});';
-
-		wp_add_inline_script(
-			'churchtools-suite-admin',
-			$inline_menu_script
-		);
-	}
-
-	/**
-	 * Check if current admin page belongs to ChurchTools Suite.
-	 *
-	 * @return bool
-	 */
-	private function is_churchtools_admin_page(): bool {
-		if ( ! is_admin() ) {
-			return false;
+		// `add_submenu_page()` with the parent slug as its own slug only appends to an existing
+		// entry, so the first entry is added explicitly (position 1, shown as "Dashboard").
+		$sections = ChurchTools_Suite_Admin_Screen::sections();
+		if ( isset( $sections['dashboard'] ) ) {
+			$dashboard_label = (string) $sections['dashboard']['title'];
+			add_submenu_page(
+				ChurchTools_Suite_Admin_Screen::TOP_LEVEL,
+				$dashboard_label,
+				$dashboard_label,
+				ChurchTools_Suite_Admin_Screen::CAPABILITY,
+				ChurchTools_Suite_Admin_Screen::TOP_LEVEL,
+				array( $this, 'display_admin_page' ),
+				1
+			);
 		}
 
-		/* phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only navigation, display filters, or status messages; no state is changed by these query arguments. */ $page = isset( $_GET['page'] ) ? sanitize_key( (string) $_GET['page'] ) : '';
-		if ( strpos( $page, 'churchtools-suite' ) === 0 ) {
-			return true;
+		// Everything else that deserves its own wp-admin entry is marked with `sub_menu`.
+		foreach ( $sections as $slug => $screen ) {
+			if ( empty( $screen['sub_menu'] ) || 'dashboard' === $slug || ! ChurchTools_Suite_Admin_Screen::is_visible( $screen ) ) {
+				continue;
+			}
+			$label = (string) $screen['title'];
+			add_submenu_page(
+				ChurchTools_Suite_Admin_Screen::TOP_LEVEL,
+				$label,
+				$label,
+				ChurchTools_Suite_Admin_Screen::CAPABILITY,
+				ChurchTools_Suite_Admin_Screen::TOP_LEVEL . '-' . $slug,
+				array( $this, 'display_admin_page' )
+			);
 		}
 
-		$screen = function_exists( 'get_current_screen' ) ? get_current_screen() : null;
-		if ( $screen && strpos( (string) $screen->id, 'churchtools-suite' ) !== false ) {
-			return true;
+		// Keep existing bookmarks routable even when no wp-admin submenu is shown.
+		foreach ( array( 'data', 'overviews', 'addons', 'disclaimer' ) as $alias ) {
+			add_submenu_page(
+				'',
+				__( 'ChurchTools Integration', 'churchtools-suite' ),
+				__( 'ChurchTools Integration', 'churchtools-suite' ),
+				ChurchTools_Suite_Admin_Screen::CAPABILITY,
+				ChurchTools_Suite_Admin_Screen::TOP_LEVEL . '-' . $alias,
+				array( $this, 'display_admin_page' )
+			);
 		}
 
-		return false;
-	}
-
-	/**
-	 * Add plugin admin menu
-	 */
-	public function add_plugin_admin_menu() {
-		// v1.0.2.0: Use custom capability instead of manage_options
-		// This allows ChurchTools Managers to access the plugin without full WordPress admin access.
-		add_menu_page(
-			__( 'ChurchTools Integration', 'churchtools-suite' ),
-			__( 'ChurchTools Integration', 'churchtools-suite' ),
-			'manage_churchtools_suite', // New: Custom capability (vs manage_options).
-			'churchtools-suite',
-			array( $this, 'display_admin_page' ),
-			'dashicons-calendar-alt',
-			30
-		);
-
-		// Zweistufiger Einstieg: Übersichten.
-		add_submenu_page(
-			'churchtools-suite',
-			__( 'Übersichten', 'churchtools-suite' ),
-			__( '📚 Übersichten', 'churchtools-suite' ),
-			'manage_churchtools_suite',
-			'churchtools-suite-overviews',
-			array( $this, 'display_overviews_page' ),
-			6
-		);
-
-		// Versteckte Zielseite: Übersicht Termine.
-		add_submenu_page(
-			null,
-			__( 'Übersicht Termine', 'churchtools-suite' ),
-			__( 'Übersicht Termine', 'churchtools-suite' ),
-			'manage_churchtools_suite',
-			'churchtools-suite-data',
-			array( $this, 'display_data_page' )
-		);
-
-		// Add Addons/Extensions overview page (v1.0.9.0).
-		add_submenu_page(
-			'churchtools-suite',
-			__( 'Addons', 'churchtools-suite' ),
-			__( '🧩 Addons', 'churchtools-suite' ),
-			'manage_churchtools_suite',
-			'churchtools-suite-addons',
-			array( $this, 'display_addons_page' )
-		);
-
-		// Add Disclaimer subpage (separate admin page for legal information).
-		add_submenu_page(
-			'churchtools-suite',
-			__( 'Haftungsausschluss', 'churchtools-suite' ),
-			__( '⚠️ Haftungsausschluss', 'churchtools-suite' ),
-			'manage_churchtools_suite',
-			'churchtools-suite-disclaimer',
-			array( $this, 'display_disclaimer_page' )
-		);
-
-		// Add Documentation link.
-		add_submenu_page(
-			'churchtools-suite',
+		// Redirect before admin-header.php sends output.
+		$docs_hook = add_submenu_page(
+			ChurchTools_Suite_Admin_Screen::TOP_LEVEL,
 			__( 'Dokumentation', 'churchtools-suite' ),
-			__( '📖 Dokumentation', 'churchtools-suite' ),
-			'manage_churchtools_suite',
-			'churchtools-suite-docs',
+			__( 'Dokumentation', 'churchtools-suite' ),
+			ChurchTools_Suite_Admin_Screen::CAPABILITY,
+			ChurchTools_Suite_Admin_Screen::TOP_LEVEL . '-docs',
 			array( $this, 'redirect_to_documentation' )
 		);
+		if ( is_string( $docs_hook ) && '' !== $docs_hook ) {
+			add_action( 'load-' . $docs_hook, array( $this, 'redirect_to_documentation' ) );
+		}
+	}
 
-		// Note: Settings, Sync and Debug are handled as tabs in the main admin page
-		// (admin/views/admin-page.php) — no separate submenu entries are added here.
+	/**
+	 * Render any plugin screen through the page shell.
+	 *
+	 * @since 1.4.0.0 Replaces the tab switch of admin-page.php.
+	 */
+	public function display_admin_page() {
+		if ( ! current_user_can( ChurchTools_Suite_Admin_Screen::CAPABILITY ) ) {
+			wp_die( esc_html__( 'Keine Berechtigung.', 'churchtools-suite' ) );
+		}
+		ChurchTools_Suite_Admin_Screen::render_page();
 	}
 
 	/**
@@ -594,49 +550,6 @@ class ChurchTools_Suite_Admin {
 	}
 
 	/**
-	 * Display main admin page
-	 */
-	public function display_admin_page() {
-		// Get active tab.
-		/* phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only navigation, display filters, or status messages; no state is changed by these query arguments. */ $active_tab = isset( $_GET['tab'] ) ? sanitize_key( $_GET['tab'] ) : 'dashboard';
-
-		// Include view.
-		include_once CHURCHTOOLS_SUITE_PATH . 'admin/views/admin-page.php';
-	}
-	/**
-	 * Display Data page (dedicated subpage)
-	 */
-	public function display_data_page() {
-		// Reuse existing data subtab view.
-		include_once CHURCHTOOLS_SUITE_PATH . 'admin/views/tab-data.php';
-	}
-
-	/**
-	 * Display overviews landing page (2nd level navigation)
-	 */
-	public function display_overviews_page() {
-		if ( ! current_user_can( 'manage_churchtools_suite' ) ) {
-			wp_die( esc_html__( 'Keine Berechtigung.', 'churchtools-suite' ) );
-		}
-
-		echo '<div class="wrap">';
-		echo '<h1>' . esc_html__( 'Übersichten', 'churchtools-suite' ) . '</h1>';
-		echo '<p>' . esc_html__( 'Bitte wählen Sie die gewünschte Übersicht:', 'churchtools-suite' ) . '</p>';
-		echo '<p>';
-		echo '<a class="button button-primary" href="' . esc_url( admin_url( 'admin.php?page=churchtools-suite-data&subtab=events' ) ) . '">📋 ' . esc_html__( 'Übersicht Termine', 'churchtools-suite' ) . '</a> ';
-		echo '<a class="button" href="' . esc_url( admin_url( 'admin.php?page=churchtools-suite-posts-overview' ) ) . '">📝 ' . esc_html__( 'Übersicht Posts', 'churchtools-suite' ) . '</a>';
-		echo '</p>';
-		echo '</div>';
-	}
-
-	/**
-	 * Display Addons overview page (v1.0.9.0)
-	 */
-	public function display_addons_page() {
-		include_once CHURCHTOOLS_SUITE_PATH . 'admin/views/addons-page.php';
-	}
-
-	/**
 	 * Check if current page is a plugin page
 	 */
 	private function is_plugin_page(): bool {
@@ -722,7 +635,16 @@ class ChurchTools_Suite_Admin {
 
 			ChurchTools_Suite_Logger::info( 'test_connection', 'Verbindungstest gestartet' );
 
-			$client = new ChurchTools_Suite_CT_Client();
+			$credentials = null;
+			if ( isset( $_POST['ct_tenant'] ) ) {
+				require_once CHURCHTOOLS_SUITE_PATH . 'includes/functions/connection-settings.php';
+				$credentials = churchtools_suite_connection_form_values( $_POST );
+				if ( is_wp_error( $credentials ) ) {
+					wp_send_json_error( array( 'message' => $credentials->get_error_message() ) );
+					return;
+				}
+			}
+			$client = new ChurchTools_Suite_CT_Client( $credentials );
 			$result = $client->test_connection();
 
 			if ( $result['success'] ) {
@@ -3775,18 +3697,27 @@ class ChurchTools_Suite_Admin {
 	 * @since 1.0.3.16
 	 */
 	public function display_disclaimer_page() {
-		if ( ! current_user_can( 'manage_churchtools_suite' ) ) {
+		if ( ! current_user_can( ChurchTools_Suite_Admin_Screen::CAPABILITY ) ) {
 			wp_die( esc_html__( 'Sie haben keine Berechtigung, auf diese Seite zuzugreifen.', 'churchtools-suite' ) );
 		}
 
+		self::render_disclaimer_content();
+	}
+
+	/**
+	 * Disclaimer content, rendered inside the page shell.
+	 *
+	 * @since 1.4.0.0
+	 */
+	public static function render_disclaimer_content() {
 		?>
-		<div class="wrap cts-wrap">
-			<div class="cts-header">
-				<h1>⚠️ <?php esc_html_e( 'Haftungsausschluss', 'churchtools-suite' ); ?></h1>
-				<p class="cts-subtitle"><?php esc_html_e( 'Rechtliche Informationen und Disclaimers', 'churchtools-suite' ); ?></p>
+		<div class="cts-stack cts-disclaimer">
+			<div class="cts-callout is-warning">
+				<span class="dashicons dashicons-warning" aria-hidden="true"></span>
+				<p><?php esc_html_e( 'Dieses Plugin wird ohne Gewährleistung bereitgestellt. ChurchTools ist eine Marke der ChurchTools GmbH; dieses Projekt steht in keiner Verbindung dazu.', 'churchtools-suite' ); ?></p>
 			</div>
 
-			<div style="max-width: 900px; margin-top: 2rem;">
+			<div class="cts-card">
 				<div style="background: #fff; padding: 2rem; border-radius: 4px; border-left: 4px solid #ff6b6b;">
 					<h2><?php esc_html_e( 'Nutzung ohne Gewährleistung', 'churchtools-suite' ); ?></h2>
 					<p><?php esc_html_e( 'Dieses Plugin (ChurchTools Suite) wird ohne jegliche Gewährleistung bereitgestellt ("as is"). Die Nutzung erfolgt auf eigenes Risiko.', 'churchtools-suite' ); ?></p>

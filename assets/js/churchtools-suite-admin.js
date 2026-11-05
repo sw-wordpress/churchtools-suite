@@ -18,7 +18,6 @@
 
 	function init() {
 		initTabs();
-		initSyncButton();
 		initDataHeaderSync();
 		initForms();
 		initTestConnection();
@@ -29,7 +28,6 @@
 		initServiceSync();
 		initServiceSelection();
 		initEventSync();
-		initManualTriggers();
 		initLogViewer();
 		initShortcodeGenerator();
 		initEventDetailsPanels(); // v0.9.2.0
@@ -45,68 +43,6 @@
 			tab.addEventListener('click', function(e) {
 				// Let WordPress handle the URL change
 				// This is just for visual feedback
-			});
-		});
-	}
-
-	/**
-	 * Sync Button
-	 */
-	function initSyncButton() {
-		const syncButton = document.getElementById('cts-sync-now');
-		if (!syncButton) return;
-
-		syncButton.addEventListener('click', function() {
-			const progress = document.getElementById('cts-sync-progress');
-			const result = document.getElementById('cts-sync-result');
-			
-			if (progress) progress.style.display = 'block';
-			if (result) result.innerHTML = '';
-			
-			syncButton.disabled = true;
-			syncButton.textContent = 'Synchronisiere...';
-
-			// AJAX call (wird sp�ter implementiert)
-			fetch(ajaxurl, {
-				method: 'POST',
-				headers: {
-					'Content-Type': 'application/x-www-form-urlencoded',
-				},
-				body: new URLSearchParams({
-					action: 'cts_sync_now',
-					nonce: churchtoolsSuite.nonce
-				})
-			})
-			.then(response => response.json())
-			.then(data => {
-				if (progress) progress.style.display = 'none';
-				
-				if (data.success) {
-					if (result) {
-						result.innerHTML = '<div class="cts-notice cts-notice-success"><p>' + 
-							(data.data?.message || 'Synchronisation erfolgreich!') + 
-							'</p></div>';
-					}
-				} else {
-					if (result) {
-						result.innerHTML = '<div class="cts-notice cts-notice-error"><p>' + 
-							(data.data?.message || 'Synchronisation fehlgeschlagen!') + 
-							'</p></div>';
-					}
-				}
-			})
-			.catch(error => {
-				if (progress) progress.style.display = 'none';
-				if (result) {
-					const errorMsg = error?.message || 'Unbekannter Fehler';
-					result.innerHTML = '<div class="cts-notice cts-notice-error"><p>Fehler: ' + 
-						errorMsg + 
-						'</p></div>';
-				}
-			})
-			.finally(() => {
-				syncButton.disabled = false;
-				syncButton.textContent = 'Jetzt synchronisieren';
 			});
 		});
 	}
@@ -176,26 +112,11 @@
 			});
 		});
 
-		// Form validation
-		const forms = document.querySelectorAll('.cts-form');
-		forms.forEach(form => {
-			form.addEventListener('submit', function(e) {
-				const requiredFields = form.querySelectorAll('[required]');
-				let valid = true;
-
-				requiredFields.forEach(field => {
-					if (!field.value.trim()) {
-						valid = false;
-						field.style.borderColor = '#dc3232';
-					} else {
-						field.style.borderColor = '';
-					}
-				});
-
-				if (!valid) {
-					e.preventDefault();
-					alert('Bitte f�llen Sie alle erforderlichen Felder aus.');
-				}
+		// Keep native browser validation and expose errors to assistive technology.
+		document.querySelectorAll('.cts-main form').forEach(form => {
+			form.addEventListener('invalid', event => event.target.setAttribute('aria-invalid', 'true'), true);
+			form.addEventListener('input', event => {
+				if (event.target.validity?.valid) event.target.removeAttribute('aria-invalid');
 			});
 		});
 	}
@@ -204,98 +125,68 @@
 	 * Test Connection Button
 	 */
 	function initTestConnection() {
-		const testButton = document.getElementById('cts-test-connection');
-		if (!testButton) return;
-
-		testButton.addEventListener('click', function() {
-			const resultDiv = document.getElementById('cts-connection-result');
-			
-			if (resultDiv) {
-				resultDiv.style.display = 'none';
-				resultDiv.innerHTML = '';
-			}
-			
-			testButton.disabled = true;
-			const originalText = testButton.innerHTML;
-			testButton.innerHTML = '<span>?</span> Teste Verbindung...';
-
-			fetch(churchtoolsSuite.ajaxUrl, {
-				method: 'POST',
-				headers: {
-					'Content-Type': 'application/x-www-form-urlencoded',
-				},
-				body: new URLSearchParams({
-					action: 'cts_test_connection',
-					nonce: churchtoolsSuite.nonce
-				})
-			})
-			.then(response => {
-				// Log HTTP-Status
-				console.log('CT Connection Test HTTP Response:', response.status, response.statusText);
-				if (!response.ok) {
-					throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-				}
-				return response.json();
-			})
-			.then(data => {
-				// Log API-Response
-				console.log('CT Connection Test API Response:', data);
-				
-				if (resultDiv) {
-					resultDiv.style.display = 'block';
-					
-					if (data.success) {
-						let message = data.data?.message || 'Verbindung erfolgreich!';
-						
-						// User-Info anzeigen wenn verfügbar
-						if (data.data?.user_info) {
-							const user = data.data.user_info;
-							message += '<br><br><strong>Eingeloggt als:</strong><br>';
-							if (user.firstName && user.lastName) {
-								message += user.firstName + ' ' + user.lastName;
-							}
-							if (user.email) {
-								message += ' (' + user.email + ')';
-							}
-						}
-						
-						resultDiv.innerHTML = '<div class="cts-notice cts-notice-success"><p>' + 
-							message + 
-							'</p></div>';
-					} else {
-						// Bessere Fehlermeldung mit technischen Details
-						let errorMsg = data.data?.message || 'Verbindung fehlgeschlagen!';
-						let details = '';
-						
-						if (data.data?.error_code) {
-							details += '<br><small style="color: #999;">Fehlercode: ' + data.data.error_code + '</small>';
-						}
-						if (data.data?.error_details) {
-							details += '<br><small style="color: #999;">Details: ' + data.data.error_details + '</small>';
-						}
-						
-						resultDiv.innerHTML = '<div class="cts-notice cts-notice-error"><p>' + 
-							errorMsg + details + 
-							'</p></div>';
-					}
-				}
-			})
-			.catch(error => {
-				// Log Fetch-Error
-				console.error('CT Connection Test Fetch Error:', error);
-				const errorMsg = error?.message || 'Unbekannter Fehler';
-				if (resultDiv) {
-					resultDiv.style.display = 'block';
-					resultDiv.innerHTML = '<div class="cts-notice cts-notice-error"><p>' + 
-						'Fehler: ' + errorMsg + 
-						'<br><small style="color: #999;">Siehe Browser-Konsole für Details (F12)</small>' +
-						'</p></div>';
-				}
-			})
-			.finally(() => {
-				testButton.disabled = false;
-				testButton.innerHTML = originalText;
+		const form = document.getElementById('cts-connection-form');
+		if (!form) return;
+		const button = document.getElementById('cts-test-connection');
+		const result = document.getElementById('cts-connection-result');
+		const field = name => form.elements.namedItem(name);
+		function refresh() {
+			const token = field('ct_auth_method').value === 'token';
+			form.querySelectorAll('.cts-auth-password, .cts-auth-token').forEach(row => {
+				const active = row.classList.contains('cts-auth-token') === token;
+				row.hidden = !active;
+				row.querySelectorAll('input').forEach(input => { input.disabled = !active; });
 			});
+			const sameTenant = field('ct_tenant').value.trim().toLowerCase() === form.dataset.savedTenant;
+			field('ct_username').required = !token;
+			field('ct_password').required = !token && !(sameTenant && field('ct_username').value === form.dataset.savedUsername && field('ct_password').dataset.savedSecret === '1');
+			field('ct_token').required = token && !(sameTenant && field('ct_token').dataset.savedSecret === '1');
+		}
+		form.addEventListener('input', refresh);
+		form.addEventListener('change', refresh);
+		refresh();
+		button.addEventListener('click', async function () {
+			refresh();
+			if (!form.reportValidity()) {
+				result.hidden = false;
+				result.className = 'cts-connection-result cts-callout is-danger';
+				result.textContent = 'Bitte die markierten Felder ergänzen oder korrigieren.';
+				return;
+			}
+			const config = window.churchtoolsSuite || {};
+			const body = new URLSearchParams(new FormData(form));
+			body.set('action', 'cts_test_connection');
+			body.set('nonce', config.nonce || '');
+			const original = button.textContent;
+			const show = (message, success) => {
+				result.hidden = false;
+				result.className = 'cts-connection-result cts-callout is-' + (success ? 'success' : 'danger');
+				result.textContent = message;
+			};
+			button.disabled = true;
+			button.setAttribute('aria-busy', 'true');
+			button.textContent = 'Verbindung wird geprüft…';
+			result.hidden = false;
+			result.className = 'cts-connection-result cts-callout is-info';
+			result.textContent = 'Die aktuellen Eingaben werden geprüft. Einstellungen werden dabei nicht gespeichert.';
+			const controller = new AbortController();
+			const timer = setTimeout(() => controller.abort(), 40000);
+			try {
+				const response = await fetch(config.ajaxUrl || window.ajaxurl, { method:'POST', credentials:'same-origin', body, signal:controller.signal });
+				const raw = (await response.text()).replace(/^\uFEFF/, '').trim();
+				if (raw === '-1' || response.status === 403) throw new Error('Sitzung abgelaufen oder keine Berechtigung. Bitte die Seite neu laden.');
+				let payload;
+				try { payload = JSON.parse(raw); } catch { throw new Error('Der Server hat keine gültige Antwort gesendet (HTTP ' + response.status + ').'); }
+				if (!response.ok) throw new Error(payload.data?.message || 'Serverfehler (HTTP ' + response.status + ').');
+				show(payload.data?.message || (payload.success ? 'Verbindung erfolgreich.' : 'Verbindung fehlgeschlagen.'), !!payload.success);
+			} catch (error) {
+				show(error.name === 'AbortError' ? 'Zeitüberschreitung. Bitte Instanz und Zugangsdaten prüfen.' : (error.message || 'Die Verbindung konnte nicht geprüft werden.'), false);
+			} finally {
+				clearTimeout(timer);
+				button.disabled = false;
+				button.removeAttribute('aria-busy');
+				button.textContent = original;
+			}
 		});
 	}
 
@@ -407,7 +298,6 @@
 			const input = form.querySelector('.cts-calendar-image-input[data-calendar-id="' + calendarId + '"]');
 			const preview = form.querySelector('.cts-calendar-image-preview[data-calendar-id="' + calendarId + '"]');
 			const removeBtn = form.querySelector('.cts-remove-calendar-image[data-calendar-id="' + calendarId + '"]');
-			const templateSelect = form.querySelector('.cts-calendar-template-select[data-calendar-id="' + calendarId + '"]');
 
 			if (input) {
 				input.value = attachmentId || '';
@@ -425,27 +315,13 @@
 				removeBtn.style.display = attachmentId ? 'inline-block' : 'none';
 			}
 
-			if (templateSelect) {
-				const matchingOption = Array.from(templateSelect.options).find(option => option.value === String(attachmentId || ''));
-				templateSelect.value = matchingOption ? matchingOption.value : '';
-			}
-		}
-
-		function updateFromTemplateSelect(calendarId, templateSelect) {
-			if (!templateSelect) return;
-
-			const selectedOption = templateSelect.options[templateSelect.selectedIndex];
-			const attachmentId = templateSelect.value || '';
-			const url = selectedOption ? selectedOption.getAttribute('data-image-url') : '';
-			updateCalendarImage(calendarId, attachmentId, url);
 		}
 
 		function bindCalendarImageButtons() {
 			const selectButtons = form.querySelectorAll('.cts-select-calendar-image');
 			const removeButtons = form.querySelectorAll('.cts-remove-calendar-image');
-			const templateSelects = form.querySelectorAll('.cts-calendar-template-select');
 
-			if (selectButtons.length === 0 && removeButtons.length === 0 && templateSelects.length === 0) {
+			if (selectButtons.length === 0 && removeButtons.length === 0) {
 				console.log('Keine Kalender-Bild-Buttons gefunden');
 				return;
 			}
@@ -513,17 +389,6 @@
 				});
 			});
 
-			templateSelects.forEach(select => {
-				select.addEventListener('change', function() {
-					const calendarId = this.getAttribute('data-calendar-id');
-					if (!calendarId) return;
-					updateFromTemplateSelect(calendarId, this);
-				});
-
-				if (select.value) {
-					updateFromTemplateSelect(select.getAttribute('data-calendar-id'), select);
-				}
-			});
 		}
 
 		// Select all checkbox
@@ -1132,159 +997,6 @@
 				button.innerHTML = originalText;
 			});
 		}
-	}
-
-	/**
-	 * Manual Trigger: Event Sync
-	 */
-	function initManualTriggers() {
-		const syncButton = document.getElementById('cts-trigger-manual-sync');
-		const keepaliveButton = document.getElementById('cts-trigger-keepalive');
-		const resultDiv = document.getElementById('cts-manual-trigger-result');
-		
-		if (syncButton) {
-			syncButton.addEventListener('click', function() {
-				if (resultDiv) {
-					resultDiv.style.display = 'none';
-					resultDiv.innerHTML = '';
-				}
-				
-				syncButton.disabled = true;
-				const originalText = syncButton.innerHTML;
-				syncButton.innerHTML = '<span>?</span> Synchronisiere...';
-
-				fetch(churchtoolsSuite.ajaxUrl, {
-					method: 'POST',
-					headers: {
-						'Content-Type': 'application/x-www-form-urlencoded',
-					},
-					body: new URLSearchParams({
-						action: 'cts_trigger_manual_sync',
-						nonce: churchtoolsSuite.nonce
-					})
-				})
-				.then(response => response.json())
-				.then(data => {
-					if (resultDiv) {
-						resultDiv.style.display = 'block';
-						
-						if (data.success) {
-							resultDiv.innerHTML = '<div class="cts-notice cts-notice-success"><p>' + 
-								(data.data?.message || 'Sync erfolgreich!') + 
-								'</p></div>';
-							
-							// Seite neu laden nach erfolgreicher Sync
-							setTimeout(() => {
-								location.reload();
-							}, 2000);
-						} else {
-							resultDiv.innerHTML = '<div class="cts-notice cts-notice-error"><p>' + 
-								(data.data?.message || 'Sync fehlgeschlagen!') + 
-								'</p></div>';
-						}
-					}
-				})
-				.catch(error => {
-					if (resultDiv) {
-						resultDiv.style.display = 'block';
-						resultDiv.innerHTML = '<div class="cts-notice cts-notice-error"><p>Fehler: ' + 
-							error?.message || 'Unbekannter Fehler' + 
-							'</p></div>';
-					}
-				})
-				.finally(() => {
-					syncButton.disabled = false;
-					syncButton.innerHTML = originalText;
-				});
-			});
-		}
-		
-		if (keepaliveButton) {
-			keepaliveButton.addEventListener('click', function() {
-				if (resultDiv) {
-					resultDiv.style.display = 'none';
-					resultDiv.innerHTML = '';
-				}
-				
-				keepaliveButton.disabled = true;
-				const originalText = keepaliveButton.innerHTML;
-				keepaliveButton.innerHTML = '<span>?</span> Keepalive...';
-
-				fetch(churchtoolsSuite.ajaxUrl, {
-					method: 'POST',
-					headers: {
-						'Content-Type': 'application/x-www-form-urlencoded',
-					},
-					body: new URLSearchParams({
-						action: 'cts_trigger_keepalive',
-						nonce: churchtoolsSuite.nonce
-					})
-				})
-				.then(response => response.json())
-				.then(data => {
-					if (resultDiv) {
-						resultDiv.style.display = 'block';
-						
-						if (data.success) {
-							resultDiv.innerHTML = '<div class="cts-notice cts-notice-success"><p>' + 
-								(data.data?.message || 'Keepalive erfolgreich!') + 
-								'</p></div>';
-						} else {
-							resultDiv.innerHTML = '<div class="cts-notice cts-notice-error"><p>' + 
-								(data.data?.message || 'Keepalive fehlgeschlagen!') + 
-								'</p></div>';
-						}
-					}
-				})
-				.catch(error => {
-					if (resultDiv) {
-						resultDiv.style.display = 'block';
-						resultDiv.innerHTML = '<div class="cts-notice cts-notice-error"><p>Fehler: ' + 
-							error?.message || 'Unbekannter Fehler' + 
-							'</p></div>';
-					}
-				})
-				.finally(() => {
-					keepaliveButton.disabled = false;
-					keepaliveButton.innerHTML = originalText;
-				});
-			});
-		}
-
-			// Manual update check button (migrated from inline jQuery)
-			const manualUpdateButton = document.getElementById('cts-manual-update');
-			if (manualUpdateButton) {
-				manualUpdateButton.addEventListener('click', function() {
-					const resultDiv = document.getElementById('cts-manual-trigger-result');
-					if (resultDiv) { resultDiv.style.display = 'none'; resultDiv.innerHTML = ''; }
-					manualUpdateButton.disabled = true;
-					const originalText = manualUpdateButton.innerHTML;
-					manualUpdateButton.innerHTML = '<span class="dashicons dashicons-update"></span> Pr�fe...';
-
-					fetch(churchtoolsSuite.ajaxUrl, {
-						method: 'POST',
-						headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-						body: new URLSearchParams({ action: 'cts_manual_update', nonce: churchtoolsSuite.nonce })
-					})
-					.then(r => r.json())
-					.then(data => {
-						if (resultDiv) { resultDiv.style.display = 'block'; }
-						if (data.success) {
-							if (resultDiv) resultDiv.innerHTML = '<div class="cts-notice cts-notice-success"><p>' + (data.data?.message || 'Update-Pr�fung abgeschlossen') + '</p></div>';
-						} else {
-							if (resultDiv) resultDiv.innerHTML = '<div class="cts-notice cts-notice-error"><p>' + (data.data?.message || 'Update-Pr�fung fehlgeschlagen') + '</p></div>';
-						}
-					})
-					.catch(err => {
-						if (resultDiv) resultDiv.style.display = 'block';
-						if (resultDiv) resultDiv.innerHTML = '<div class="cts-notice cts-notice-error"><p>Fehler: ' + err.message + '</p></div>';
-					})
-					.finally(() => {
-						manualUpdateButton.disabled = false;
-						manualUpdateButton.innerHTML = originalText;
-					});
-				});
-			}
 	}
 
 	/**
