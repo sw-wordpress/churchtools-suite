@@ -112,8 +112,8 @@ Shortcodes: `[churchtools_events]` (router via `viewType`), `[cts_list]`, `[cts_
 ### Admin Interface
 Screens, Menue und Breadcrumb kommen aus `ChurchTools_Suite_Admin_Screen` (siehe oben): Dashboard, Einstellungen, Synchronisation, Übersichten (Termine, Importierte Dienste, Shortcode-Vorlagen, Posts), Addons, Erweiterte Diagnose (nur im erweiterten Modus). AJAX handlers are registered in `register_ajax_handlers()`, prefixed `cts_`, and require nonce `churchtools_suite_admin` + `manage_churchtools_suite`.
 
-### Updater (disabled)
-`ChurchTools_Suite_Auto_Updater::GITHUB_UPDATES_ENABLED` is `false`; the GitHub updater and update checker return early. Do not re-enable without an explicit decision (the updater targets the upstream repo's releases).
+### Verifizierte manuelle GitHub-Updates
+Die alten Updater/Installer sind stillgelegt. `includes/update/` integriert signierte GitHub-Releases in die native WordPress-Pluginübersicht. Prüfungen nur backendseitig und höchstens einmal je 24 Stunden (manuell mit Nonce/Capability und 60 Sekunden Mindestabstand). Installationen nur manuell, vor Core-Extraktion durch Signatur, SHA-256 und ZIP-Prüfung geschützt. Ohne öffentliche Schlüssel bleibt der Provider gesperrt. Konfiguration: `source.php`, `descriptors.php`, `trusted-keys.php`; Betrieb und Rotation: `docs/GITHUB-UPDATES-BETRIEB.md`. Keine privaten Schlüssel in WordPress oder dem Repository. Die alten Routinen niemals wieder aktivieren.
 
 ### Versioning
 Format `Major.Minor.Patch.Build`. Update it in **both** the plugin header comment and the `CHURCHTOOLS_SUITE_VERSION` constant. Addons have their own versions in their headers (and constants).
@@ -125,7 +125,7 @@ Format `Major.Minor.Patch.Build`. Update it in **both** the plugin header commen
 - **UI label is "Übersicht Posts"**, not upstream's "Übersicht Berichte".
 - **Calendar CSS** in `assets/css/churchtools-suite-public.css` (`.cts-calendar-grid` uses `grid-auto-rows: minmax(50px, auto)`, `.cts-event-marker` uses `overflow: hidden`) is ours and known to work.
 - **Image sync** with authenticated download (see above) is ours.
-- **Updater stays disabled.**
+- **Keine automatischen GitHub-Installationen; nur der verifizierte WordPress-Provider.**
 - Plugin name and version numbers follow upstream ("ChurchTools Integration Suite").
 
 ## Integrating upstream (repeatable procedure)

@@ -1,5 +1,15 @@
 # Integration Suite - Changelog
 
+## v1.4.0.6 - Verifizierte manuelle GitHub-Updates (6. November 2026)
+
+- Alte Haupt-/Addon-Updater, eigene ZIP-Kopierinstaller und ungeprüfte Addon-Downloadpfade stillgelegt. Auto-Update-Stufen und Intervalle entfernt; Migration räumt alte Optionen/Cronjobs backendseitig auf.
+- Backend-Prüfung nach Seitenaufbau höchstens einmal je 24 Stunden, auch nach Fehlern; manueller Nonce-/Capability-Prüfauftrag mit Mindestabstand. Persistenter Netzwerkzustand und atomare Locks verhindern parallele Prüfungen. Frontend löst keine Prüfungen oder eigenen Update-DB-Zugriffe aus.
+- Native WordPress-Pluginübersicht, Detaildialog und manuelle Einzel-/Sammelinstallation mit signiertem Ed25519-Manifest, SHA-256, Release-/Asset-Bindung, HTTPS-/Redirect-Limits und ZIP-Validierung vor der Extraktion. Automatische Installation ist gesperrt.
+- Geschützter Release-Build erzeugt vollständigen signierten Draft und veröffentlicht erst danach. Ohne Signierschlüssel bricht er ab. Produktionsschlüssel/Environment müssen eingerichtet werden; kein stiller Hash-/Download-Fallback.
+- Wiederverwendbare Quellen-/Plugin-Konfiguration und Betriebshandbuch ergänzt. Elementor 1.0.0.3, Posts Sync 0.1.12, Presentations 0.1.2.
+
+- Validierung: 216 PHP-Tests (1110 Assertions), 37 Browser-/JavaScript-Prüfungen und 37 zusätzliche Multisite-Updateprüfungen bestanden. Alle vier echten Release-ZIPs mit Wegwerfschlüssel signiert und gegen Laufzeitprüfer validiert; fehlender Signierschlüssel blockiert den Signierer. Gesamt-Coverage: PHP 19,78 %, JavaScript 18,21 %; >80 % bleiben offen.
+
 ## v1.4.0.5 - Einheitliche Dienste-Bezeichnungen (6. November 2026)
 
 - Sichtbare „Services“-Texte durch „Dienste“ ersetzt: Einstellungen, Übersichten, Sync-/Fehlermeldungen, Diagnose, Löschdialoge, Gutenberg und beide Elementor-Integrationen. Gruppen heißen einheitlich „Dienstgruppen“; technische API-, Shortcode- und Datenbankschlüssel bleiben kompatibel.

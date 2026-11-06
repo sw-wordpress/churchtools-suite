@@ -14,6 +14,7 @@ if ( ! is_dir( $output ) || ! str_starts_with( realpath( $output ) . '/', sys_ge
 require __DIR__ . '/vendor/autoload.php';
 require __DIR__ . '/bootstrap.php';
 wp_set_current_user( 1 );
+set_current_screen( 'dashboard' );
 ChurchTools_Suite_Roles::register_role();
 update_option( 'churchtools_suite_advanced_mode', 1 );
 update_option( 'churchtools_suite_calendars_last_sync', '2026-11-05 12:00:00' );
@@ -80,7 +81,7 @@ function cts_export_browser_page( string $output, string $name, string $head, st
 	$html = ob_get_clean();
 	ob_start();
 	// Resolve the plugin's actual dependency trees; editor queues need a full WP editor shell.
-	$roots = array( 'churchtools-suite-admin', 'churchtools-suite-admin-ui' );
+	$roots = array( 'churchtools-suite-admin', 'churchtools-suite-admin-ui', 'cts-verified-updates' );
 	if ( wp_script_is( 'cts-posts-sync-admin', 'enqueued' ) ) {
 		$roots[] = 'cts-posts-sync-admin';
 	}
@@ -116,3 +117,9 @@ cts_export_browser_page( $output, 'settings--saved-api', $head, $tail );
 remove_all_actions( 'cts_posts_settings_render' );
 $_GET = array( 'page' => 'churchtools-suite', 'tab' => 'settings', 'subtab' => 'posts' );
 cts_export_browser_page( $output, 'settings--posts-inactive', $head, $tail );
+
+// A configured public key enables the manual-check control without contacting GitHub.
+add_filter( 'cts_verified_release_public_keys', static fn () => array( 'fixture' => base64_encode( str_repeat( 'a', 32 ) ) ) );
+ChurchTools_Suite_Update_Store::write( array( 'last_attempt' => time() ) );
+$_GET = array( 'page' => 'churchtools-suite', 'tab' => 'settings', 'subtab' => 'advanced' );
+cts_export_browser_page( $output, 'settings--verified-updates', $head, $tail );

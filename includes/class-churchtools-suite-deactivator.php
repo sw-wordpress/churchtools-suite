@@ -19,6 +19,8 @@ class ChurchTools_Suite_Deactivator {
 	 * - Flushes rewrite rules
 	 */
 	public static function deactivate(): void {
+		require_once CHURCHTOOLS_SUITE_PATH . 'includes/update/class-churchtools-suite-update-provider.php';
+		ChurchTools_Suite_Update_Provider::deactivate();
 		require_once CHURCHTOOLS_SUITE_PATH . 'includes/class-churchtools-suite-cron.php';
 		ChurchTools_Suite_Cron::clear_jobs();
 		flush_rewrite_rules();

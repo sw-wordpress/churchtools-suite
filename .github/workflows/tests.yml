@@ -36,7 +36,7 @@ jobs:
       - uses: shivammathur/setup-php@d52fc211a0436f8839a587b3b5b8efddab4744ea # v2
         with:
           php-version: '8.2'
-          extensions: mysqli, mbstring, fileinfo, openssl, dom
+          extensions: mysqli, mbstring, fileinfo, openssl, dom, sodium, zip
           tools: composer:v2
           coverage: xdebug
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
@@ -50,6 +50,8 @@ jobs:
           node node_modules/playwright-core/cli.js install --with-deps chromium
       - name: PHP integration tests and coverage
         run: composer test:coverage
+      - name: Network update policy and native upgrades
+        run: WP_MULTISITE=1 composer test -- --filter VerifiedUpdatesTest
       # The browser exporter resets the same disposable test DB: keep these steps sequential.
       - name: Browser interactions, responsive layout and JavaScript coverage
         run: npm run test:ui:coverage

@@ -542,3 +542,28 @@ test('diagnostic tables have headers and settings toggles expose one visible lab
     await close(page);
   }
 });
+
+
+test('verified update checking is manual, single-flight and never installs a package', async () => {
+  const page = await open('settings','verified-updates');
+  const requests = [];
+  let release;
+  const pending = new Promise(resolve => {release=resolve;});
+  await page.route('**/admin-ajax.php',async route => {
+    requests.push(Object.fromEntries(new URLSearchParams(route.request().postData())));
+    await pending;
+    await route.fulfill({json:{success:true,data:{message:'Signed metadata checked'}}});
+  });
+  assert.equal(await page.locator('[name=cts_auto_update_enabled]').count(),0);
+  await page.locator('#cts-verified-updates-check').click();
+  assert.equal(await page.locator('#cts-verified-updates-check').isDisabled(),true);
+  assert.equal(await page.locator('#cts-verified-updates-result').isVisible(),true);
+  release();
+  await page.waitForFunction(() => !document.getElementById('cts-verified-updates-check').disabled);
+  assert.equal(requests.length,1);
+  assert.equal(requests[0].action,'cts_check_github_updates');
+  assert.equal(requests[0].manual,'1');
+  assert.match(await page.locator('#cts-verified-updates-result').textContent(),/Signed metadata/);
+  assert.equal(await page.locator('#cts_start_update_btn').count(),0);
+  await close(page);
+});

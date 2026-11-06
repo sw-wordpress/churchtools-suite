@@ -83,126 +83,7 @@ $tables_missing = ( '' !== $wpdb->last_error );
 </div>
 	<?php endif; ?>
 
-	<?php
-	// Show update notice if an update is available (cached by transient if desired).
-	$update_info = null;
-	if ( class_exists( 'ChurchTools_Suite_Auto_Updater' ) ) {
-		$info = ChurchTools_Suite_Auto_Updater::get_latest_release_info();
-		if ( ! is_wp_error( $info ) ) {
-			$update_info = $info;
-		}
-	}
 
-	if ( is_array( $update_info ) && ! empty( $update_info['is_update'] ) ) :
-		// Auto-Update Konfiguration prüfen.
-		$auto_update_enabled = get_option( 'churchtools_suite_auto_update_enabled', 0 );
-		$auto_update_level   = get_option( 'churchtools_suite_auto_update_level', 'major_minor_patch' );
-
-		// Versions-Typ ermitteln (Major.Minor.Patch.Build).
-		$current_version = CHURCHTOOLS_SUITE_VERSION;
-		$new_version     = ltrim( $update_info['tag_name'] ?? $update_info['latest_version'], 'v' );
-
-		$current_parts = explode( '.', $current_version );
-		$new_parts     = explode( '.', $new_version );
-
-		// Fehlende Teile mit 0 auffüllen.
-		$current_parts = array_pad( $current_parts, 4, '0' );
-		$new_parts     = array_pad( $new_parts, 4, '0' );
-
-		// Update-Typ bestimmen.
-		$update_type  = 'build'; // Default.
-		$update_icon  = '';
-		$update_color = '#0ea5e9'; // Cyan.
-		$update_label = __( 'Build Update', 'churchtools-suite' );
-		$update_desc  = __( 'Kleinste Änderungen, Bugfixes oder technische Verbesserungen', 'churchtools-suite' );
-
-		if ( (int) $new_parts[0] > (int) $current_parts[0] ) {
-			$update_type  = 'major';
-			$update_icon  = '';
-			$update_color = '#dc2626'; // Red.
-			$update_label = __( 'Major Update', 'churchtools-suite' );
-			$update_desc  = __( 'Große neue Features, möglicherweise Breaking Changes', 'churchtools-suite' );
-		} elseif ( (int) $new_parts[1] > (int) $current_parts[1] ) {
-			$update_type  = 'minor';
-			$update_icon  = '';
-			$update_color = '#f59e0b'; // Orange.
-			$update_label = __( 'Minor Update', 'churchtools-suite' );
-			$update_desc  = __( 'Neue Features, keine Breaking Changes', 'churchtools-suite' );
-		} elseif ( (int) $new_parts[2] > (int) $current_parts[2] ) {
-			$update_type  = 'patch';
-			$update_icon  = '';
-			$update_color = '#10b981'; // Green.
-			$update_label = __( 'Patch Update', 'churchtools-suite' );
-			$update_desc  = __( 'Bugfixes und kleinere Verbesserungen', 'churchtools-suite' );
-		}
-
-		// Prüfen ob Update-Typ gemäß Konfiguration erlaubt ist (v0.10.3.3).
-		$update_allowed = false;
-		switch ( $auto_update_level ) {
-			case 'major':
-				$update_allowed = ( 'major' === $update_type );
-				break;
-			case 'major_minor':
-				$update_allowed = in_array( $update_type, array( 'major', 'minor' ), true );
-				break;
-			case 'major_minor_patch':
-				$update_allowed = in_array( $update_type, array( 'major', 'minor', 'patch' ), true );
-				break;
-			case 'all':
-				$update_allowed = true; // Alle Updates erlaubt.
-				break;
-		}
-		?>
-	<div class="cts-card" style="border-left:4px solid <?php echo esc_attr( $update_color ); ?>; margin-top:16px;">
-<div class="cts-card-header">
-<button id="cts-sync-now" class="cts-button cts-button-primary" style="font-size: 16px; padding: 12px 24px;">
-<h3><?php echo esc_html( $update_label ); ?> <?php esc_html_e( 'verfügbar', 'churchtools-suite' ); ?></h3>
-</div>
-<div class="cts-card-body">
-<p style="margin:0 0 8px;">
-<strong><?php echo esc_html( $current_version ); ?></strong>
-<span style="color:var(--cts-muted);"></span>
-<strong style="color:<?php echo esc_attr( $update_color ); ?>;"><?php echo esc_html( $new_version ); ?></strong>
-</p>
-<p style="margin:0 0 8px; font-size:13px; color:var(--cts-muted);">
-		<?php echo esc_html( $update_desc ); ?>
-</p>
-		<?php if ( ! empty( $update_info['html_url'] ) ) : ?>
-<p style="margin:0 0 8px; font-size:13px;"><a href="<?php echo esc_url( $update_info['html_url'] ); ?>" target="_blank"><span class="dashicons dashicons-list-view" aria-hidden="true"></span> <?php esc_html_e( 'Release Notes anzeigen', 'churchtools-suite' ); ?></a></p>
-<?php endif; ?>
-		<?php if ( ! $auto_update_enabled ) : ?>
-<p style="margin:8px 0 0; padding:8px 12px; background:#fff3cd; border-radius:4px; font-size:13px; color:#856404;">
-<span class="dashicons dashicons-warning" aria-hidden="true"></span>
-			<?php
-					printf(
-						/* translators: 1: Opening settings link, 2: Closing link tag. */                        esc_html__( 'Auto-Update ist deaktiviert. Manuelle Installation bleibt möglich. %1$sJetzt aktivieren%2$s', 'churchtools-suite' ),
-						'<a href="?page=churchtools-suite&tab=settings&subtab=advanced">',
-						'</a>'
-					);
-			?>
-</p>
-<p class="cts-card-subtitle"><?php esc_html_e( 'Integration Suite Status:', 'churchtools-suite' ); ?></p>
-<p style="margin:8px 0 0; padding:8px 12px; background:#e0f2fe; border-radius:4px; font-size:13px; color:#0c4a6e;">
-					<span class="dashicons dashicons-info" aria-hidden="true"></span>
-			<?php
-					printf(
-						/* translators: 1: Update level, 2: Opening settings link, 3: Closing link tag. */                        esc_html__( 'Dieses Update wird nicht automatisch installiert (Stufe: %1$s). Manuelle Installation ist weiterhin möglich. %2$sEinstellungen ändern%3$s', 'churchtools-suite' ),
-						'<strong>' . esc_html( $auto_update_level ) . '</strong>',
-						'<a href="?page=churchtools-suite&tab=settings&subtab=advanced">',
-						'</a>'
-					);
-			?>
-</p>
-<?php endif; ?>
-</div>
-<div class="cts-card-footer">
-<button id="cts_install_update_btn" class="cts-button cts-button-danger">
-		<?php echo esc_html( $update_icon ); ?> <?php esc_html_e( 'Jetzt installieren', 'churchtools-suite' ); ?>
-</button>
-<a href="?page=churchtools-suite&tab=settings" class="cts-button" style="margin-left:8px;"><?php esc_html_e( 'Einstellungen', 'churchtools-suite' ); ?></a>
-</div>
-	</div>
-	<?php endif; ?>
 	<!-- Status Cards -->
 	<div class="cts-grid cts-grid-3">
 <!-- ChurchTools Verbindung -->
@@ -291,7 +172,6 @@ if ( is_array( $cron ) ) {
 						'churchtools_suite_auto_sync',
 						'churchtools_suite_session_keepalive',
 						'churchtools_suite_calendar_reconcile',
-						'churchtools_suite_check_updates',
 					);
 
 					foreach ( $known_hooks as $known_hook ) {

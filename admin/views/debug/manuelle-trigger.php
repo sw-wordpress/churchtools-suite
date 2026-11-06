@@ -149,70 +149,16 @@ jQuery(function($) {
 		});
 	});
 	
-	// Manual Update Check
+	// Manual check; installation is performed by WordPress, never by this view.
 	$('#cts-manual-update').on('click', function() {
-		var $btn = $(this);
-		var $result = $('#cts-update-result');
-		
-		$btn.prop('disabled', true).html('Update wird geprüft...');
-		$result.html('<div style="padding: 12px; background: #f0f9ff; border-radius: 4px;"> Update-Informationen werden geladen...</div>');
-
-		$.ajax({
-			url: ajaxurl,
-			type: 'POST',
-			data: {
-				action: 'cts_manual_update',
-				nonce: '<?php echo esc_js( wp_create_nonce( 'churchtools_suite_admin' ) ); ?>'
-			},
-			success: function(response) {
-				if (response && response.success) {
-					var payload = response.data || {};
-					var info = payload.data || {};
-					var latestVersion = info.latest_version || info.tag_name || '-';
-					var currentVersion = '<?php echo esc_js( CHURCHTOOLS_SUITE_VERSION ); ?>';
-
-					if (info.is_update) {
-						var html =
-							'<div style="padding: 12px; background: #d1fae5; border-radius: 4px; border: 1px solid #10b981;">' +
-							'<strong>Update verfügbar:</strong>' + currentVersion + '' + latestVersion;
-
-						if (info.html_url) {
-							html += '<br><a href="' + info.html_url + '" target="_blank" rel="noopener noreferrer"><span class="dashicons dashicons-list-view" aria-hidden="true"></span> Release ansehen</a>';
-						}
-
-						html += '</div>';
-						$result.html(html);
-					} else {
-						$result.html(
-							'<div style="padding: 12px; background: #f0f9ff; border-radius: 4px; border: 1px solid #3b82f6;">' +
-							'<strong>Kein Update gefunden.</strong> Aktuell installiert:' + currentVersion +
-							(info.tag_name ? '<br>Neueste verfügbare Version: ' + latestVersion : '') +
-							'</div>'
-						);
-					}
-				} else {
-					var message = (response && response.data && response.data.message) ? response.data.message : 'Fehler bei der Update-Prüfung.';
-					var detail = (response && response.data && response.data.error) ? response.data.error : '';
-					$result.html(
-						'<div style="padding: 12px; background: #fee2e2; border-radius: 4px; border: 1px solid #dc2626;">' +
-						'<strong>' + message + '</strong>' + (detail ? '<br><code>' + detail + '</code>' : '') +
-						'</div>'
-					);
-				}
-			},
-			error: function() {
-				$result.html(
-					'<div style="padding: 12px; background: #fee2e2; border-radius: 4px; border: 1px solid #dc2626;">' +
-					'<strong>Netzwerkfehler</strong> bei der Update-Prüfung' +
-					'</div>'
-				);
-			},
-			complete: function() {
-				$btn.prop('disabled', false).html('Manuelles Update prüfen');
-			}
-		});
+		var $btn = $(this), $result = $('#cts-update-result');
+		$btn.prop('disabled', true);
+		$.post(ajaxurl, {action:'cts_manual_update', nonce:'<?php echo esc_js( wp_create_nonce( 'churchtools_suite_admin' ) ); ?>'})
+			.done(function(response) { $result.text(response.data && response.data.message ? response.data.message : 'Prüfung abgeschlossen.'); })
+			.fail(function() { $result.text('Update-Prüfung fehlgeschlagen.'); })
+			.always(function() { $btn.prop('disabled', false); });
 	});
-	
+
 	// Clear Logs
 	$('#cts-clear-logs').on('click', function() {
 		if (!confirm('<?php esc_html_e( 'Alle Plugin-Logs unwiderruflich löschen?', 'churchtools-suite' ); ?>')) {

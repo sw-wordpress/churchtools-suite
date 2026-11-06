@@ -92,94 +92,23 @@ function cts_resolve_addon_meta( $plugin_slug, $plugin_uri = '', $plugin_file = 
  * @return array<string, mixed>|false Update info or false if no update
  */
 function cts_check_addon_update( $github_repo, $current_version, $plugin_slug = '' ) {
-	if ( empty( $github_repo ) || empty( $current_version ) || empty( $plugin_slug ) ) {
+	if ( ! is_admin() || ! current_user_can( 'update_plugins' ) ) {
 		return false;
 	}
-
-	$current_clean = ltrim( (string) $current_version, 'vV' );
-
-	// Check transient cache first (1 hour).
-	$cache_key = 'cts_addon_update_' . sanitize_key( $github_repo . '_' . $plugin_slug . '_' . $current_clean );
-	$cached    = get_transient( $cache_key );
-	if ( false !== $cached ) {
-		if ( is_array( $cached ) && ! empty( $cached['latest_version'] ) ) {
-			$cached_latest = ltrim( (string) $cached['latest_version'], 'vV' );
-			if ( ! version_compare( $cached_latest, $current_clean, '>' ) ) {
-				return false;
-			}
-		}
-		return $cached;
+	require_once CHURCHTOOLS_SUITE_PATH . 'includes/update/class-churchtools-suite-update-service.php';
+	$manifest = ChurchTools_Suite_Update_Service::verified_snapshot();
+	if ( is_wp_error( $manifest ) ) {
+		return false;
 	}
-
-	$api_url  = sprintf( 'https://api.github.com/repos/%s/releases/latest', $github_repo );
-	$response = wp_remote_get(
-		$api_url,
-		array(
-			'timeout' => 10,
-			'headers' => array( 'User-Agent' => 'ChurchTools-Suite-Addon-Updater' ),
-		)
+	$package = ChurchTools_Suite_Update_Manifest::package( $manifest, (string) $plugin_slug );
+	if ( null === $package || ! version_compare( $package['version'], (string) $current_version, '>' ) ) {
+		return false;
+	}
+	return array(
+		'latest_version' => $package['version'],
+		'zip_url'        => ChurchTools_Suite_Update_Manifest::url( $manifest, $package ),
+		'html_url'       => 'https://github.com/' . ChurchTools_Suite_Update_Manifest::source()['repository'] . '/releases',
 	);
-
-	if ( is_wp_error( $response ) ) {
-		return false;
-	}
-
-	$body = wp_remote_retrieve_body( $response );
-	$data = json_decode( $body, true );
-
-	if ( empty( $data['tag_name'] ) ) {
-		return false;
-	}
-
-	$release_version = ltrim( $data['tag_name'], 'v' );
-	$current_clean   = ltrim( $current_version, 'vV' );
-
-	$asset_prefix = $plugin_slug . '-';
-
-	// Find ZIP asset and derive addon version from asset name in monorepo releases.
-	$zip_url       = '';
-	$asset_version = '';
-	if ( ! empty( $data['assets'] ) && is_array( $data['assets'] ) ) {
-		foreach ( $data['assets'] as $asset ) {
-			if ( isset( $asset['browser_download_url'], $asset['name'] )
-				&& strpos( $asset['name'], $asset_prefix ) === 0
-				&& str_ends_with( $asset['name'], '.zip' ) ) {
-				$zip_url = $asset['browser_download_url'];
-
-				if ( preg_match( '/^' . preg_quote( $plugin_slug, '/' ) . '-(.+)\\.zip$/', (string) $asset['name'], $matches ) ) {
-					$asset_version = ltrim( (string) $matches[1], 'v' );
-				}
-
-				break;
-			}
-		}
-	}
-
-	if ( empty( $zip_url ) ) {
-		set_transient( $cache_key, false, HOUR_IN_SECONDS );
-		return false;
-	}
-
-	$latest_version = '' !== $asset_version ? $asset_version : $release_version;
-
-	if ( ! version_compare( $latest_version, $current_clean, '>' ) ) {
-		set_transient( $cache_key, false, HOUR_IN_SECONDS );
-		return false;
-	}
-
-	$update_info = array(
-		'current_version' => $current_clean,
-		'latest_version'  => $latest_version,
-		'tag_name'        => $data['tag_name'],
-		'zip_url'         => $zip_url,
-		'html_url'        => $data['html_url'] ?? '',
-		'body'            => $data['body'] ?? '',
-	);
-
-	// Cache for 1 hour.
-	set_transient( $cache_key, $update_info, HOUR_IN_SECONDS );
-
-	return $update_info;
 }
 
 /**

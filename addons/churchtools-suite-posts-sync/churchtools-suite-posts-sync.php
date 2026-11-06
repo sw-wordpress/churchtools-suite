@@ -1,9 +1,10 @@
 <?php /* phpcs:ignore WordPress.Files.FileName.InvalidClassFileName -- Installed WordPress plugin entry point retains its stable filename. */
 /**
  * Plugin Name: ChurchTools Suite – Posts Sync Addon
+ * Update URI: https://github.com/sw-wordpress/churchtools-suite
  * Plugin URI: https://github.com/FEGAschaffenburg/churchtools-suite/tree/main/addons/churchtools-suite-posts-sync
  * Description: Synchronisiert ChurchTools-Posts in WordPress-Posts/Seiten. Benötigt ChurchTools Suite v1.2.0.0+
- * Version: 0.1.11
+ * Version: 0.1.12
  * Author: FEG Aschaffenburg
  * Author URI: https://www.feg-aschaffenburg.de
  * License: GPL v2 or later
@@ -22,7 +23,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 // Define constants.
-define( 'CTS_POSTS_SYNC_VERSION', '0.1.11' );
+define( 'CTS_POSTS_SYNC_VERSION', '0.1.12' );
 define( 'CTS_POSTS_SYNC_PATH', plugin_dir_path( __FILE__ ) );
 define( 'CTS_POSTS_SYNC_URL', plugin_dir_url( __FILE__ ) );
 define( 'CTS_POSTS_SYNC_BASENAME', plugin_basename( __FILE__ ) );

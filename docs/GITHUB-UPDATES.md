@@ -1,6 +1,6 @@
 # Konzept für verifizierte manuelle GitHub-Updates
 
-Stand: 6. November 2026. **Entwurf für die Umsetzung, noch keine aktivierte Update-Funktion.** Dieses Konzept beschreibt den temporären GitHub-Vertrieb von ChurchTools Suite und einen wiederverwendbaren Baustein für die anderen SW-Plugins.
+Stand: 6. November 2026. **Architekturkonzept; die Implementierung und nötige Schlüssel-Einrichtung sind im [Betriebshandbuch](GITHUB-UPDATES-BETRIEB.md) beschrieben. Ohne eingerichtete Vertrauensschlüssel bleibt der Provider gesperrt.** Dieses Konzept beschreibt den temporären GitHub-Vertrieb von ChurchTools Suite und einen wiederverwendbaren Baustein für die anderen SW-Plugins.
 
 Updates erscheinen in der normalen WordPress-Pluginübersicht. Verfügbarkeitsprüfungen laufen ausschließlich nach einem berechtigten Backend-Aufruf, höchstens einmal je 24 Stunden oder ausdrücklich manuell. Installiert wird ausschließlich nach einem manuellen Update-Auftrag. Empfohlen ist ein signiertes Manifest mit SHA-256 für jedes ZIP; ein fehlender oder ungültiger Nachweis blockiert die Installation.
 
@@ -14,7 +14,7 @@ Updates erscheinen in der normalen WordPress-Pluginübersicht. Verfügbarkeitspr
 | Einstellungen und Dashboard | Auto-Update-Stufen, stündliche Intervalle und alte manuelle Update-Pfade vorhanden | Auto-Optionen entfernen; ausschließlich „Updates prüfen“ und WordPress-Updateaktionen anbieten |
 | `.github/workflows/main.yml` | Erstellt getrennte ZIPs, aber noch kein eigenes signiertes Manifest | Build, Hashbildung und Signierung ergänzen; vollständigen Release erst anschließend veröffentlichen |
 
-Verbindliches Repository ist `sw-wordpress/churchtools-suite`, Repository-ID **1163606817**. Keine Updates aus `feg-aschaffenburg`, Source-Archiven, Tags ohne geprüfte Assets oder einer alternativen Download-Domain. Die Repository-ID wurde über die GitHub-API geprüft; sie wird zusammen mit dem Namen lokal festgelegt.
+Verbindliches Repository ist `sw-wordpress/churchtools-suite`, Repository-ID **1163606817**. Keine Updates aus anderen Quellen, Source-Archiven, Tags ohne geprüfte Assets oder einer alternativen Download-Domain. Die Repository-ID wurde über die GitHub-API geprüft; sie wird zusammen mit dem Namen lokal festgelegt.
 
 ## 2. Nutzerablauf und WordPress-Integration
 
@@ -84,7 +84,7 @@ Das folgende Schema ist eine Feldübersicht; Platzhalter sind keine gültigen Re
   "release_id": "<GitHub release ID>",
   "tag": "<exact release tag>",
   "commit": "<40-character commit SHA>",
-  "issued_at": "<UTC signing timestamp>",
+  "issued_at": "<Unix timestamp as integer>",
   "packages": [
     {
       "slug": "churchtools-suite",

@@ -14,10 +14,10 @@ Wenn du das Plugin ohne die Anpassungen dieses Forks nutzen willst, schau im Ori
 
 | Paket | Typ | Version | Pfad |
 | --- | --- | --- | --- |
-| ChurchTools Integration Suite | Hauptplugin | 1.4.0.5 | `churchtools-suite.php` |
-| Elementor Integration | Addon | 1.0.0.2 | `addons/churchtools-suite-elementor/` |
-| Posts Sync | Addon | 0.1.11 | `addons/churchtools-suite-posts-sync/` |
-| Presentations | Addon | 0.1.1 | `addons/churchtools-suite-presentations/` |
+| ChurchTools Integration Suite | Hauptplugin | 1.4.0.6 | `churchtools-suite.php` |
+| Elementor Integration | Addon | 1.0.0.3 | `addons/churchtools-suite-elementor/` |
+| Posts Sync | Addon | 0.1.12 | `addons/churchtools-suite-posts-sync/` |
+| Presentations | Addon | 0.1.2 | `addons/churchtools-suite-presentations/` |
 
 Das Upstream-Projekt hat die Addons inzwischen in eigene Repositories ausgelagert ([Elementor](https://github.com/feg-aschaffenburg/churchtools-suite-elementor), [Posts Sync](https://github.com/feg-aschaffenburg/churchtools-suite-posts-sync), [Presentations](https://github.com/feg-aschaffenburg/churchtools-suite-presentations)). In diesem Fork bleiben sie im Monorepo. Änderungen aus den Upstream-Addons werden bei Bedarf von Hand übernommen.
 
@@ -112,11 +112,11 @@ npm run test:ui:coverage
 composer coverage:check
 ```
 
-Reports: `coverage/php.xml`, `coverage/ui.json`. `coverage:check` verlangt für PHP und JavaScript jeweils **>80 %** aller produktiven Dateien. Stand dieser Überarbeitung: PHP gesamt **17,73 %**, JavaScript gesamt **18,00 %**; Screen-Registry **>96 %**, neues Shell-JavaScript **89,45 %**. Die Gesamtvorgabe ist weiterhin **nicht erfüllt**. Insbesondere echte Sync-/API-Abläufe und Frontend-Varianten benötigen weitere Tests. CI meldet diese bestehende Lücke ausdrücklich; der Coverage-Schritt ist bis dahin berichtend, die Funktionstests sind blockierend. `composer cs`/`composer stan` melden weiterhin Befunde im Altbestand.
+Reports: `coverage/php.xml`, `coverage/ui.json`. `coverage:check` verlangt für PHP und JavaScript jeweils **>80 %** aller produktiven Dateien. Stand dieser Überarbeitung: PHP gesamt **19,78 %**, JavaScript gesamt **18,21 %**; Screen-Registry **>96 %**, neues Shell-JavaScript **89,45 %**. Die Gesamtvorgabe ist weiterhin **nicht erfüllt**. Insbesondere echte Sync-/API-Abläufe und Frontend-Varianten benötigen weitere Tests. CI meldet diese bestehende Lücke ausdrücklich; der Coverage-Schritt ist bis dahin berichtend, die Funktionstests sind blockierend. `composer cs`/`composer stan` melden weiterhin Befunde im Altbestand.
 
 ### GitHub-Updates
 
-Das [Sicherheits- und Umsetzungskonzept](docs/GITHUB-UPDATES.md) beschreibt einen übertragbaren GitHub-Update-Provider mit signierten Manifesten, Backend-Prüfung höchstens einmal je 24 Stunden und ausschließlich manueller Installation über WordPress. Es ist ein Entwurf; der vorhandene Haupt-Updater bleibt deaktiviert.
+Das [Sicherheits- und Umsetzungskonzept](docs/GITHUB-UPDATES.md) beschreibt einen übertragbaren GitHub-Update-Provider mit signierten Manifesten, Backend-Prüfung höchstens einmal je 24 Stunden und ausschließlich manueller Installation über WordPress. Die Umsetzung und [Einrichtung der Signierschlüssel](docs/GITHUB-UPDATES-BETRIEB.md) sind dokumentiert. Die alten Updater sind stillgelegt. Ohne öffentlichen Vertrauensschlüssel bleibt die neue GitHub-Funktion gesperrt; Produktionsschlüssel werden nicht automatisch erzeugt.
 
 ### Release-ZIP
 

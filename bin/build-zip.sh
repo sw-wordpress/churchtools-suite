@@ -64,7 +64,7 @@ EXCLUDES
 
   # Catch incomplete working-tree packages (new source files must be known to Git).
   if [[ "$slug" = "churchtools-suite" ]]; then
-    for required in admin/ui/class-churchtools-suite-admin-screen.php assets/css/churchtools-suite-admin-ui.css assets/js/churchtools-suite-admin-ui.js includes/functions/addon-admin.php includes/functions/connection-state.php includes/functions/connection-settings.php includes/functions/diagnostics.php admin/views/debug/system.php admin/views/partials/module-status.php admin/views/dashboard.php admin/views/settings.php admin/views/debug.php; do
+    for required in admin/ui/class-churchtools-suite-admin-screen.php assets/css/churchtools-suite-admin-ui.css assets/js/churchtools-suite-admin-ui.js includes/functions/addon-admin.php includes/functions/connection-state.php includes/functions/connection-settings.php includes/functions/diagnostics.php includes/update/class-churchtools-suite-update-provider.php includes/update/class-churchtools-suite-update-service.php includes/update/class-churchtools-suite-update-manifest.php includes/update/class-churchtools-suite-update-package.php includes/update/class-churchtools-suite-update-store.php includes/update/class-churchtools-suite-update-transport.php includes/update/trusted-keys.php includes/update/source.php includes/update/descriptors.php assets/js/churchtools-suite-updates.js admin/views/debug/system.php admin/views/partials/module-status.php admin/views/dashboard.php admin/views/settings.php admin/views/debug.php; do
       [[ -f "$dest/$required" ]] || { echo "Missing required source in ZIP: $required (add new files to Git before building)" >&2; exit 1; }
     done
   fi
