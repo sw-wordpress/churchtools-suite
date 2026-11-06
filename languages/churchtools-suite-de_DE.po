@@ -35,8 +35,8 @@ msgstr ""
 
 #: admin/views/tab-services.php:40
 msgid ""
-"3-Schritt-Prozess: 1) Service-Gruppen synchronisieren → 2) Gruppen auswählen "
-"→ 3) Services synchronisieren & auswählen"
+"3-Schritt-Prozess: 1) Dienstgruppen synchronisieren → 2) Gruppen auswählen → "
+"3) Dienste synchronisieren & auswählen"
 msgstr ""
 
 #: admin/views/shortcode-manager.php:436
@@ -54,7 +54,7 @@ msgstr ""
 
 #: admin/views/debug/subtab-reset-cleanup.php:167
 msgid ""
-"ACHTUNG: Wirklich ALLE Daten löschen (Events, Kalender, Services, Sync-"
+"ACHTUNG: Wirklich ALLE Daten löschen (Events, Kalender, Dienste, Sync-"
 "Historie)?\\n\\nDiese Aktion kann nicht rückgängig gemacht werden!"
 "\\n\\nEinstellungen bleiben erhalten."
 msgstr ""
@@ -825,7 +825,7 @@ msgid "Events löschen"
 msgstr ""
 
 #: admin/views/tab-imported-services.php:72
-msgid "Events mit Services"
+msgid "Events mit Dienste"
 msgstr ""
 
 #: admin/views/tab-dashboard.php:481
@@ -907,8 +907,7 @@ msgid "Fr"
 msgstr ""
 
 #: admin/views/tab-imported-services.php:82
-msgid ""
-"Führen Sie eine Event-Synchronisation durch, um Services zu importieren."
+msgid "Führen Sie eine Event-Synchronisation durch, um Dienste zu importieren."
 msgstr ""
 
 #: admin/views/tab-events.php:201 admin/views/tab-events.php:260
@@ -984,11 +983,11 @@ msgid "Importiert"
 msgstr ""
 
 #: admin/views/tab-imported-services.php:41
-msgid "Importierte Event Services"
+msgid "Importierte Event Dienste"
 msgstr ""
 
 #: admin/views/tab-data.php:36
-msgid "Importierte Services"
+msgid "Importierte Dienste"
 msgstr ""
 
 #: admin/views/settings/subtab-api.php:135
@@ -1190,17 +1189,16 @@ msgstr ""
 
 #: admin/views/tab-services.php:76
 msgid ""
-"Keine Service-Gruppen vorhanden. Bitte synchronisieren Sie zuerst die "
-"Service-Gruppen von ChurchTools."
+"Keine Dienstgruppen vorhanden. Bitte synchronisieren Sie zuerst die "
+"Dienstgruppen von ChurchTools."
 msgstr ""
 
 #: admin/views/tab-imported-services.php:81
-msgid "Keine Services gefunden"
+msgid "Keine Dienste gefunden"
 msgstr ""
 
 #: admin/views/tab-services.php:199
-msgid ""
-"Keine Services vorhanden. Bitte synchronisieren Sie zuerst die Services."
+msgid "Keine Dienste vorhanden. Bitte synchronisieren Sie zuerst die Dienste."
 msgstr ""
 
 #: admin/views/tab-debug-minimal.php:123
@@ -1403,7 +1401,7 @@ msgstr ""
 
 #: admin/views/debug/subtab-reset-cleanup.php:66
 msgid ""
-"Löscht ALLE Daten (Events, Kalender, Services, Sync-Historie). Einstellungen "
+"Löscht ALLE Daten (Events, Kalender, Dienste, Sync-Historie). Einstellungen "
 "bleiben erhalten."
 msgstr ""
 
@@ -1416,7 +1414,7 @@ msgid "Löscht alle Kalender aus der Datenbank."
 msgstr ""
 
 #: admin/views/debug/subtab-reset-cleanup.php:44
-msgid "Löscht alle Services und Service-Gruppen."
+msgid "Löscht alle Dienste und Dienstgruppen."
 msgstr ""
 
 #: admin/views/debug/subtab-reset-cleanup.php:88
@@ -1842,19 +1840,19 @@ msgid "Schriftgröße"
 msgstr ""
 
 #: admin/views/tab-services.php:35
-msgid "Schritt 1: Service-Gruppen synchronisieren"
+msgid "Schritt 1: Dienstgruppen synchronisieren"
 msgstr ""
 
 #: admin/views/tab-services.php:69
-msgid "Schritt 2: Service-Gruppen auswählen"
+msgid "Schritt 2: Dienstgruppen auswählen"
 msgstr ""
 
 #: admin/views/tab-services.php:159
-msgid "Schritt 3: Services synchronisieren"
+msgid "Schritt 3: Dienste synchronisieren"
 msgstr ""
 
 #: admin/views/tab-services.php:192
-msgid "Schritt 4: Services auswählen"
+msgid "Schritt 4: Dienste auswählen"
 msgstr ""
 
 #: admin/views/demos/demo-search.php:17
@@ -1914,35 +1912,35 @@ msgid "Service konnte nicht gespeichert werden"
 msgstr ""
 
 #: admin/views/tab-services.php:110 admin/views/tab-services.php:235
-msgid "Service-Gruppe"
+msgid "Dienstgruppe"
 msgstr ""
 
 #: admin/views/tab-services.php:57
-msgid "Service-Gruppen synchronisieren"
+msgid "Dienstgruppen synchronisieren"
 msgstr ""
 
 #: admin/views/tab-debug-minimal.php:131 admin/views/tab-settings.php:31
 #: admin/views/tab-events.php:203
 #: includes/elementor/class-churchtools-suite-elementor-events-widget.php:391
 #: templates/views/event-modal/professional.php:78
-msgid "Services"
+msgid "Dienste"
 msgstr ""
 
 #: admin/views/debug/subtab-reset-cleanup.php:152
-msgid "Services erfolgreich gelöscht!"
+msgid "Dienste erfolgreich gelöscht!"
 msgstr ""
 
 #: admin/views/tab-imported-services.php:58
-msgid "Services gesamt"
+msgid "Dienste gesamt"
 msgstr ""
 
 #: admin/views/debug/subtab-reset-cleanup.php:42
 #: admin/views/debug/subtab-reset-cleanup.php:47
-msgid "Services löschen"
+msgid "Dienste löschen"
 msgstr ""
 
 #: admin/views/tab-services.php:180
-msgid "Services synchronisieren"
+msgid "Dienste synchronisieren"
 msgstr ""
 
 #: includes/class-churchtools-suite-cron-display.php:27
@@ -2091,12 +2089,12 @@ msgid "Synchronisiere..."
 msgstr ""
 
 #: admin/views/tab-services.php:163
-msgid "Synchronisieren Sie die Services aus den ausgewählten Service-Gruppen."
+msgid "Synchronisieren Sie die Dienste aus den ausgewählten Dienstgruppen."
 msgstr ""
 
 #: admin/views/tab-services.php:39
 msgid ""
-"Synchronisieren Sie zuerst die verfügbaren Service-Gruppen aus ChurchTools."
+"Synchronisieren Sie zuerst die verfügbaren Dienstgruppen aus ChurchTools."
 msgstr ""
 
 #: includes/class-churchtools-suite-cron-display.php:42
@@ -2262,7 +2260,7 @@ msgid "Ungültige API-Antwort für Service Groups"
 msgstr ""
 
 #: includes/services/class-churchtools-suite-service-sync-service.php:155
-msgid "Ungültige API-Antwort für Services"
+msgid "Ungültige API-Antwort für Dienste"
 msgstr ""
 
 #: includes/services/class-churchtools-suite-calendar-sync-service.php:162
@@ -2374,7 +2372,7 @@ msgid "Verlängert die ChurchTools-Session."
 msgstr ""
 
 #: admin/views/tab-imported-services.php:65
-msgid "Verschiedene Services"
+msgid "Verschiedene Dienste"
 msgstr ""
 
 #: admin/views/addons-page.php:302 admin/views/settings/subtab-advanced.php:202
@@ -2388,11 +2386,11 @@ msgid ""
 msgstr ""
 
 #: admin/views/tab-data.php:23
-msgid "Verwalte importierte Termine und Services"
+msgid "Verwalte importierte Termine und Dienste"
 msgstr ""
 
 #: admin/views/tab-data.php:50
-msgid "Verwalte importierte Termine und Services."
+msgid "Verwalte importierte Termine und Dienste."
 msgstr ""
 
 #: admin/views/shortcode-manager.php:180
@@ -2489,7 +2487,7 @@ msgstr ""
 
 #: admin/views/debug/subtab-reset-cleanup.php:151
 msgid ""
-"Wirklich alle Services löschen? Diese Aktion kann nicht rückgängig gemacht "
+"Wirklich alle Dienste löschen? Diese Aktion kann nicht rückgängig gemacht "
 "werden!"
 msgstr ""
 
@@ -2545,13 +2543,13 @@ msgstr ""
 
 #: admin/views/tab-services.php:84
 msgid ""
-"Wählen Sie die Service-Gruppen aus, deren Services Sie synchronisieren "
-"möchten. Aktuell ausgewählt: %d von %d"
+"Wählen Sie die Dienstgruppen aus, deren Dienste Sie synchronisieren möchten. "
+"Aktuell ausgewählt: %d von %d"
 msgstr ""
 
 #: admin/views/tab-services.php:207
 msgid ""
-"Wählen Sie die Services aus, die bei der Event-Synchronisation importiert "
+"Wählen Sie die Dienste aus, die bei der Event-Synchronisation importiert "
 "werden sollen. Aktuell ausgewählt: %d von %d"
 msgstr ""
 
@@ -2644,8 +2642,8 @@ msgstr ""
 
 #: admin/views/tab-imported-services.php:45
 msgid ""
-"Übersicht aller importierten Services aus ChurchTools Events. Insgesamt %d "
-"Services in %d Events."
+"Übersicht aller importierten Dienste aus ChurchTools Events. Insgesamt %d "
+"Dienste in %d Events."
 msgstr ""
 
 #: admin/views/tab-dashboard.php:95
@@ -2661,7 +2659,7 @@ msgstr ""
 msgid ""
 "⚠️ DATENBANK NEU AUFBAUEN ⚠️\\n\\nAlle Tabellen werden gelöscht und neu "
 "erstellt!\\n\\n- Alle Events gelöscht\\n- Alle Kalender gelöscht\\n- Alle "
-"Services gelöscht\\n- Alle Sync-Historie gelöscht\\n\\nEinstellungen bleiben "
+"Dienste gelöscht\\n- Alle Sync-Historie gelöscht\\n\\nEinstellungen bleiben "
 "erhalten.\\n\\nNützlich bei DB-Strukturproblemen nach Updates."
 "\\n\\nFortfahren?"
 msgstr ""
@@ -2719,13 +2717,13 @@ msgstr ""
 #: includes/elementor/class-churchtools-suite-elementor-events-widget.php:288
 msgid ""
 "💡 Hinweis: Nicht alle Optionen werden von jeder View unterstützt. Minimal-"
-"View unterstützt z.B. keine Bilder, Services oder inline Location-Anzeige."
+"View unterstützt z.B. keine Bilder, Dienste oder inline Location-Anzeige."
 msgstr ""
 
 #: admin/views/debug/subtab-reset-cleanup.php:175
 msgid ""
 "🚨 KRITISCHE WARNUNG 🚨\\n\\nWirklich ALLES KOMPLETT LÖSCHEN?\\n\\n- Alle "
-"Daten (Events, Kalender, Services, etc.)\\n- Alle Einstellungen (ChurchTools "
+"Daten (Events, Kalender, Dienste, etc.)\\n- Alle Einstellungen (ChurchTools "
 "URL, Login, Cookies)\\n- Kompletter Plugin-Reset\\n\\nSie müssen danach "
 "alles neu konfigurieren!\\n\\nDiese Aktion kann NICHT rückgängig gemacht "
 "werden!"

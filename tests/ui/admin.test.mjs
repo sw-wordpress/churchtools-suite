@@ -72,6 +72,7 @@ test('all rendered screens initialize both admin scripts without runtime errors 
     const page = await open(section, sub);
     assert.equal(await page.locator('.cts-wrap').count(), 1, name);
     assert.doesNotMatch(await page.locator('.cts-wrap').innerText(), /Berichte/);
+    assert.doesNotMatch(await page.locator('.cts-wrap').innerText(), /\bservices\b/i, `${name}: untranslated Dienste label`);
     assert.equal(await page.locator('h1').count(), 1, name);
     assert.equal(await page.locator('h1').evaluate(el => el.getBoundingClientRect().width <= 1), true, name);
     assert.equal(await page.locator('.cts-crumbs [aria-current=page]').count(), 1, name);

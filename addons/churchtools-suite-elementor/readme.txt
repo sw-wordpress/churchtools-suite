@@ -112,7 +112,7 @@ Ja, aber ohne Elementor-Widget. Gutenberg Blöcke und Shortcodes funktionieren n
 == Changelog ==
 
 = 0.6.14 - 2026-04-12 =
-* Fix: Services werden in Listenansicht wieder zuverlässig angezeigt
+* Fix: Dienste werden in Listenansicht wieder zuverlässig angezeigt
 * Robustere Auswertung von Elementor-Switcher-Werten (`yes/true/1/on`)
 
 = 0.6.13 - 2026-04-12 =

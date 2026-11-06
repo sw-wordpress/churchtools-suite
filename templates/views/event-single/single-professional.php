@@ -282,7 +282,7 @@ if ( ! empty( $back_link ) ) {
 			<?php endif; ?>
 			<?php endif; ?>
 			
-			<!-- Services -->
+			<!-- Dienste -->
 			<?php if ( ! empty( $services ) && is_array( $services ) ) : ?>
 			<div class="cts-pro-box">
 				<div class="cts-pro-ico" style="background:#f3e8ff">

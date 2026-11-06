@@ -76,7 +76,7 @@ jobs:
             unzip -Z1 "$zip" > "$RUNNER_TEMP/zip-contents.txt"
             slug="$(head -1 "$RUNNER_TEMP/zip-contents.txt" | cut -d/ -f1)"
             grep -Fx "$slug/$slug.php" "$RUNNER_TEMP/zip-contents.txt"
-            if grep -Eq "^$slug/(vendor|node_modules|bin|tests|coverage|\.git|\.github|addons)/" "$RUNNER_TEMP/zip-contents.txt"; then
+            if grep -Eq "^$slug/(vendor|node_modules|bin|tests|coverage|\.git|\.github|addons)/|\.backup([-/]|$)" "$RUNNER_TEMP/zip-contents.txt"; then
               echo "Unexpected development files in $zip" >&2
               exit 1
             fi

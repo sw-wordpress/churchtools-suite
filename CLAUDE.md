@@ -27,6 +27,9 @@ This repository is a **fork** of [feg-aschaffenburg/churchtools-suite](https://g
 4. Nicht implementierte Funktionen explizit als solche kennzeichnen, keine Rumpf-Implementierungen.
 5. Bei unklaren Anforderungen, Architektur- oder Sicherheitsentscheidungen nachfragen statt Annahmen treffen. Kleine, risikoarme Details eigenständig entscheiden; keine spekulativen Fixes.
 
+### Terminologie
+- Sichtbare Texte verwenden „Dienste“, „Dienst“ und „Dienstgruppen“, niemals „Services“. Technische API-, AJAX-, CSS-, Datenbank- und Shortcode-Schlüssel wie `services`, `eventServices` und `show_services` bleiben kompatibel. `TerminologyTest` und die Browserprüfung aller Screens sichern die Beschriftungen ab.
+
 ### Dokumentation
 - Möglichst knapp und ohne Wiederholungen; auf vorhandene Doku verweisen statt Inhalte zu duplizieren. Entscheidungen, Sicherheitsdetails und Testhinweise sind der Kern.
 

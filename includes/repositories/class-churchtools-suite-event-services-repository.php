@@ -1,6 +1,6 @@
 <?php
 /**
- * Event Services Repository
+ * Event Dienste Repository
  *
  * Manages event services (e.g., Predigt, Moderation, Musik)
  * Links services to events and tracks person assignments.

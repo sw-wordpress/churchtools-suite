@@ -1,6 +1,6 @@
 <?php
 /**
- * Imported Services Tab - Übersicht importierter Event Services
+ * Imported Dienste Tab - Übersicht importierter Event Dienste
  *
  * @package ChurchTools_Suite
  * @since   0.3.13.2
@@ -49,7 +49,7 @@ $total_pages = ceil( $total_count / $limit );
 <p class="cts-section-description">
 <?php
 			printf(
-				/* translators: 1: Number of services, 2: Number of events. */                esc_html__( 'Übersicht aller importierten Services aus ChurchTools Events. Insgesamt %1$d Services in %2$d Events.', 'churchtools-suite' ),
+				/* translators: 1: Number of services, 2: Number of events. */                esc_html__( 'Übersicht aller importierten Dienste aus ChurchTools Events. Insgesamt %1$d Dienste in %2$d Events.', 'churchtools-suite' ),
 				(int) $total_count,
 				count( array_unique( array_column( $all_services, 'event_id' ) ) )
 			);
@@ -62,31 +62,31 @@ $total_pages = ceil( $total_count / $limit );
 <div class="cts-card">
 <div class="cts-card-body">
 <div class="cts-stat-number"><?php echo esc_html( (string) ( $total_count ) ); ?></div>
-<p class="cts-card-detail"><?php esc_html_e( 'Services gesamt', 'churchtools-suite' ); ?></p>
+<p class="cts-card-detail"><?php esc_html_e( 'Dienste gesamt', 'churchtools-suite' ); ?></p>
 </div>
 </div>
 
 <div class="cts-card">
 <div class="cts-card-body">
 <div class="cts-stat-number"><?php echo esc_html( (string) ( count( $unique_services ) ) ); ?></div>
-<p class="cts-card-detail"><?php esc_html_e( 'Verschiedene Services', 'churchtools-suite' ); ?></p>
+<p class="cts-card-detail"><?php esc_html_e( 'Verschiedene Dienste', 'churchtools-suite' ); ?></p>
 </div>
 </div>
 
 <div class="cts-card">
 <div class="cts-card-body">
 <div class="cts-stat-number"><?php echo esc_html( (string) ( count( array_unique( array_column( $all_services, 'event_id' ) ) ) ) ); ?></div>
-<p class="cts-card-detail"><?php esc_html_e( 'Events mit Services', 'churchtools-suite' ); ?></p>
+<p class="cts-card-detail"><?php esc_html_e( 'Events mit Dienste', 'churchtools-suite' ); ?></p>
 </div>
 </div>
 	</div>
 
-	<!-- Services List -->
+	<!-- Dienste List -->
 	<?php if ( empty( $services ) ) : ?>
 <div class="cts-empty-state">
 <span class="cts-empty-icon"></span>
-<h3><?php esc_html_e( 'Keine Services gefunden', 'churchtools-suite' ); ?></h3>
-<p><?php esc_html_e( 'Führen Sie eine Event-Synchronisation durch, um Services zu importieren.', 'churchtools-suite' ); ?></p>
+<h3><?php esc_html_e( 'Keine Dienste gefunden', 'churchtools-suite' ); ?></h3>
+<p><?php esc_html_e( 'Führen Sie eine Event-Synchronisation durch, um Dienste zu importieren.', 'churchtools-suite' ); ?></p>
 </div>
 	<?php else : ?>
 <div id="cts-imported-services-ajax-container">
@@ -95,10 +95,10 @@ $total_pages = ceil( $total_count / $limit );
 <table class="cts-events-table">
 <thead>
 <tr>
-<th><?php esc_html_e( 'Service', 'churchtools-suite' ); ?></th>
+<th><?php esc_html_e( 'Dienst', 'churchtools-suite' ); ?></th>
 <th><?php esc_html_e( 'Person', 'churchtools-suite' ); ?></th>
 <th><?php esc_html_e( 'Event', 'churchtools-suite' ); ?></th>
-<th><?php esc_html_e( 'Service ID', 'churchtools-suite' ); ?></th>
+<th><?php esc_html_e( 'Dienst-ID', 'churchtools-suite' ); ?></th>
 <th><?php esc_html_e( 'Importiert', 'churchtools-suite' ); ?></th>
 </tr>
 </thead>

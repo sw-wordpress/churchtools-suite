@@ -561,7 +561,7 @@ class ChurchTools_Suite_Admin {
 	 * Register AJAX handlers
 	 */
 	public function register_ajax_handlers() {
-		// Main AJAX handlers for Settings, Calendars, Events, Services.
+		// Main AJAX handlers for Settings, Calendars, Events, Dienste.
 		add_action( 'wp_ajax_cts_test_connection', array( $this, 'ajax_test_connection' ) );
 		add_action( 'wp_ajax_cts_sync_calendars', array( $this, 'ajax_sync_calendars' ) );
 		add_action( 'wp_ajax_cts_save_calendar_selection', array( $this, 'ajax_save_calendar_selection' ) );
@@ -967,7 +967,7 @@ class ChurchTools_Suite_Admin {
 		// Check nonce.
 		check_ajax_referer( 'churchtools_suite_admin', 'nonce' );
 
-		// Check permissions: manage_churchtools_services (Services).
+		// Check permissions: manage_churchtools_services (Dienste).
 		if ( ! current_user_can( 'manage_churchtools_services' ) ) {
 			wp_send_json_error(
 				array(
@@ -1013,7 +1013,7 @@ class ChurchTools_Suite_Admin {
 			}
 
 			$message = sprintf(
-				/* translators: 1: Service groups found, 2: New service groups, 3: Updated service groups. */                __( 'Synchronisation erfolgreich! %1$d Service-Gruppen gefunden. %2$d neu, %3$d aktualisiert.', 'churchtools-suite' ),
+				/* translators: 1: Service groups found, 2: New service groups, 3: Updated service groups. */                __( 'Synchronisation erfolgreich! %1$d Dienstgruppen gefunden. %2$d neu, %3$d aktualisiert.', 'churchtools-suite' ),
 				$result['groups_found'],
 				$result['groups_inserted'],
 				$result['groups_updated']
@@ -1041,7 +1041,7 @@ class ChurchTools_Suite_Admin {
 		// Check nonce.
 		check_ajax_referer( 'churchtools_suite_admin', 'nonce' );
 
-		// Check permissions: manage_churchtools_services (Services).
+		// Check permissions: manage_churchtools_services (Dienste).
 		if ( ! current_user_can( 'manage_churchtools_services' ) ) {
 			wp_send_json_error(
 				array(
@@ -1074,7 +1074,7 @@ class ChurchTools_Suite_Admin {
 			wp_send_json_success(
 				array(
 					'message' => sprintf(
-						/* translators: %d: Number of selected service groups. */                        __( 'Auswahl gespeichert! %d Service-Gruppen ausgewählt.', 'churchtools-suite' ),
+						/* translators: %d: Number of selected service groups. */                        __( 'Auswahl gespeichert! %d Dienstgruppen ausgewählt.', 'churchtools-suite' ),
 						count( $selected_ids )
 					),
 				)
@@ -1089,13 +1089,13 @@ class ChurchTools_Suite_Admin {
 	}
 
 	/**
-	 * AJAX Handler: Sync Services from ChurchTools
+	 * AJAX Handler: Sync Dienste from ChurchTools
 	 */
 	public function ajax_sync_services() {
 		// Check nonce.
 		check_ajax_referer( 'churchtools_suite_admin', 'nonce' );
 
-		// Check permissions: manage_churchtools_services (Services).
+		// Check permissions: manage_churchtools_services (Dienste).
 		if ( ! current_user_can( 'manage_churchtools_services' ) ) {
 			wp_send_json_error(
 				array(
@@ -1132,7 +1132,7 @@ class ChurchTools_Suite_Admin {
 			}
 
 			$message = sprintf(
-				/* translators: 1: Services found, 2: New services, 3: Updated services. */                __( 'Synchronisation erfolgreich! %1$d Services gefunden. %2$d neu, %3$d aktualisiert.', 'churchtools-suite' ),
+				/* translators: 1: Dienste found, 2: New services, 3: Updated services. */                __( 'Synchronisation erfolgreich! %1$d Dienste gefunden. %2$d neu, %3$d aktualisiert.', 'churchtools-suite' ),
 				$result['services_found'],
 				$result['services_inserted'],
 				$result['services_updated']
@@ -1160,7 +1160,7 @@ class ChurchTools_Suite_Admin {
 		// Check nonce.
 		check_ajax_referer( 'churchtools_suite_admin', 'nonce' );
 
-		// Check permissions: manage_churchtools_services (Services).
+		// Check permissions: manage_churchtools_services (Dienste).
 		if ( ! current_user_can( 'manage_churchtools_services' ) ) {
 			wp_send_json_error(
 				array(
@@ -1196,7 +1196,7 @@ class ChurchTools_Suite_Admin {
 			wp_send_json_success(
 				array(
 					'message'        => sprintf(
-						/* translators: 1: Number of selected services, 2: Total services. */                        __( 'Auswahl gespeichert: %1$d von %2$d Services ausgewählt.', 'churchtools-suite' ),
+						/* translators: 1: Number of selected services, 2: Total services. */                        __( 'Auswahl gespeichert: %1$d von %2$d Dienste ausgewählt.', 'churchtools-suite' ),
 						$selected_count,
 						$total_count
 					),
@@ -1486,7 +1486,7 @@ class ChurchTools_Suite_Admin {
 							<th><?php esc_html_e( 'Tags', 'churchtools-suite' ); ?></th>
 							<th><?php esc_html_e( 'Typ', 'churchtools-suite' ); ?></th>
 							<th><?php esc_html_e( 'Status', 'churchtools-suite' ); ?></th>
-							<th><?php esc_html_e( 'Services', 'churchtools-suite' ); ?></th>
+							<th><?php esc_html_e( 'Dienste', 'churchtools-suite' ); ?></th>
 							<th><?php esc_html_e( 'Details', 'churchtools-suite' ); ?></th>
 							<th><?php esc_html_e( 'Aktionen', 'churchtools-suite' ); ?></th>
 						</tr>
@@ -1715,7 +1715,7 @@ class ChurchTools_Suite_Admin {
 		ob_start();
 		if ( empty( $services ) ) {
 			?>
-			<div class="cts-empty-state"><span class="cts-empty-icon">👥</span><h3><?php esc_html_e( 'Keine Services gefunden', 'churchtools-suite' ); ?></h3></div>
+			<div class="cts-empty-state"><span class="cts-empty-icon">👥</span><h3><?php esc_html_e( 'Keine Dienste gefunden', 'churchtools-suite' ); ?></h3></div>
 			<?php
 		} else {
 			?>
@@ -1948,7 +1948,7 @@ class ChurchTools_Suite_Admin {
 			ChurchTools_Suite_Logger::log( '=== MANUAL SYNC SUCCESS ===', 'info' );
 
 			$message = sprintf(
-				/* translators: 1: Calendars processed, 2: Events found, 3: New events, 4: Updated events, 5: Skipped events, 6: Imported services. */                __( '✅ Manueller Sync erfolgreich! %1$d Kalender, %2$d Events gefunden, %3$d neu, %4$d aktualisiert, %5$d übersprungen, %6$d Services importiert', 'churchtools-suite' ),
+				/* translators: 1: Calendars processed, 2: Events found, 3: New events, 4: Updated events, 5: Skipped events, 6: Imported services. */                __( '✅ Manueller Sync erfolgreich! %1$d Kalender, %2$d Events gefunden, %3$d neu, %4$d aktualisiert, %5$d übersprungen, %6$d Dienste importiert', 'churchtools-suite' ),
 				$stats['calendars_processed'],
 				$stats['events_found'],
 				$stats['events_inserted'],
@@ -2961,7 +2961,7 @@ class ChurchTools_Suite_Admin {
 		// phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 		// phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery
 		if ( false === $services_deleted ) {
-			wp_send_json_error( array( 'message' => __( 'Fehler beim Löschen der Event-Services', 'churchtools-suite' ) ) );
+			wp_send_json_error( array( 'message' => __( 'Fehler beim Löschen der Event-Dienste', 'churchtools-suite' ) ) );
 		}
 
 		// Delete events.
@@ -3020,8 +3020,8 @@ class ChurchTools_Suite_Admin {
 	}
 
 	/**
-	 * AJAX Handler: Clear Services
-	 * Löscht alle Services und Service-Gruppen
+	 * AJAX Handler: Clear Dienste
+	 * Löscht alle Dienste und Dienstgruppen
 	 */
 	public function ajax_clear_services() {
 		check_ajax_referer( 'churchtools_suite_admin', 'nonce' );
@@ -3042,7 +3042,7 @@ class ChurchTools_Suite_Admin {
 		// phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 		// phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery
 		if ( false === $event_services_deleted ) {
-			wp_send_json_error( array( 'message' => __( 'Fehler beim Löschen der Event-Service-Zuordnungen', 'churchtools-suite' ) ) );
+			wp_send_json_error( array( 'message' => __( 'Fehler beim Löschen der Termin-Dienst-Zuordnungen', 'churchtools-suite' ) ) );
 		}
 
 		// Delete services.
@@ -3052,7 +3052,7 @@ class ChurchTools_Suite_Admin {
 		// phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 		// phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery
 		if ( false === $services_deleted ) {
-			wp_send_json_error( array( 'message' => __( 'Fehler beim Löschen der Services', 'churchtools-suite' ) ) );
+			wp_send_json_error( array( 'message' => __( 'Fehler beim Löschen der Dienste', 'churchtools-suite' ) ) );
 		}
 
 		// Delete service groups.
@@ -3062,13 +3062,13 @@ class ChurchTools_Suite_Admin {
 		// phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 		// phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery
 		if ( false === $groups_deleted ) {
-			wp_send_json_error( array( 'message' => __( 'Fehler beim Löschen der Service-Gruppen', 'churchtools-suite' ) ) );
+			wp_send_json_error( array( 'message' => __( 'Fehler beim Löschen der Dienstgruppen', 'churchtools-suite' ) ) );
 		}
 
 		wp_send_json_success(
 			array(
 				'message' => sprintf(
-					/* translators: 1: Deleted services, 2: Deleted service groups, 3: Deleted event-service assignments. */                    __( '%1$d Services, %2$d Service-Gruppen und %3$d Event-Service-Zuordnungen gelöscht', 'churchtools-suite' ),
+					/* translators: 1: Deleted services, 2: Deleted service groups, 3: Deleted event-service assignments. */                    __( '%1$d Dienste, %2$d Dienstgruppen und %3$d Termin-Dienst-Zuordnungen gelöscht', 'churchtools-suite' ),
 					$services_deleted,
 					$groups_deleted,
 					$event_services_deleted
@@ -3112,7 +3112,7 @@ class ChurchTools_Suite_Admin {
 
 	/**
 	 * AJAX Handler: Full Reset
-	 * Löscht ALLE Daten (Events, Kalender, Services, Sync-Historie)
+	 * Löscht ALLE Daten (Events, Kalender, Dienste, Sync-Historie)
 	 */
 	public function ajax_full_reset() {
 		check_ajax_referer( 'churchtools_suite_admin', 'nonce' );

@@ -86,7 +86,7 @@ $shortcodes = array(
 			),
 			'show_services'      => array(
 				'type'    => 'toggle',
-				'label'   => 'Services anzeigen',
+				'label'   => 'Dienste anzeigen',
 				'default' => true,
 				'section' => 'Anzeige-Optionen',
 			),
@@ -241,7 +241,7 @@ $shortcodes = array(
 			),
 			'show_services'      => array(
 				'type'    => 'toggle',
-				'label'   => 'Services anzeigen',
+				'label'   => 'Dienste anzeigen',
 				'default' => true,
 				'section' => 'Anzeige-Optionen',
 			),
@@ -458,7 +458,7 @@ $shortcodes = array(
 			),
 			'show_services'                => array(
 				'type'    => 'toggle',
-				'label'   => 'Services anzeigen',
+				'label'   => 'Dienste anzeigen',
 				'default' => false,
 				'section' => 'Anzeige-Optionen',
 			),

@@ -286,7 +286,7 @@ if ( ! class_exists( 'ChurchTools_Suite_Elementor_Events_Widget' ) ) {
 				array(
 					'label'       => __( 'Anzeigeoptionen', 'churchtools-suite' ),
 					'tab'         => \Elementor\Controls_Manager::TAB_CONTENT,
-					'description' => __( '💡 Hinweis: Nicht alle Optionen werden von jeder View unterstützt. Minimal-View unterstützt z.B. keine Bilder, Services oder inline Location-Anzeige.', 'churchtools-suite' ),
+					'description' => __( '💡 Hinweis: Nicht alle Optionen werden von jeder View unterstützt. Minimal-View unterstützt z.B. keine Bilder, Dienste oder inline Location-Anzeige.', 'churchtools-suite' ),
 				)
 			);
 
@@ -404,7 +404,7 @@ if ( ! class_exists( 'ChurchTools_Suite_Elementor_Events_Widget' ) ) {
 			$this->add_control(
 				'show_services',
 				array(
-					'label'       => __( 'Services', 'churchtools-suite' ),
+					'label'       => __( 'Dienste', 'churchtools-suite' ),
 					'type'        => \Elementor\Controls_Manager::SWITCHER,
 					'label_on'    => __( 'Ja', 'churchtools-suite' ),
 					'label_off'   => __( 'Nein', 'churchtools-suite' ),

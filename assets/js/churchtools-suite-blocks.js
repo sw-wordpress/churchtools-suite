@@ -289,7 +289,7 @@
 										}
 									}),
 									el(ToggleControl, {
-										label: __('Services', 'churchtools-suite'),
+										label: __('Dienste', 'churchtools-suite'),
 										checked: attributes.show_services,
 										disabled: !isFeatureSupported('show_services'),
 										help: getDisabledHelpText('show_services'),

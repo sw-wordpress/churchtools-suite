@@ -229,7 +229,7 @@ $total_pages = ceil( $total / $limit );
 <th><?php esc_html_e( 'Kalender', 'churchtools-suite' ); ?></th>
 <th><?php esc_html_e( 'Ort / Adresse', 'churchtools-suite' ); ?></th>
 <th><?php esc_html_e( 'Status', 'churchtools-suite' ); ?></th>
-<th><?php esc_html_e( 'Services', 'churchtools-suite' ); ?></th>
+<th><?php esc_html_e( 'Dienste', 'churchtools-suite' ); ?></th>
 <th><?php esc_html_e( 'Details', 'churchtools-suite' ); ?></th>
 </tr>
 </thead>
@@ -244,7 +244,7 @@ $total_pages = ceil( $total / $limit );
 			}
 		}
 
-		// Lade Services für dieses Event.
+		// Lade Dienste für dieses Event.
 		$services = $event_services_repo->get_for_event( $event->id );
 
 		$raw         = ! empty( $event->raw_payload ) ? json_decode( $event->raw_payload, true ) : array();

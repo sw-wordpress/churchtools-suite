@@ -280,7 +280,7 @@ $current_month = null;
 						<?php endif; ?>
 					</div>
 
-					<!-- Services -->
+					<!-- Dienste -->
 					<?php if ( ! empty( $event['services'] ) ) : ?>
 						<div class="cts-list--modern-rows__services">
 							<?php

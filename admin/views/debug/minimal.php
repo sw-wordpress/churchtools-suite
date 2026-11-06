@@ -106,7 +106,7 @@ $sync_history = $wpdb->get_results( "SELECT * FROM {$sync_history_table} ORDER B
 <th scope="col"><?php esc_html_e( 'Status', 'churchtools-suite' ); ?></th>
 <th scope="col"><?php esc_html_e( 'Kalender', 'churchtools-suite' ); ?></th>
 <th scope="col"><?php esc_html_e( 'Events', 'churchtools-suite' ); ?></th>
-<th scope="col"><?php esc_html_e( 'Services', 'churchtools-suite' ); ?></th>
+<th scope="col"><?php esc_html_e( 'Dienste', 'churchtools-suite' ); ?></th>
 <th scope="col"><?php esc_html_e( 'Dauer', 'churchtools-suite' ); ?></th>
 </tr>
 	<?php foreach ( $sync_history as $entry ) : ?>

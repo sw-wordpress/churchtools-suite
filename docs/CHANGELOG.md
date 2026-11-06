@@ -1,5 +1,11 @@
 # Integration Suite - Changelog
 
+## v1.4.0.5 - Einheitliche Dienste-Bezeichnungen (6. November 2026)
+
+- Sichtbare „Services“-Texte durch „Dienste“ ersetzt: Einstellungen, Übersichten, Sync-/Fehlermeldungen, Diagnose, Löschdialoge, Gutenberg und beide Elementor-Integrationen. Gruppen heißen einheitlich „Dienstgruppen“; technische API-, Shortcode- und Datenbankschlüssel bleiben kompatibel.
+- Übersetzungsvorlage und deutschen Katalog bereinigt, MO-Datei neu erstellt. Elementor-Addon auf 1.0.0.2 angehoben. Alte Backup-Dateien werden nicht mehr ausgeliefert; die Release-Prüfung weist solche Dateien zurück.
+- Regressionprüfung durchsucht Laufzeitquellen und Übersetzungskataloge; Browserprüfung sichert die sichtbaren Texte aller Backend-Seiten ab. 179 PHP-Tests und 36 Browser-/JavaScript-Prüfungen bestehen.
+
 ## v1.4.0.4 - Quality Gate und Tests (5. November 2026)
 
 - Zusätzliche Integrationstests für wiederkehrende Termine, idempotente Aktualisierung, Erhalt von Kalenderauswahl/Fallback-Bildern und validierte Zugangsdaten einschließlich Tenant-Grenzen und Benutzerwechsel.

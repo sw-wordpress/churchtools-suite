@@ -37,14 +37,14 @@ if ( ! defined( 'ABSPATH' ) ) {
 </button>
 </div>
 
-<!-- Clear Services -->
+<!-- Clear Dienste -->
 <div style="padding: 15px; background:var(--cts-surface-2); border-radius: 5px;">
-<h4 style="margin: 0 0 10px 0;"><?php esc_html_e( 'Services löschen', 'churchtools-suite' ); ?></h4>
+<h4 style="margin: 0 0 10px 0;"><?php esc_html_e( 'Dienste löschen', 'churchtools-suite' ); ?></h4>
 <p style="font-size: 13px; color:var(--cts-muted); margin-bottom: 10px;">
-<?php esc_html_e( 'Löscht alle Services und Service-Gruppen.', 'churchtools-suite' ); ?>
+<?php esc_html_e( 'Löscht alle Dienste und Dienstgruppen.', 'churchtools-suite' ); ?>
 </p>
 <button type="button" class="button" id="cts-clear-services" style="width: 100%;">
-<?php esc_html_e( 'Services löschen', 'churchtools-suite' ); ?>
+<?php esc_html_e( 'Dienste löschen', 'churchtools-suite' ); ?>
 </button>
 </div>
 
@@ -63,7 +63,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 <div style="padding: 15px; background: #fff3cd; border: 2px solid #ffc107; border-radius: 5px;">
 <h4 style="margin: 0 0 10px 0;"><span class="dashicons dashicons-warning" aria-hidden="true"></span> <?php esc_html_e( 'Kompletter Reset (Daten)', 'churchtools-suite' ); ?></h4>
 <p style="font-size: 13px; color: #856404; margin-bottom: 10px;">
-<?php esc_html_e( 'Löscht ALLE Daten (Events, Kalender, Services, Sync-Historie). Einstellungen bleiben erhalten.', 'churchtools-suite' ); ?>
+<?php esc_html_e( 'Löscht ALLE Daten (Events, Kalender, Dienste, Sync-Historie). Einstellungen bleiben erhalten.', 'churchtools-suite' ); ?>
 </p>
 <button type="button" class="button button-primary" id="cts-full-reset" style="width: 100%; background: #d63638; border-color: #d63638;">
 <?php esc_html_e( 'Daten zurücksetzen', 'churchtools-suite' ); ?>
@@ -148,8 +148,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 		$('#cts-clear-services').on('click', function() {
 			performReset(
 				'cts_clear_services',
-				'<?php esc_html_e( 'Wirklich alle Services löschen? Diese Aktion kann nicht rückgängig gemacht werden!', 'churchtools-suite' ); ?>',
-				'<?php esc_html_e( 'Services erfolgreich gelöscht!', 'churchtools-suite' ); ?>'
+				'<?php esc_html_e( 'Wirklich alle Dienste löschen? Diese Aktion kann nicht rückgängig gemacht werden!', 'churchtools-suite' ); ?>',
+				'<?php esc_html_e( 'Dienste erfolgreich gelöscht!', 'churchtools-suite' ); ?>'
 			);
 		});
 
@@ -164,7 +164,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 		$('#cts-full-reset').on('click', function() {
 			performReset(
 				'cts_full_reset',
-				'<?php esc_html_e( 'ACHTUNG: Wirklich ALLE Daten löschen (Events, Kalender, Services, Sync-Historie)?\n\nDiese Aktion kann nicht rückgängig gemacht werden!\n\nEinstellungen bleiben erhalten.', 'churchtools-suite' ); ?>',
+				'<?php esc_html_e( 'ACHTUNG: Wirklich ALLE Daten löschen (Events, Kalender, Dienste, Sync-Historie)?\n\nDiese Aktion kann nicht rückgängig gemacht werden!\n\nEinstellungen bleiben erhalten.', 'churchtools-suite' ); ?>',
 				'<?php esc_html_e( 'Daten erfolgreich zurückgesetzt!', 'churchtools-suite' ); ?>'
 			);
 		});
@@ -172,7 +172,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 		$('#cts-complete-reset').on('click', function() {
 			performReset(
 				'cts_complete_reset',
-				'<?php esc_html_e( 'KRITISCHE WARNUNG \n\nWirklich ALLES KOMPLETT LÖSCHEN?\n\n- Alle Daten (Events, Kalender, Services, etc.)\n- Alle Einstellungen (ChurchTools URL, Login, Cookies)\n- Kompletter Plugin-Reset\n\nSie müssen danach alles neu konfigurieren!\n\nDiese Aktion kann NICHT rückgängig gemacht werden!', 'churchtools-suite' ); ?>',
+				'<?php esc_html_e( 'KRITISCHE WARNUNG \n\nWirklich ALLES KOMPLETT LÖSCHEN?\n\n- Alle Daten (Events, Kalender, Dienste, etc.)\n- Alle Einstellungen (ChurchTools URL, Login, Cookies)\n- Kompletter Plugin-Reset\n\nSie müssen danach alles neu konfigurieren!\n\nDiese Aktion kann NICHT rückgängig gemacht werden!', 'churchtools-suite' ); ?>',
 				'<?php esc_html_e( 'Plugin komplett zurückgesetzt! Bitte neu konfigurieren.', 'churchtools-suite' ); ?>'
 			);
 		});
@@ -180,7 +180,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 		$('#cts-rebuild-database').on('click', function() {
 			performReset(
 				'cts_rebuild_database',
-				'<?php esc_html_e( 'DATENBANK NEU AUFBAUEN \n\nAlle Tabellen werden gelöscht und neu erstellt!\n\n- Alle Events gelöscht\n- Alle Kalender gelöscht\n- Alle Services gelöscht\n- Alle Sync-Historie gelöscht\n\nEinstellungen bleiben erhalten.\n\nNützlich bei DB-Strukturproblemen nach Updates.\n\nFortfahren?', 'churchtools-suite' ); ?>',
+				'<?php esc_html_e( 'DATENBANK NEU AUFBAUEN \n\nAlle Tabellen werden gelöscht und neu erstellt!\n\n- Alle Events gelöscht\n- Alle Kalender gelöscht\n- Alle Dienste gelöscht\n- Alle Sync-Historie gelöscht\n\nEinstellungen bleiben erhalten.\n\nNützlich bei DB-Strukturproblemen nach Updates.\n\nFortfahren?', 'churchtools-suite' ); ?>',
 				'<?php esc_html_e( 'Datenbank erfolgreich neu aufgebaut! Bitte Daten neu synchronisieren.', 'churchtools-suite' ); ?>'
 			);
 		});

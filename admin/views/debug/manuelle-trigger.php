@@ -75,7 +75,7 @@ jQuery(function($) {
 						'Kalender: ' + (stats.calendars_processed || 0) + '<br>' +
 						'Events: ' + (stats.events_inserted || 0) + ' neu, ' + 
 						(stats.events_updated || 0) + ' aktualisiert<br>' +
-						'Services: ' + (stats.services_imported || 0) +
+						'Dienste: ' + (stats.services_imported || 0) +
 						'</div>'
 					);
 					setTimeout(function() { location.reload(); }, 2000);

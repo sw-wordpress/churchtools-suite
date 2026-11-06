@@ -1,6 +1,6 @@
 <?php
 /**
- * Tab: Services
+ * Tab: Dienste
  *
  * @package ChurchTools_Suite
  * @since   0.3.11.0
@@ -32,12 +32,12 @@ $last_services_sync      = get_option( 'churchtools_suite_services_last_sync', n
 <div class="cts-card">
 	<div class="cts-card-header">
 <span class="dashicons dashicons-update cts-card-icon" aria-hidden="true"></span>
-<h3><?php esc_html_e( 'Schritt 1: Service-Gruppen synchronisieren', 'churchtools-suite' ); ?></h3>
+<h3><?php esc_html_e( 'Schritt 1: Dienstgruppen synchronisieren', 'churchtools-suite' ); ?></h3>
 	</div>
 	<div class="cts-card-body">
 <p>
-<?php esc_html_e( 'Synchronisieren Sie zuerst die verfügbaren Service-Gruppen aus ChurchTools.', 'churchtools-suite' ); ?>
-<br><em style="color:var(--cts-muted); font-size: 0.95em;"><?php esc_html_e( '3-Schritt-Prozess: 1) Service-Gruppen synchronisieren  2) Dienstgruppen auswählen  3) Services synchronisieren & auswählen', 'churchtools-suite' ); ?></em>
+<?php esc_html_e( 'Synchronisieren Sie zuerst die verfügbaren Dienstgruppen aus ChurchTools.', 'churchtools-suite' ); ?>
+<br><em style="color:var(--cts-muted); font-size: 0.95em;"><?php esc_html_e( '3-Schritt-Prozess: 1) Dienstgruppen synchronisieren  2) Dienstgruppen auswählen  3) Dienste synchronisieren & auswählen', 'churchtools-suite' ); ?></em>
 </p>
 
 <?php if ( $last_groups_sync ) : ?>
@@ -54,7 +54,7 @@ $last_services_sync      = get_option( 'churchtools_suite_services_last_sync', n
 <div class="cts-button-group">
 <button type="button" id="cts-sync-service-groups-btn" class="cts-button cts-button-primary">
 <span class="dashicons dashicons-update"></span>
-<?php esc_html_e( 'Service-Gruppen synchronisieren', 'churchtools-suite' ); ?>
+<?php esc_html_e( 'Dienstgruppen synchronisieren', 'churchtools-suite' ); ?>
 </button>
 </div>
 	</div>
@@ -66,14 +66,14 @@ $last_services_sync      = get_option( 'churchtools_suite_services_last_sync', n
 <div class="cts-card cts-mt-20">
 <div class="cts-card-header">
 <span class="cts-card-icon"></span>
-<h3><?php esc_html_e( 'Schritt 2: Service-Gruppen auswählen', 'churchtools-suite' ); ?></h3>
+<h3><?php esc_html_e( 'Schritt 2: Dienstgruppen auswählen', 'churchtools-suite' ); ?></h3>
 </div>
 <div class="cts-card-body">
 
 <?php if ( empty( $service_groups ) ) : ?>
 <div class="notice notice-info inline">
 <p>
-		<?php esc_html_e( 'Keine Service-Gruppen vorhanden. Bitte synchronisieren Sie zuerst die Service-Gruppen von ChurchTools.', 'churchtools-suite' ); ?>
+		<?php esc_html_e( 'Keine Dienstgruppen vorhanden. Bitte synchronisieren Sie zuerst die Dienstgruppen von ChurchTools.', 'churchtools-suite' ); ?>
 </p>
 </div>
 <?php else : ?>
@@ -81,14 +81,14 @@ $last_services_sync      = get_option( 'churchtools_suite_services_last_sync', n
 <p class="description">
 	<?php
 					printf(
-						/* translators: 1: Number of selected service groups, 2: Total service groups. */                        esc_html__( 'Wählen Sie die Service-Gruppen aus, deren Services Sie synchronisieren möchten. Aktuell ausgewählt: %1$d von %2$d', 'churchtools-suite' ),
+						/* translators: 1: Number of selected service groups, 2: Total service groups. */                        esc_html__( 'Wählen Sie die Dienstgruppen aus, deren Dienste Sie synchronisieren möchten. Aktuell ausgewählt: %1$d von %2$d', 'churchtools-suite' ),
 						(int) $selected_groups_count,
 						count( $service_groups )
 					);
 	?>
 </p>
 
-<!-- Bulk-Actions für Service-Gruppen -->
+<!-- Bulk-Actions für Dienstgruppen -->
 <div style="margin: 15px 0; display: flex; gap: 10px;">
 <button type="button" id="cts-select-all-groups-btn" class="button">
 <span class="dashicons dashicons-yes-alt" aria-hidden="true"></span> <?php esc_html_e( 'Alle auswählen', 'churchtools-suite' ); ?>
@@ -105,9 +105,9 @@ $last_services_sync      = get_option( 'churchtools_suite_services_last_sync', n
 <thead>
 <tr>
 <th style="width: 40px;">
-<input type="checkbox" id="cts-select-all-service-groups" aria-label="<?php esc_attr_e( 'Alle Service-Gruppen auswählen', 'churchtools-suite' ); ?>">
+<input type="checkbox" id="cts-select-all-service-groups" aria-label="<?php esc_attr_e( 'Alle Dienstgruppen auswählen', 'churchtools-suite' ); ?>">
 </th>
-<th><?php esc_html_e( 'Service-Gruppe', 'churchtools-suite' ); ?></th>
+<th><?php esc_html_e( 'Dienstgruppe', 'churchtools-suite' ); ?></th>
 <th><?php esc_html_e( 'ChurchTools-ID', 'churchtools-suite' ); ?></th>
 <th><?php esc_html_e( 'Sortierung', 'churchtools-suite' ); ?></th>
 </tr>
@@ -152,15 +152,15 @@ $last_services_sync      = get_option( 'churchtools_suite_services_last_sync', n
 
 	<div id="cts-service-group-selection-result" class="cts-mt-15" style="display: none;"></div>
 
-	<!-- SCHRITT 3: Services synchronisieren & auswählen -->
+	<!-- SCHRITT 3: Dienste synchronisieren & auswählen -->
 	<div class="cts-card cts-mt-20">
 <div class="cts-card-header">
 <span class="dashicons dashicons-update cts-card-icon" aria-hidden="true"></span>
-<h3><?php esc_html_e( 'Schritt 3: Services synchronisieren', 'churchtools-suite' ); ?></h3>
+<h3><?php esc_html_e( 'Schritt 3: Dienste synchronisieren', 'churchtools-suite' ); ?></h3>
 </div>
 <div class="cts-card-body">
 <p>
-<?php esc_html_e( 'Synchronisieren Sie die Services aus den ausgewählten Service-Gruppen.', 'churchtools-suite' ); ?>
+<?php esc_html_e( 'Synchronisieren Sie die Dienste aus den ausgewählten Dienstgruppen.', 'churchtools-suite' ); ?>
 </p>
 
 <?php if ( $last_services_sync ) : ?>
@@ -177,7 +177,7 @@ $last_services_sync      = get_option( 'churchtools_suite_services_last_sync', n
 <div class="cts-button-group">
 <button type="button" id="cts-sync-services-btn" class="cts-button cts-button-primary">
 <span class="dashicons dashicons-update"></span>
-<?php esc_html_e( 'Services synchronisieren', 'churchtools-suite' ); ?>
+<?php esc_html_e( 'Dienste synchronisieren', 'churchtools-suite' ); ?>
 </button>
 </div>
 	</div>
@@ -185,18 +185,18 @@ $last_services_sync      = get_option( 'churchtools_suite_services_last_sync', n
 
 <div id="cts-sync-services-result" class="cts-mt-15" style="display: none;"></div>
 
-<!-- SCHRITT 4: Services auswählen -->
+<!-- SCHRITT 4: Dienste auswählen -->
 <div class="cts-card cts-mt-20">
 	<div class="cts-card-header">
 <span class="dashicons dashicons-yes-alt cts-card-icon" aria-hidden="true"></span>
-<h3><?php esc_html_e( 'Schritt 4: Services auswählen', 'churchtools-suite' ); ?></h3>
+<h3><?php esc_html_e( 'Schritt 4: Dienste auswählen', 'churchtools-suite' ); ?></h3>
 	</div>
 	<div class="cts-card-body">
 
 <?php if ( empty( $services ) ) : ?>
 <div class="notice notice-info inline">
 <p>
-		<?php esc_html_e( 'Keine Services vorhanden. Bitte synchronisieren Sie zuerst die Services.', 'churchtools-suite' ); ?>
+		<?php esc_html_e( 'Keine Dienste vorhanden. Bitte synchronisieren Sie zuerst die Dienste.', 'churchtools-suite' ); ?>
 </p>
 </div>
 <?php else : ?>
@@ -204,14 +204,14 @@ $last_services_sync      = get_option( 'churchtools_suite_services_last_sync', n
 <p class="description">
 	<?php
 					printf(
-						/* translators: 1: Number of selected services, 2: Total services. */                        esc_html__( 'Wählen Sie die Services aus, die bei der Event-Synchronisation importiert werden sollen. Aktuell ausgewählt: %1$d von %2$d', 'churchtools-suite' ),
+						/* translators: 1: Number of selected services, 2: Total services. */                        esc_html__( 'Wählen Sie die Dienste aus, die bei der Event-Synchronisation importiert werden sollen. Aktuell ausgewählt: %1$d von %2$d', 'churchtools-suite' ),
 						(int) $selected_services_count,
 						count( $services )
 					);
 	?>
 </p>
 
-<!-- Bulk-Actions für Services -->
+<!-- Bulk-Actions für Dienste -->
 <div style="margin: 15px 0; display: flex; gap: 10px;">
 <button type="button" id="cts-select-all-services-btn" class="button">
 <span class="dashicons dashicons-yes-alt" aria-hidden="true"></span> <?php esc_html_e( 'Alle auswählen', 'churchtools-suite' ); ?>
@@ -230,9 +230,9 @@ $last_services_sync      = get_option( 'churchtools_suite_services_last_sync', n
 <th style="width: 40px;">
 <input type="checkbox" id="cts-select-all-services" aria-label="<?php esc_attr_e( 'Alle Dienste auswählen', 'churchtools-suite' ); ?>">
 </th>
-<th><?php esc_html_e( 'Service', 'churchtools-suite' ); ?></th>
+<th><?php esc_html_e( 'Dienst', 'churchtools-suite' ); ?></th>
 <th><?php esc_html_e( 'ChurchTools-ID', 'churchtools-suite' ); ?></th>
-<th><?php esc_html_e( 'Service-Gruppe', 'churchtools-suite' ); ?></th>
+<th><?php esc_html_e( 'Dienstgruppe', 'churchtools-suite' ); ?></th>
 <th><?php esc_html_e( 'Sortierung', 'churchtools-suite' ); ?></th>
 </tr>
 </thead>

@@ -175,7 +175,7 @@ class ChurchTools_Suite_Migrations {
 			KEY appointment_modified (appointment_modified)
 		) $charset_collate;";
 
-		// Event Services table.
+		// Event Dienste table.
 		$sql[] = "CREATE TABLE IF NOT EXISTS {$prefix}event_services (
 			id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
 			event_id bigint(20) unsigned NOT NULL,
@@ -233,7 +233,7 @@ class ChurchTools_Suite_Migrations {
 			KEY started_at (started_at)
 		) $charset_collate;";
 
-		// Services table.
+		// Dienste table.
 		$sql[] = "CREATE TABLE IF NOT EXISTS {$prefix}services (
 			id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
 			service_id varchar(100) NOT NULL,

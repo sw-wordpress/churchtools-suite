@@ -30,7 +30,7 @@ class ChurchTools_Suite_Template_Data {
 	private $calendars_repo;
 
 	/**
-	 * Event Services Repository
+	 * Event Dienste Repository
 	 *
 	 * @var ChurchTools_Suite_Event_Services_Repository
 	 */
@@ -362,7 +362,7 @@ class ChurchTools_Suite_Template_Data {
 			'is_multiday'              => $this->is_multiday_event( $event ),
 			'duration_minutes'         => $this->get_duration_minutes( $start_timestamp, $end_timestamp ),
 
-			// Services.
+			// Dienste.
 			'services'                 => $services,
 			'services_count'           => count( $services ),
 

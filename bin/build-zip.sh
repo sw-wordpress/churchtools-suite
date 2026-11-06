@@ -39,6 +39,7 @@ package() {
 .claude
 .DS_Store
 *.cache
+*.backup*
 *.log
 *.zip
 /.github

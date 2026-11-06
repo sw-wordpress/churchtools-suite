@@ -913,7 +913,7 @@
 			$('#cts-modal-tags').hide();
 		}
 		
-		// Services (in main area)
+		// Dienste (in main area)
 		if (showServices && event.services && event.services.length > 0) {
 			const $servicesList = $('#cts-modal-services-list');
 			$servicesList.empty();
