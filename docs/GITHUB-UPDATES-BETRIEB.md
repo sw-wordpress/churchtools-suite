@@ -226,6 +226,19 @@ ChurchTools-Suite-Checkout lesen. Lade keinen Code zur Laufzeit von dort nach.
   SW_PLUGIN_RELEASE_SIGNING_KEY (64 Byte Sodium Secret Key, Base64) als
   Environment-Secret und SW_PLUGIN_RELEASE_KEY_ID als Environment-Variable.
   Diese CI-Namen dürfen in getrennten Repositories gleich heißen.
+- Dokumentiere im Zielplugin dieselben drei direkt kopierbaren Bash/Zsh-Blöcke
+  wie im Referenzabschnitt "Copy & Paste: Schlüssel für ChurchTools Suite
+  einrichten": Schlüssel erzeugen, ausschließlich öffentliche Schlüssel ins
+  Plugin übernehmen und GitHub-Secret/Key-ID hinterlegen. Passe alle absoluten
+  Pluginpfade, privaten Schlüsselordner außerhalb des Webroots, Repository-Namen,
+  Key-IDs und Variablenpräfixe an das konkrete Zielplugin an. Keine ungelösten
+  Platzhalter und kein bloßer Verweis auf die ChurchTools-Anleitung.
+  Behalte Dateirechte 0700/0600, Schutz vor Überschreiben, Erhalt bestehender
+  öffentlicher Schlüssel, Ablehnung widersprüchlicher Key-IDs und Übergabe des
+  privaten Schlüssels über Standardeingabe bei. Dokumentiere die vorherige
+  Einrichtung der geschützten GitHub-Umgebung. Prüfe die lokalen Befehle isoliert
+  mit Wegwerfschlüsseln; führe dabei keine produktive Schlüsselgenerierung oder
+  Änderung von GitHub-Secrets aus.
 - Öffentlichen Schlüssel einmal vertrauenswürdig an bestehende Installationen
   verteilen, etwa per kontrolliertem manuellem ZIP-Upload. Der erste Release darf
   seinen eigenen Schlüssel nicht legitimieren. Rotation mit Übergangsrelease
