@@ -43,6 +43,110 @@ Bei Übernahme werden `source.php`, `descriptors.php`, Schlüssel und der Plugin
 
 Die signierten Pakete tragen ihre **eigene** Pluginversion. Ein Monorepo-Tag bestimmt die Hauptplugin-Version; Addons müssen nicht dieselbe Versionsnummer haben. Der Signierer und der Laufzeitprüfer werden mit Wegwerfschlüsseln gegeneinander getestet.
 
+## Kopierbarer Implementierungsauftrag für andere AI-Harnesses
+
+Den folgenden Block vollständig in den Harness des Zielplugins kopieren. Er soll die Zielwerte aus dessen Repository ermitteln; Schlüssel und GitHub-Schutzregeln richtet der Betreiber separat ein. Die Referenz ist eine zu adaptierende Implementierung, keine bereits veröffentlichte gemeinsame Bibliothek. PHP 8.2, Sodium und ZipArchive werden vorausgesetzt; bei älteren Zielplattformen ist eine bewusst getestete Portierung erforderlich.
+
+```text
+Implementiere im aktuellen WordPress-Plugin verifizierte GitHub-Updates mit
+ausschließlich manueller Installation. Führe die Umsetzung einschließlich Tests,
+Release-Build und Betriebsdokumentation durch.
+
+Referenz:
+https://github.com/sw-wordpress/churchtools-suite/tree/60cb2e4
+Lies dort docs/GITHUB-UPDATES.md, docs/GITHUB-UPDATES-BETRIEB.md und die unten
+genannten Quellen. Falls lokal vorhanden, kannst du dieselben Quellen aus einem
+ChurchTools-Suite-Checkout lesen. Lade keinen Code zur Laufzeit von dort nach.
+
+1. Ziel ermitteln und Referenz übernehmen
+- Lies die Arbeitsregeln und vorhandenen Updater, Installer, Tests und Workflows
+  des Zielplugins. Ermittle das tatsächliche Release-Repository samt numerischer
+  GitHub-Repository-ID, Plugin-Slug, Hauptdatei/Basename und Versionskonstante.
+  Übernimm keine ChurchTools-Repository-ID, Slugs oder Zugangsdaten.
+- Adaptiere includes/update/*, assets/js/churchtools-suite-updates.js,
+  bin/release-manifest.php sowie Release-/PR-Test-Workflow der Referenz.
+  Integriere die Prüfschaltfläche und Statusausgabe in die vorhandene Admin-UI;
+  die ChurchTools-UI muss dafür nicht übernommen werden.
+- Konfiguriere source.php, descriptors.php und trusted-keys.php für das Ziel.
+  Ein Einzelplugin hat nur seinen eigenen Slug; Addons nur bei bewusst gemeinsam
+  verwaltetem Release-Repository aufnehmen.
+- Verwende eigene Klassen/Namespaces, PHP-Konstanten, Filter, AJAX-Actions,
+  Nonce-Actions, Options-/Lock-/Migrationsnamen, Skripthandles, JS-Globals und
+  DOM-IDs. Passe auch Legacy-STATE/LOCK-Konstanten und zugehörige Tests an.
+  Mehrere SW-Plugins müssen gleichzeitig ohne Kollisionen laufen können.
+  Insbesondere die optionale SW_PLUGIN_RELEASE_PUBLIC_KEYS-Konstante durch eine
+  pluginspezifische Konstante ersetzen; keine gemeinsame globale Vertrauensliste.
+  Vorhandene Plugin-Konstanten für Pfad, URL und Version korrekt anbinden.
+
+2. Unveränderliche Update- und Sicherheitsregeln
+- Nur berechtigte interaktive Backend-Sitzungen dürfen GitHub prüfen:
+  maximal einmal je 24 Stunden, erst nach dem Seitenaufbau. Auch Fehler zählen
+  als Versuch; Transient-Löschung darf die persistente Sperrfrist nicht aufheben.
+  Manuell mit Nonce, update_plugins und mindestens 60 Sekunden Abstand.
+  Kein GitHub-Abruf im Frontend, Cron, REST oder WP-CLI. Multisite-Netzwerkrechte
+  einschließlich admin-ajax.php beachten; dessen Netzwerkmarkierung fehlt.
+- Anzeigen verwenden nur lokalen Cache. Installieren ausschließlich manuell
+  über die native WordPress-Pluginübersicht: Einzel-, AJAX- und Sammelupdate.
+  Update URI setzen; gemeinsame WordPress-Hooks müssen fremde Plugins unberührt
+  lassen. Automatische Installation auch bei alten gecachten Angeboten sperren.
+- Nur lokal verankerte öffentliche Ed25519-Schlüssel akzeptieren. Ohne Schlüssel,
+  Signatur oder nötige Erweiterungen sicher sperren; kein Hash-only-/Unsigned-
+  Fallback und kein erstmals remote geladener Schlüssel als Vertrauensanker.
+- Signatur über die exakten Manifestbytes; Repository/ID, Release/Tag, Asset-ID,
+  Dateiname, Slug, Version, Größe und SHA-256 strikt binden. Schema, doppelte
+  JSON-Schlüssel, stabile Releases und Systemvoraussetzungen validieren.
+  HTTPS-/Host-/Redirect-/Downloadlimits, atomaren Lock mit Eigentümerprüfung,
+  Rollback-Schutz und maximal sieben Tage gültigen Cache erhalten.
+- Vor Core-Extraktion Signatur erneut prüfen und die temporäre ZIP auf Hash,
+  Größe, genau einen erwarteten Plugin-Wurzelordner, sichere Pfade/Dateitypen,
+  Duplikate, Symlinks, Entpacklimits und passende Plugin-Header prüfen.
+  Keine eigene Entpack-/Kopierinstallation; temporäre Dateien bereinigen.
+- Alte Updater/Installer vollständig stilllegen. Eigene alte Cronjobs, Optionen,
+  Angebote und Auto-Update-Auswahlen gezielt bereinigen. Beim Deaktivieren eigene
+  Angebote entfernen, bevor Schutz-Hooks entfallen; fremde Angebote erhalten.
+
+3. Build, Schlüssel und späterer Store-Wechsel
+- Eigene installierbare ZIPs bauen. Referenz erwartet <slug>-<version>.zip und
+  <slug>/<slug>.php; abweichende Hauptdateien/Versionsformate durchgängig im
+  Build, Signierer, Manifestprüfer und Tests adaptieren, nicht nur im Adapter.
+  Bei Monorepos behält jedes Addon seine eigene Version.
+- Release-Workflow: geschütztes Environment plugin-releases, vorhandenen
+  öffentlichen Schlüsselring um den Build-Schlüssel ergänzen, ZIPs bauen und
+  in einen Draft hochladen, Manifest anhand tatsächlicher Asset-IDs signieren,
+  Signatur hochladen und erst dann veröffentlichen. Fehlende Schlüssel müssen
+  vor Veröffentlichung abbrechen; veröffentlichte Releases nicht überschreiben.
+- Private Schlüssel weder selbst für Produktion erzeugen noch committen,
+  protokollieren oder auf WordPress ablegen. Benötigte Betreiberkonfiguration
+  dokumentieren: eigener Ed25519-Schlüssel pro Plugin/Release-Quelle,
+  SW_PLUGIN_RELEASE_SIGNING_KEY (64 Byte Sodium Secret Key, Base64) als
+  Environment-Secret und SW_PLUGIN_RELEASE_KEY_ID als Environment-Variable.
+  Diese CI-Namen dürfen in getrennten Repositories gleich heißen.
+- Öffentlichen Schlüssel einmal vertrauenswürdig an bestehende Installationen
+  verteilen, etwa per kontrolliertem manuellem ZIP-Upload. Der erste Release darf
+  seinen eigenen Schlüssel nicht legitimieren. Rotation mit Übergangsrelease
+  und beiden öffentlichen Schlüsseln sowie Wechsel zu WordPress.org beschreiben.
+  Store-Builds müssen den temporären GitHub-Provider und Update URI entfernen.
+
+4. Verifikation und Übergabe
+- Adaptiere tests/wp/tests/VerifiedUpdatesTest.php und die Browserprüfung der
+  Referenz. Nutze Wegwerfschlüssel, simuliertes HTTP und isoliertes WordPress/DB;
+  echte Upgrader-Tests dürfen niemals die produktiven Plugin-Dateien ersetzen.
+- Prüfe positive und negative Signaturen, falsche Identität/Assets, manipulierte
+  ZIPs, Redirects/Limits, Nonce/Berechtigungen, Frontend/Cron-Sperre, Zeitlimit
+  auch nach Fehler/Cache-Löschung, Rollback, Lock-Übernahme, Deaktivierung und
+  Multisite. Teste native Einzel-/AJAX-/Sammelupdates sowie parallele Aktivierung
+  mehrerer SW-Plugins ohne Hook-, Schlüssel- oder Speicherkollisionen.
+- Signiere auch die echten Build-ZIPs mit Wegwerfschlüssel und verifiziere sie
+  mit dem Laufzeitprüfer. Prüfe Abbruch ohne Signier-Secret und Paketvollständigkeit.
+- Testsuiten ausschließlich auf Pull Requests ausführen. Der Release-Workflow
+  validiert/signiert Artefakte, startet aber keine Testsuite. DB-Suiten mit
+  gemeinsamem Testzustand sequenziell ausführen. Qualitätsschwellen nicht senken
+  und produktiven Code nicht zur Verbesserung der Coverage ausschließen.
+- Dokumentiere Änderungen, Testergebnisse, verbleibende Grenzen und ausstehende
+  Betreiberkonfiguration. Behaupte keine produktiv aktive Updateversorgung,
+  solange Vertrauensanker, GitHub-Schutzregeln und signierter Release fehlen.
+```
+
 ## Schlüsselwechsel, Ausfälle und WordPress.org
 
 Für Rotation zunächst eine mit dem bisherigen Schlüssel signierte Übergangsrelease mit beiden öffentlichen Schlüsseln ausliefern; erst danach mit der neuen Key-ID signieren. Ein kompromittierter Schlüssel benötigt einen separat vertrauenswürdigen Wiederherstellungsweg. Ohne zusätzliches signiertes zeitlich gültiges Channel-Verzeichnis kann ein erstmaliger Client nicht zuverlässig erkennen, dass eine neuere Version absichtlich vorenthalten wird.
