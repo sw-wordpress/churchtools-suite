@@ -95,27 +95,17 @@ PHP
 
 Die angezeigte Änderung an `includes/update/trusted-keys.php` enthält ausschließlich den öffentlichen Schlüssel. Diese Datei nach Review regulär committen. Bestehende Installationen benötigen sie einmal über einen vertrauenswürdigen manuellen Upload oder eine lokale Konfiguration; erst dann können sie signierte Folgeupdates akzeptieren.
 
-**3. GitHub vorbereiten und Secret hinterlegen.** Zuerst in den [Repository-Environments](https://github.com/sw-wordpress/churchtools-suite/settings/environments) die Umgebung `plugin-releases` anlegen und Freigaben sowie erlaubte Release-Tags passend zum Workflow absichern. Erst danach folgenden Block mit einem für dieses Repository berechtigten GitHub-CLI-Konto ausführen. `gh auth status` prüft die Anmeldung; falls nötig zuvor `gh auth login` ausführen.
+**3. GitHub-Secret und Key-ID selbst in der Oberfläche hinterlegen.** Diese Einrichtung übernimmt ausschließlich der Betreiber im Browser. Der Harness darf dafür keine CLI- oder API-Aufrufe ausführen. Die beiden vorherigen Copy-&-Paste-Blöcke betreffen nur die lokalen Dateien.
 
-```bash
-(
-  set -eu
-  CTS_RELEASE_KEYS_DIR="$HOME/.local/share/churchtools-suite-release-keys"
-  gh auth status
-  gh secret set SW_PLUGIN_RELEASE_SIGNING_KEY \
-    --repo sw-wordpress/churchtools-suite --env plugin-releases \
-    < "$CTS_RELEASE_KEYS_DIR/signing-key.base64"
-  gh variable set SW_PLUGIN_RELEASE_KEY_ID \
-    --repo sw-wordpress/churchtools-suite --env plugin-releases \
-    --body "$(cat "$CTS_RELEASE_KEYS_DIR/key-id.txt")"
-  gh secret list --repo sw-wordpress/churchtools-suite --env plugin-releases
-  gh variable list --repo sw-wordpress/churchtools-suite --env plugin-releases
-)
-```
+Öffne die [Environment-Einstellungen dieses Repositorys](https://github.com/sw-wordpress/churchtools-suite/settings/environments), also **sw-wordpress/churchtools-suite → Settings → Environments**. Wähle `plugin-releases` aus oder lege die Umgebung über **New environment** mit genau diesem Namen an. Richte zunächst die vorgesehenen Freigaben und erlaubten Release-Tags ein. Zum Konfigurieren der Umgebung benötigst du Administratorrechte für das Repository.
 
-Der private Schlüssel wird über Standardeingabe an GitHub übergeben und erscheint weder im Befehlsargument noch in der Terminalausgabe. Die Listen zeigen Secret-Namen beziehungsweise öffentliche Variablen. Referenzen: [GitHub CLI: Secret setzen](https://cli.github.com/manual/gh_secret_set), [Variable setzen](https://cli.github.com/manual/gh_variable_set), [PHP: Ed25519-Schlüsselpaar erzeugen](https://www.php.net/manual/en/function.sodium-crypto-sign-keypair.php).
+Öffne auf deinem lokalen Rechner die Datei `~/.local/share/churchtools-suite-release-keys/signing-key.base64` in einem vertrauenswürdigen lokalen Texteditor. Kopiere die eine Base64-Zeile ohne Anführungszeichen oder zusätzliche Leerzeichen. Klicke in der GitHub-Umgebung unter **Environment secrets → Add secret**. Trage als Namen exakt `SW_PLUGIN_RELEASE_SIGNING_KEY` ein und füge den Dateiinhalt als Secret-Wert ein. Speichere mit **Add secret**. Gemeint ist der private, Base64-kodierte 64-Byte-Sodium-Schlüssel aus dieser Datei; nicht der öffentliche Schlüssel, nicht die PHP-Schlüsseldatei und nicht ein GitHub-Token. Den Wert weder in den Chat noch in ein Issue oder Protokoll kopieren; danach die Zwischenablage leeren.
 
-Ein erneutes Setzen des Secrets ersetzt den GitHub-Wert. Deshalb vor Ausführung sicherstellen, dass dieser lokale Schlüssel zum gewünschten öffentlichen Schlüsselring passt; bei Rotation den Ablauf weiter unten verwenden. Die Befehle erzeugen keinen Release-Tag und veröffentlichen kein ZIP. Der eingerichtete Tag-Workflow übernimmt später Build, Signierung und Veröffentlichung.
+Bleibe in derselben Umgebung `plugin-releases` und wähle unter **Environment variables → Add variable** den Namen `SW_PLUGIN_RELEASE_KEY_ID`. Übernimm als Wert die Kennung aus `~/.local/share/churchtools-suite-release-keys/key-id.txt`, ohne Zeilenumbruch oder Anführungszeichen. Beim unveränderten Generierungsblock lautet sie `churchtools-suite-2026-11`. Speichere mit **Add variable**. Diese Kennung ist öffentlich und muss exakt mit dem Eintrag im öffentlichen Schlüsselring `includes/update/trusted-keys.php` übereinstimmen.
+
+Prüfe anschließend, dass in `plugin-releases` das Secret `SW_PLUGIN_RELEASE_SIGNING_KEY` und die Variable `SW_PLUGIN_RELEASE_KEY_ID` aufgeführt sind. Der Secret-Wert ist nach dem Speichern nicht lesbar; die Key-ID bleibt sichtbar. Lege beide Einträge ausdrücklich in der Umgebung und nicht lediglich unter den allgemeinen Repository-Secrets an. Ein vorhandenes Secret nur bewusst im Rahmen des beschriebenen Schlüsselwechsels ersetzen. Diese Einrichtung erzeugt keinen Release-Tag und veröffentlicht kein ZIP; der Tag-Workflow übernimmt später Build, Signierung und Veröffentlichung.
+
+Referenzen: [GitHub: Environment-Secrets anlegen](https://docs.github.com/en/actions/how-tos/write-workflows/choose-what-workflows-do/use-secrets#creating-secrets-for-an-environment), [Environment-Variablen anlegen](https://docs.github.com/en/actions/how-tos/write-workflows/choose-what-workflows-do/use-variables#creating-configuration-variables-for-an-environment), [PHP: Ed25519-Schlüsselpaar erzeugen](https://www.php.net/manual/en/function.sodium-crypto-sign-keypair.php).
 
 ## Prüfungen und Installation
 
@@ -226,16 +216,21 @@ ChurchTools-Suite-Checkout lesen. Lade keinen Code zur Laufzeit von dort nach.
   SW_PLUGIN_RELEASE_SIGNING_KEY (64 Byte Sodium Secret Key, Base64) als
   Environment-Secret und SW_PLUGIN_RELEASE_KEY_ID als Environment-Variable.
   Diese CI-Namen dürfen in getrennten Repositories gleich heißen.
-- Dokumentiere im Zielplugin dieselben drei direkt kopierbaren Bash/Zsh-Blöcke
+- Dokumentiere im Zielplugin dieselben zwei direkt kopierbaren Bash/Zsh-Blöcke
   wie im Referenzabschnitt "Copy & Paste: Schlüssel für ChurchTools Suite
-  einrichten": Schlüssel erzeugen, ausschließlich öffentliche Schlüssel ins
-  Plugin übernehmen und GitHub-Secret/Key-ID hinterlegen. Passe alle absoluten
+  einrichten": Schlüssel erzeugen und ausschließlich öffentliche Schlüssel ins
+  Plugin übernehmen. Ergänze denselben dritten Schritt als Prosa-Anleitung für
+  die manuelle GitHub-Oberfläche: Environment, Freigaben/Release-Tags, Secret- und
+  Variablennamen, konkrete lokale Quelldateien sowie Prüfung der Key-ID.
+  Secret und Variable legt ausschließlich der Betreiber selbst im Browser an;
+  keine CLI-/API-Befehle dafür dokumentieren oder ausführen. Passe alle absoluten
   Pluginpfade, privaten Schlüsselordner außerhalb des Webroots, Repository-Namen,
   Key-IDs und Variablenpräfixe an das konkrete Zielplugin an. Keine ungelösten
   Platzhalter und kein bloßer Verweis auf die ChurchTools-Anleitung.
   Behalte Dateirechte 0700/0600, Schutz vor Überschreiben, Erhalt bestehender
-  öffentlicher Schlüssel, Ablehnung widersprüchlicher Key-IDs und Übergabe des
-  privaten Schlüssels über Standardeingabe bei. Dokumentiere die vorherige
+  öffentlicher Schlüssel und Ablehnung widersprüchlicher Key-IDs bei. Der private
+  Schlüssel darf nicht in Chat, Befehlsargumenten oder Protokollen erscheinen.
+  Dokumentiere die vorherige
   Einrichtung der geschützten GitHub-Umgebung. Prüfe die lokalen Befehle isoliert
   mit Wegwerfschlüsseln; führe dabei keine produktive Schlüsselgenerierung oder
   Änderung von GitHub-Secrets aus.
