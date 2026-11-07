@@ -675,7 +675,7 @@ if ( ! class_exists( 'CTS_Elementor_Events_Widget' ) ) {
 			$this->add_control(
 				'show_services',
 				array(
-					'label'      => __( 'Services', 'churchtools-suite' ),
+					'label'      => __( 'Dienste', 'churchtools-suite' ),
 					'type'       => \Elementor\Controls_Manager::SWITCHER,
 					'label_on'   => __( 'Ja', 'churchtools-suite' ),
 					'label_off'  => __( 'Nein', 'churchtools-suite' ),

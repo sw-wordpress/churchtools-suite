@@ -184,7 +184,7 @@ if ( ! empty( $args['class'] ) ) {
 						}
 					}
 
-					// Services.
+					// Dienste.
 					if ( ! empty( $event['services'] ) && is_array( $event['services'] ) ) {
 						$service_names  = array_map( fn( $s ) => $s['service_name'] ?? '', $event['services'] );
 						$info_tooltip[] = '👥 ' . implode( ', ', $service_names );

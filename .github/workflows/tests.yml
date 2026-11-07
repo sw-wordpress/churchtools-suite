@@ -1,0 +1,68 @@
+name: Backend tests
+
+on:
+  pull_request:
+
+concurrency:
+  group: backend-pr-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+    env:
+      CTS_TEST_DB_USER: root
+      CTS_TEST_DB_PASSWORD: root
+      CTS_TEST_DB_HOST: 127.0.0.1
+      CTS_TEST_DB_PORT: '3306'
+      CTS_WP_TEST_DB_NAME: cts_wp_tests
+      XDEBUG_MODE: coverage
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: cts_wp_tests
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h localhost -proot"
+          --health-interval=10s --health-timeout=5s --health-retries=10
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: shivammathur/setup-php@d52fc211a0436f8839a587b3b5b8efddab4744ea # v2
+        with:
+          php-version: '8.2'
+          extensions: mysqli, mbstring, fileinfo, openssl, dom, sodium, zip
+          tools: composer:v2
+          coverage: xdebug
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Install test dependencies
+        run: |
+          composer install --working-dir=tests/wp --no-interaction --no-progress
+          npm ci --ignore-scripts --no-audit --no-fund
+          node node_modules/playwright-core/cli.js install --with-deps chromium
+      - name: PHP integration tests and coverage
+        run: composer test:coverage
+      - name: Network update policy and native upgrades
+        run: WP_MULTISITE=1 composer test -- --filter VerifiedUpdatesTest
+      # The browser exporter resets the same disposable test DB: keep these steps sequential.
+      - name: Browser interactions, responsive layout and JavaScript coverage
+        run: npm run test:ui:coverage
+      - name: Upload coverage reports
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: backend-coverage
+          path: coverage/
+      # Existing whole-plugin coverage is below the documented target. Keep this visible;
+      # the command retains the strict >80% requirement and does not omit legacy files.
+      - name: Whole-plugin coverage target (existing backlog)
+        continue-on-error: true
+        run: composer coverage:check

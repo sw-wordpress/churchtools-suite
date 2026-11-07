@@ -14,10 +14,10 @@ Wenn du das Plugin ohne die Anpassungen dieses Forks nutzen willst, schau im Ori
 
 | Paket | Typ | Version | Pfad |
 | --- | --- | --- | --- |
-| ChurchTools Integration Suite | Hauptplugin | 1.3.0.14 | `churchtools-suite.php` |
-| Elementor Integration | Addon | 1.0.0.1 | `addons/churchtools-suite-elementor/` |
-| Posts Sync | Addon | 0.1.8 | `addons/churchtools-suite-posts-sync/` |
-| Presentations | Addon | 0.1.1 | `addons/churchtools-suite-presentations/` |
+| ChurchTools Integration Suite | Hauptplugin | 1.4.0.7 | `churchtools-suite.php` |
+| Elementor Integration | Addon | 1.0.0.3 | `addons/churchtools-suite-elementor/` |
+| Posts Sync | Addon | 0.1.12 | `addons/churchtools-suite-posts-sync/` |
+| Presentations | Addon | 0.1.2 | `addons/churchtools-suite-presentations/` |
 
 Das Upstream-Projekt hat die Addons inzwischen in eigene Repositories ausgelagert ([Elementor](https://github.com/feg-aschaffenburg/churchtools-suite-elementor), [Posts Sync](https://github.com/feg-aschaffenburg/churchtools-suite-posts-sync), [Presentations](https://github.com/feg-aschaffenburg/churchtools-suite-presentations)). In diesem Fork bleiben sie im Monorepo. Änderungen aus den Upstream-Addons werden bei Bedarf von Hand übernommen.
 
@@ -85,6 +85,43 @@ composer check   # cs + stan
 
 ```bash
 find . -name "*.php" -not -path "./vendor/*" -not -path "./node_modules/*" | xargs -n50 php -l | grep -v "No syntax errors"
+```
+
+### Tests
+
+WordPress-Integrationstests und Browserprüfungen nutzen die wegwerfbare Datenbank von `bin/test-db.sh`, niemals die Entwicklungsinstallation:
+
+```bash
+composer install --working-dir=tests/wp
+npm ci
+npx playwright-core install chromium
+bin/test-db.sh start
+composer test
+npm run test:ui
+bin/test-db.sh stop
+```
+
+Die Browserprüfungen rendern echte WordPress-Views in der isolierten Testinstallation. ChurchTools-/AJAX-Antworten sind Fixtures; die Tests starten keine echten Synchronisationen und löschen keine produktiven Daten. PHP- und Browserläufe nacheinander ausführen, da der Browserexport dieselbe Testdatenbank neu installiert. Für vorhandenes Chromium kann `CHROME=/pfad/zu/chrome` gesetzt werden.
+
+Abgedeckt sind Seitenauflösung und alte URLs, Menüs, Rechte/Nonces, Speichern der Einstellungen, mehrfaches Rendern, aktive/inaktive Posts-Integration, wiederkehrende Termine mit getrennten Vorkommen, Erhalt von Kalenderauswahl und Fallback-Bildern beim Sync, Tenant-Validierung und Geheimniswiederverwendung, einzelne AJAX-Aufrufe, Verbindungstests mit ungespeicherten Formulardaten und gespeicherten Geheimnissen, Fehlerfälle, Löschbestätigungen, Light/Dark und alle Screens bei 390/1440 Pixeln. `.github/workflows/tests.yml` führt beide Suiten ausschließlich bei Pull Requests aus (auch bei neuen Commits auf einem offenen PR); neuere PR-Läufe ersetzen laufende ältere Prüfungen. Branch-Pushes ohne PR und Release-Tags starten die Tests nicht; riskante PHPUnit-Tests führen zum Fehlschlag.
+
+```bash
+bin/test-db.sh start
+XDEBUG_MODE=coverage composer test:coverage
+npm run test:ui:coverage
+composer coverage:check
+```
+
+Reports: `coverage/php.xml`, `coverage/ui.json`. `coverage:check` verlangt für PHP und JavaScript jeweils **>80 %** aller produktiven Dateien. Stand dieser Überarbeitung: PHP gesamt **19,78 %**, JavaScript gesamt **18,21 %**; Screen-Registry **>96 %**, neues Shell-JavaScript **89,45 %**. Die Gesamtvorgabe ist weiterhin **nicht erfüllt**. Insbesondere echte Sync-/API-Abläufe und Frontend-Varianten benötigen weitere Tests. CI meldet diese bestehende Lücke ausdrücklich; der Coverage-Schritt ist bis dahin berichtend, die Funktionstests sind blockierend. `composer cs`/`composer stan` melden weiterhin Befunde im Altbestand.
+
+### GitHub-Updates
+
+Das [Sicherheits- und Umsetzungskonzept](docs/GITHUB-UPDATES.md) beschreibt einen übertragbaren GitHub-Update-Provider mit signierten Manifesten, Backend-Prüfung höchstens einmal je 24 Stunden und ausschließlich manueller Installation über WordPress. Die Umsetzung und [Einrichtung der Signierschlüssel](docs/GITHUB-UPDATES-BETRIEB.md) sind dokumentiert. Die alten Updater sind stillgelegt. Ohne öffentlichen Vertrauensschlüssel bleibt die neue GitHub-Funktion gesperrt; Produktionsschlüssel werden nicht automatisch erzeugt.
+
+### Release-ZIP
+
+```bash
+bash bin/build-zip.sh            # -> dist/*.zip (Hauptplugin und jedes Addon separat)
 ```
 
 ### Lokale Testumgebung

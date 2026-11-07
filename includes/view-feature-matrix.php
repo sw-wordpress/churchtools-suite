@@ -69,7 +69,7 @@ function churchtools_suite_get_view_features() {
 			'show_event_description'       => true, // Nur in Popup.
 			'show_appointment_description' => true, // Nur in Popup.
 			'show_location'                => false, // ❌ Keine inline Location
-			'show_services'                => false, // ❌ Keine Services
+			'show_services'                => false, // ❌ Keine Dienste
 			'show_time'                    => true,
 			'show_tags'                    => false, // ❌ Keine Tags
 			'show_images'                  => false, // ❌ Keine Bilder
@@ -96,7 +96,7 @@ function churchtools_suite_get_view_features() {
 			'show_event_description'       => false, // ❌ Keine Beschreibung in Card
 			'show_appointment_description' => false,
 			'show_location'                => true, // ✅ Location anzeigen
-			'show_services'                => false, // ❌ Keine Services
+			'show_services'                => false, // ❌ Keine Dienste
 			'show_time'                    => true, // ✅ Zeit-Range
 			'show_tags'                    => false, // ❌ Keine Tags
 			'show_images'                  => true, // ✅ Hero-Image
@@ -120,7 +120,7 @@ function churchtools_suite_get_view_features() {
 			'show_event_description'       => true, // In Info-Popup.
 			'show_appointment_description' => false,
 			'show_location'                => true, // ✅ Main Info
-			'show_services'                => false, // ❌ Keine Services
+			'show_services'                => false, // ❌ Keine Dienste
 			'show_time'                    => true, // In Info-Popup.
 			'show_tags'                    => false, // In Info-Popup.
 			'show_images'                  => false, // ❌ Keine Bilder
@@ -177,7 +177,7 @@ function churchtools_suite_get_view_features() {
 			'show_event_description'       => true, // ✅ Beschreibung unter Titel
 			'show_appointment_description' => true, // ✅ Termin-spezifische Beschreibung
 			'show_location'                => true, // ✅ Location mit Icon
-			'show_services'                => true, // ✅ Services werden angezeigt
+			'show_services'                => true, // ✅ Dienste werden angezeigt
 			'show_time'                    => true, // ✅ Uhrzeit mit "Uhr"-Suffix
 			'show_tags'                    => true, // ✅ Tags als Badges
 			'show_images'                  => true, // ✅ Hero-Image oder Calendar-Color
@@ -192,7 +192,7 @@ function churchtools_suite_get_view_features() {
 			'show_event_description'       => true, // ✅ Beschreibung auf Karte
 			'show_appointment_description' => true,
 			'show_location'                => true, // ✅ Location mit Icon
-			'show_services'                => true, // ✅ Services werden angezeigt
+			'show_services'                => true, // ✅ Dienste werden angezeigt
 			'show_time'                    => true, // ✅ Zeit-Anzeige
 			'show_tags'                    => true, // ✅ Tags am Footer
 			'show_images'                  => true, // ✅ Hero-Image ODER Calendar-Color (wenn false)

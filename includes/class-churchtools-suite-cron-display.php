@@ -41,7 +41,7 @@ class ChurchTools_Suite_Cron_Display {
 		$descriptions = array(
 			'churchtools_suite_auto_sync'         => __( 'Synchronisiert Events automatisch gemäß Zeitplan.', 'churchtools-suite' ),
 			'churchtools_suite_session_keepalive' => __( 'Verlängert die ChurchTools-Session.', 'churchtools-suite' ),
-			'churchtools_suite_check_updates'     => __( 'Prüft auf neue Plugin-Versionen und installiert Updates automatisch.', 'churchtools-suite' ),
+			'churchtools_suite_check_updates'     => __( 'Alter Update-Cron; durch Backend-Prüfung und manuelle WordPress-Updates ersetzt.', 'churchtools-suite' ),
 		);
 
 		return $descriptions[ $hook ] ?? '';

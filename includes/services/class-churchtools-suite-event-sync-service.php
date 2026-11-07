@@ -39,14 +39,14 @@ class ChurchTools_Suite_Event_Sync_Service {
 	private $calendars_repo;
 
 	/**
-	 * Event Services Repository
+	 * Event Dienste Repository
 	 *
 	 * @var ChurchTools_Suite_Event_Services_Repository
 	 */
 	private $event_services_repo;
 
 	/**
-	 * Services Repository
+	 * Dienste Repository
 	 *
 	 * @var ChurchTools_Suite_Services_Repository
 	 */
@@ -58,8 +58,8 @@ class ChurchTools_Suite_Event_Sync_Service {
 	 * @param ChurchTools_Suite_CT_Client                 $ct_client ChurchTools API Client
 	 * @param ChurchTools_Suite_Events_Repository         $events_repo Events Repository
 	 * @param ChurchTools_Suite_Calendars_Repository      $calendars_repo Calendars Repository
-	 * @param ChurchTools_Suite_Event_Services_Repository $event_services_repo Event Services Repository (optional)
-	 * @param ChurchTools_Suite_Services_Repository       $services_repo Services Repository (optional)
+	 * @param ChurchTools_Suite_Event_Services_Repository $event_services_repo Event Dienste Repository (optional)
+	 * @param ChurchTools_Suite_Services_Repository       $services_repo Dienste Repository (optional)
 	 */
 	public function __construct( $ct_client, $events_repo, $calendars_repo, $event_services_repo = null, $services_repo = null ) {
 		$this->ct_client           = $ct_client;
@@ -1710,7 +1710,7 @@ class ChurchTools_Suite_Event_Sync_Service {
 		// If no services selected, skip.
 		if ( empty( $selected_service_ids ) ) {
 			ChurchTools_Suite_Logger::log(
-				'No services selected in Services-Tab, skipping import',
+				'No services selected in Dienste-Tab, skipping import',
 				ChurchTools_Suite_Logger::WARNING
 			);
 			$this->event_services_repo->delete_for_event( $event_id );

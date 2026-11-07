@@ -383,7 +383,7 @@ class ChurchTools_Suite_Cron {
 			// Success Log.
 			/* phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log -- Intentional plugin diagnostics and fallback logging when the normal logger is unavailable. */ error_log(
 				sprintf(
-					'ChurchTools Suite Auto-Sync [SUCCESS]: %d Kalender, %d Events gefunden, %d neu, %d aktualisiert, %d übersprungen, %d Services importiert',
+					'ChurchTools Suite Auto-Sync [SUCCESS]: %d Kalender, %d Events gefunden, %d neu, %d aktualisiert, %d übersprungen, %d Dienste importiert',
 					$stats['calendars_processed'],
 					$stats['events_found'],
 					$stats['events_inserted'],

@@ -14,10 +14,11 @@ jobs:
   build:
     name: Build release zips
     runs-on: ubuntu-latest
+    environment: plugin-releases
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
 
       - name: Determine version
         id: metadata
@@ -40,10 +41,10 @@ jobs:
           fi
 
       - name: Setup PHP
-        uses: shivammathur/setup-php@v2
+        uses: shivammathur/setup-php@d52fc211a0436f8839a587b3b5b8efddab4744ea # v2
         with:
           php-version: '8.2'
-          extensions: zip, mbstring, fileinfo, openssl
+          extensions: zip, mbstring, fileinfo, openssl, mysqli, sodium
           tools: composer:v2
           coverage: none
 
@@ -63,6 +64,12 @@ jobs:
         continue-on-error: true
         run: composer stan
 
+      - name: Embed public verification key
+        env:
+          SW_PLUGIN_RELEASE_SIGNING_KEY: ${{ secrets.SW_PLUGIN_RELEASE_SIGNING_KEY }}
+          SW_PLUGIN_RELEASE_KEY_ID: ${{ vars.SW_PLUGIN_RELEASE_KEY_ID }}
+        run: php bin/release-manifest.php public-key includes/update/trusted-keys.php
+
       - name: Build ZIPs
         run: bash bin/build-zip.sh "$RUNNER_TEMP/dist"
 
@@ -76,15 +83,36 @@ jobs:
             unzip -Z1 "$zip" > "$RUNNER_TEMP/zip-contents.txt"
             slug="$(head -1 "$RUNNER_TEMP/zip-contents.txt" | cut -d/ -f1)"
             grep -Fx "$slug/$slug.php" "$RUNNER_TEMP/zip-contents.txt"
-            if grep -Eq "^$slug/(vendor|node_modules|bin|tests|\.git|\.github|addons)/" "$RUNNER_TEMP/zip-contents.txt"; then
+            if grep -Eq "^$slug/(vendor|node_modules|bin|tests|coverage|\.git|\.github|addons)/|\.backup([-/]|$)" "$RUNNER_TEMP/zip-contents.txt"; then
               echo "Unexpected development files in $zip" >&2
               exit 1
             fi
             echo "OK: $zip"
           done
 
-      - name: Create release and attach ZIPs
-        uses: softprops/action-gh-release@v2
-        with:
-          name: ${{ steps.metadata.outputs.version }}
-          files: ${{ runner.temp }}/dist/*.zip
+      - name: Upload packages to draft release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: |
+          if gh release view "$RELEASE_TAG" --json isDraft > "$RUNNER_TEMP/existing-release.json" 2>/dev/null; then
+            php -r '$r=json_decode(file_get_contents($argv[1]),true); exit(empty($r["isDraft"])?1:0);' "$RUNNER_TEMP/existing-release.json"
+          else
+            gh release create "$RELEASE_TAG" --draft --verify-tag --title "$RELEASE_TAG"
+          fi
+          gh release upload "$RELEASE_TAG" "$RUNNER_TEMP"/dist/*.zip --clobber
+          gh api "repos/$GITHUB_REPOSITORY/releases/tags/$RELEASE_TAG" > "$RUNNER_TEMP/release.json"
+
+      - name: Sign exact uploaded packages
+        env:
+          SW_PLUGIN_RELEASE_SIGNING_KEY: ${{ secrets.SW_PLUGIN_RELEASE_SIGNING_KEY }}
+          SW_PLUGIN_RELEASE_KEY_ID: ${{ vars.SW_PLUGIN_RELEASE_KEY_ID }}
+        run: php bin/release-manifest.php sign "$RUNNER_TEMP/release.json" "$RUNNER_TEMP/dist" "$GITHUB_SHA"
+
+      - name: Publish complete signed release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: |
+          gh release upload "$RELEASE_TAG" "$RUNNER_TEMP/dist/sw-plugin-release.json" "$RUNNER_TEMP/dist/sw-plugin-release.json.sig" --clobber
+          gh release edit "$RELEASE_TAG" --draft=false

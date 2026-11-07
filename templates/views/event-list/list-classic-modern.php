@@ -232,7 +232,7 @@ $current_month = null;
 					<?php endif; ?>
 				</div>
 				
-				<!-- Services -->
+				<!-- Dienste -->
 				<?php if ( ! empty( $event['services'] ) ) : ?>
 					<div class="cts-list__services">
 						<?php

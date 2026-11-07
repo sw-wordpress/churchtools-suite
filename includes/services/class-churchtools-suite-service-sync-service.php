@@ -3,7 +3,7 @@
  * Service Sync Service
  *
  * Synchronizes ChurchTools service master data into the local database.
- * Services are fetched from /api/masterdata/serviceGroups endpoint.
+ * Dienste are fetched from /api/masterdata/serviceGroups endpoint.
  *
  * @package ChurchTools_Suite
  * @since   0.3.11.0
@@ -23,7 +23,7 @@ class ChurchTools_Suite_Service_Sync_Service {
 	private $ct_client;
 
 	/**
-	 * Services Repository
+	 * Dienste Repository
 	 *
 	 * @var ChurchTools_Suite_Services_Repository
 	 */
@@ -40,7 +40,7 @@ class ChurchTools_Suite_Service_Sync_Service {
 	 * Constructor
 	 *
 	 * @param ChurchTools_Suite_CT_Client                 $ct_client ChurchTools API Client
-	 * @param ChurchTools_Suite_Services_Repository       $services_repo Services Repository
+	 * @param ChurchTools_Suite_Services_Repository       $services_repo Dienste Repository
 	 * @param ChurchTools_Suite_Service_Groups_Repository $service_groups_repo Service Groups Repository
 	 */
 	public function __construct( $ct_client, $services_repo, $service_groups_repo = null ) {
@@ -170,7 +170,7 @@ class ChurchTools_Suite_Service_Sync_Service {
 			if ( class_exists( 'ChurchTools_Suite_Logger' ) ) {
 				ChurchTools_Suite_Logger::debug(
 					'service_sync',
-					'Services sync started',
+					'Dienste sync started',
 					array(
 						'selected_groups' => count( $selected_group_ids ),
 					)
@@ -185,7 +185,7 @@ class ChurchTools_Suite_Service_Sync_Service {
 			if ( class_exists( 'ChurchTools_Suite_Logger' ) ) {
 				ChurchTools_Suite_Logger::error(
 					'service_sync',
-					'Services API error',
+					'Dienste API error',
 					array(
 						'error' => $response->get_error_message(),
 					)
@@ -195,7 +195,7 @@ class ChurchTools_Suite_Service_Sync_Service {
 		}
 
 		if ( ! isset( $response['data'] ) || ! is_array( $response['data'] ) ) {
-			return new WP_Error( 'invalid_response', __( 'Ungültige API-Antwort für Services', 'churchtools-suite' ) );
+			return new WP_Error( 'invalid_response', __( 'Ungültige API-Antwort für Dienste', 'churchtools-suite' ) );
 		}
 
 		$services = $response['data'];

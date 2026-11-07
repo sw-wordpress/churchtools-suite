@@ -246,7 +246,7 @@ $current_month = null;
 		<?php endif; ?>
 	</div>
 	
-	<!-- Services (wrappable 2-3 lines) -->
+	<!-- Dienste (wrappable 2-3 lines) -->
 			<?php if ( $show_services && ! empty( $event['services'] ) ) : ?>
 		<div class="cts-services">
 			<ul class="cts-services-list" role="list">
@@ -418,7 +418,7 @@ $current_month = null;
 	font-size: 13px;
 }
 
-/* Services */
+/* Dienste */
 .cts-services {
 	color: #64748b;
 	font-size: 13px;

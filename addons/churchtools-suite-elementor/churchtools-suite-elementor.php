@@ -1,9 +1,10 @@
 <?php
 /**
  * Plugin Name:       ChurchTools Integration Suite - Elementor Integration
+ * Update URI: https://github.com/sw-wordpress/churchtools-suite
  * Plugin URI:        https://github.com/FEGAschaffenburg/churchtools-suite/tree/main/addons/churchtools-suite-elementor
  * Description:       Elementor Page Builder Widget für ChurchTools Integration Suite Events. Zeigt Events in Listen-, Raster- oder Kalender-Ansicht mit 28+ Anpassungsoptionen.
- * Version: 1.0.0.1
+ * Version: 1.0.0.3
  * Requires at least: 6.0
  * Requires PHP:      8.2
  * Requires Plugins:  churchtools-suite, elementor
@@ -36,18 +37,10 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 // Plugin constants.
-define( 'CTS_ELEMENTOR_VERSION', '1.0.0.1' );
+define( 'CTS_ELEMENTOR_VERSION', '1.0.0.3' );
 define( 'CTS_ELEMENTOR_PATH', plugin_dir_path( __FILE__ ) );
 define( 'CTS_ELEMENTOR_URL', plugin_dir_url( __FILE__ ) );
 define( 'CTS_ELEMENTOR_BASENAME', plugin_basename( __FILE__ ) );
-
-/**
- * Initialize Auto-Updater (before dependencies)
- * Runs very early so updates can be detected on Plugins page
- */
-
-require_once CTS_ELEMENTOR_PATH . 'includes/class-cts-elementor-auto-updater.php';
-CTS_Elementor_Auto_Updater::init();
 
 /**
  * Check dependencies and initialize

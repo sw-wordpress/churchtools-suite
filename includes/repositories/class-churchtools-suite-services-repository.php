@@ -1,6 +1,6 @@
 <?php
 /**
- * Services Repository
+ * Dienste Repository
  *
  * Manages ChurchTools service master data (e.g., Predigt, Moderation, Musik).
  * Users can select which services to import during event sync.

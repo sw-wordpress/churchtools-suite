@@ -352,7 +352,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 		white-space: nowrap;
 	}
 	
-	/* Services List */
+	/* Dienste List */
 	.cts-modal-professional .cts-modal-services-list {
 		list-style: none;
 		margin: 0;

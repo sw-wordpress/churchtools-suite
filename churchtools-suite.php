@@ -1,9 +1,10 @@
 <?php
 /**
  * Plugin Name:       ChurchTools Integration Suite
+ * Update URI: https://github.com/sw-wordpress/churchtools-suite
  * Plugin URI:        https://github.com/feg-aschaffenburg/churchtools-suite
  * Description:       Professionelle WordPress-Integration für externe Kalender-, Event- und Dienstsysteme. Synchronisiert Events, Termine und Dienste aus dem angebundenen System. Repository Factory für erweiterbare Architektur (Multi-User, Caching, Add-Ons).
- * Version: 1.3.0.14
+ * Version: 1.4.0.7
  * Requires at least: 6.0
  * Requires PHP:      8.2
  * Author:            FEG Aschaffenburg
@@ -30,7 +31,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 remove_filter( 'load_textdomain_mofile', 'wp_check_load_textdomain_just_in_time' );
 
 // Plugin constants.
-define( 'CHURCHTOOLS_SUITE_VERSION', '1.3.0.14' );
+define( 'CHURCHTOOLS_SUITE_VERSION', '1.4.0.7' );
 define( 'CHURCHTOOLS_SUITE_PATH', plugin_dir_path( __FILE__ ) );
 define( 'CHURCHTOOLS_SUITE_URL', plugin_dir_url( __FILE__ ) );
 define( 'CHURCHTOOLS_SUITE_BASENAME', plugin_basename( __FILE__ ) );
@@ -75,7 +76,7 @@ function churchtools_suite_run(): void {
 churchtools_suite_run();
 
 // Integrate Posts sync per default.
-require_once CHURCHTOOLS_SUITE_PATH . 'addons/churchtools-suite-posts-sync/churchtools-suite-posts-sync.php';
+// require_once CHURCHTOOLS_SUITE_PATH . 'addons/churchtools-suite-posts-sync/churchtools-suite-posts-sync.php';
 // require_once CHURCHTOOLS_SUITE_PATH . "addons/churchtools-suite-presentations/churchtools-suite-presentations.php";.
 
 /** Register the external adapter lazily; ChurchTools works without CloudCalendar installed. */

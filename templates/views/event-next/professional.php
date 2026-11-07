@@ -405,7 +405,7 @@ $has_sidebar = ( $hero_image && $show_images )
 		margin-bottom: 0;
 	}
 
-	/* Services */
+	/* Dienste */
 	.cts-next-event-services-list {
 		list-style: none;
 		margin: 0;

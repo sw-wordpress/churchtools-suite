@@ -13,17 +13,19 @@ $last_run_at = is_array( $last_result ) ? (string) ( $last_result['run_at'] ?? '
 $last_stats  = is_array( $last_result ) ? (array) ( $last_result['stats'] ?? array() ) : array();
 ?>
 
-<div class="wrap cts-wrap">
+<div class="<?php echo $embedded ? 'cts-posts-overview' : 'wrap cts-wrap'; ?>">
+	<?php if ( ! $embedded ) : ?>
 	<div class="cts-header">
-		<h1><span>📝</span> <?php esc_html_e( 'Posts Übersicht', 'churchtools-suite-posts-sync' ); ?></h1>
+		<h1><span class="dashicons dashicons-admin-post" aria-hidden="true"></span> <?php esc_html_e( 'Posts Übersicht', 'churchtools-suite-posts-sync' ); ?></h1>
 		<p class="cts-subtitle"><?php esc_html_e( 'Übersicht synchronisierter ChurchTools-Posts analog zur normalen Beitragsansicht.', 'churchtools-suite-posts-sync' ); ?></p>
 	</div>
+	<?php endif; ?>
 
 	<div class="cts-card cts-posts-sync-overview-card">
 		<div class="cts-card-body">
 			<p class="cts-posts-sync-overview-meta">
 				<strong><?php esc_html_e( 'Sync aktiv:', 'churchtools-suite-posts-sync' ); ?></strong>
-				<?php echo $sync_enabled ? '✅' : '❌'; ?>
+				<?php echo $sync_enabled ? esc_html__( 'Ja', 'churchtools-suite-posts-sync' ) : esc_html__( 'Nein', 'churchtools-suite-posts-sync' ); ?>
 				<span class="cts-posts-sync-meta-item"><strong><?php esc_html_e( 'Zieltyp:', 'churchtools-suite-posts-sync' ); ?></strong> <?php echo esc_html( $target_type ); ?></span>
 				<?php if ( '' !== $last_run_at ) : ?>
 					<span class="cts-posts-sync-meta-item"><strong><?php esc_html_e( 'Letzter Lauf:', 'churchtools-suite-posts-sync' ); ?></strong> <?php echo esc_html( $last_run_at ); ?></span>
@@ -50,7 +52,7 @@ $last_stats  = is_array( $last_result ) ? (array) ( $last_result['stats'] ?? arr
 	<div class="cts-card cts-posts-sync-overview-card">
 		<div class="cts-card-body">
 			<h2 class="cts-posts-sync-overview-heading"><?php esc_html_e( 'Synchronisierte Inhalte', 'churchtools-suite-posts-sync' ); ?></h2>
-			<table class="widefat striped">
+			<div class="cts-table-wrapper"><table class="cts-events-table cts-posts-table">
 				<thead>
 					<tr>
 						<th><?php esc_html_e( 'Titel', 'churchtools-suite-posts-sync' ); ?></th>
@@ -92,7 +94,7 @@ $last_stats  = is_array( $last_result ) ? (array) ( $last_result['stats'] ?? arr
 						<tr><td colspan="10"><?php esc_html_e( 'Noch keine synchronisierten Posts gefunden.', 'churchtools-suite-posts-sync' ); ?></td></tr>
 					<?php endif; ?>
 				</tbody>
-			</table>
+			</table></div>
 		</div>
 	</div>
 </div>

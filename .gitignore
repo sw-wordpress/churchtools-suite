@@ -48,3 +48,8 @@ composer.lock.bak
 /.phpunit.result.cache
 
 /tests/.phpunit.result.cache
+
+# WordPress integration test environment (installed on demand, see README)
+/tests/wp/vendor/
+/tests/wp/.phpunit*
+/tests/wp/.phpunit.result.cache

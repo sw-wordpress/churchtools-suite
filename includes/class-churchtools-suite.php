@@ -32,11 +32,7 @@ class ChurchTools_Suite {
 	public function __construct() {
 		$this->version = CHURCHTOOLS_SUITE_VERSION;
 		$this->load_dependencies();
-		$this->init_logger(); // v0.9.2.3: Initialize logging system
-		// Initialize update checker (registers update transient hook).
-		if ( class_exists( 'ChurchTools_Suite_Update_Checker' ) ) {
-			ChurchTools_Suite_Update_Checker::init();
-		}
+		$this->init_logger(); // v0.9.2.3: Initialize logging system.
 		$this->run_migrations();
 		$this->define_admin_hooks();
 		$this->define_public_hooks();
@@ -72,7 +68,6 @@ class ChurchTools_Suite {
 
 		// Image Helper (v1.1.0.2 - needed for modern list with images).
 		require_once CHURCHTOOLS_SUITE_PATH . 'includes/class-churchtools-suite-image-helper.php';
-		require_once CHURCHTOOLS_SUITE_PATH . 'includes/class-churchtools-suite-calendar-image-templates.php';
 
 		// Single Event Shortcode (v0.7.1.0).
 		require_once CHURCHTOOLS_SUITE_PATH . 'includes/shortcodes/class-churchtools-suite-single-event-shortcode.php';
@@ -89,10 +84,7 @@ class ChurchTools_Suite {
 		// Elementor Integration (v1.0.9.0+) - Moved to separate plugin
 		// Notice is shown on the Addons page (admin/views/addons-page.php) only.
 
-		// Auto updater (checks GitHub releases and installs ZIP).
-		require_once CHURCHTOOLS_SUITE_PATH . 'includes/class-churchtools-suite-auto-updater.php';
-		// Update checker (injects GitHub release into WP update transient).
-		require_once CHURCHTOOLS_SUITE_PATH . 'includes/class-churchtools-suite-update-checker.php';
+		require_once CHURCHTOOLS_SUITE_PATH . 'includes/update/class-churchtools-suite-update-provider.php';
 		// Cron display helper (user-friendly cron job names).
 		require_once CHURCHTOOLS_SUITE_PATH . 'includes/class-churchtools-suite-cron-display.php';
 
@@ -162,7 +154,6 @@ class ChurchTools_Suite {
 		$this->loader->add_action( 'admin_post_cts_feedback_submit', $admin, 'handle_feedback_submit' );
 
 		// v0.10.3.4: Prevent redirect to plugins.php after update.
-		$this->loader->add_action( 'admin_init', $admin, 'handle_update_redirect', 1 );
 
 		// Note: Public CSS is now loaded by Admin class (enqueue_styles).
 

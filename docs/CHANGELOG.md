@@ -1,5 +1,82 @@
 # Integration Suite - Changelog
 
+## v1.4.0.7 - Terminfilter ab heute und Schlüsselbefehle (7. November 2026)
+
+- Terminübersicht startet standardmäßig ab dem heutigen lokalen Datum. Bewusst leeres Startdatum zeigt auch vergangene Termine; explizite Datumsfilter bleiben erhalten. Beide Tagesgrenzen werden für die UTC-Datenbank aus der WordPress-Zeitzone umgerechnet.
+- Betriebsanleitung um kopierbare Befehle mit dem lokalen Pluginpfad ergänzt: Ed25519-Schlüssel außerhalb des Webroots erzeugen, ausschließlich öffentliche Schlüssel zusammenführen und GitHub-Secret/Key-ID einrichten. Kein Überschreiben vorhandener Schlüssel bei erneuter Generierung.
+- Regressionen prüfen lokale Mitternachtsgrenzen, Tagesende, leere und historische Filter sowie den sichtbaren Standardwert im Browser. Schlüsselbefehle isoliert mit Wegwerfschlüsseln auf Rechte, Wiederholungsschutz, Signaturen und Schlüsselkonflikte geprüft.
+
+## v1.4.0.6 - Verifizierte manuelle GitHub-Updates (6. November 2026)
+
+- Alte Haupt-/Addon-Updater, eigene ZIP-Kopierinstaller und ungeprüfte Addon-Downloadpfade stillgelegt. Auto-Update-Stufen und Intervalle entfernt; Migration räumt alte Optionen/Cronjobs backendseitig auf.
+- Backend-Prüfung nach Seitenaufbau höchstens einmal je 24 Stunden, auch nach Fehlern; manueller Nonce-/Capability-Prüfauftrag mit Mindestabstand. Persistenter Netzwerkzustand und atomare Locks verhindern parallele Prüfungen. Frontend löst keine Prüfungen oder eigenen Update-DB-Zugriffe aus.
+- Native WordPress-Pluginübersicht, Detaildialog und manuelle Einzel-/Sammelinstallation mit signiertem Ed25519-Manifest, SHA-256, Release-/Asset-Bindung, HTTPS-/Redirect-Limits und ZIP-Validierung vor der Extraktion. Automatische Installation ist gesperrt.
+- Geschützter Release-Build erzeugt vollständigen signierten Draft und veröffentlicht erst danach. Ohne Signierschlüssel bricht er ab. Produktionsschlüssel/Environment müssen eingerichtet werden; kein stiller Hash-/Download-Fallback.
+- Wiederverwendbare Quellen-/Plugin-Konfiguration und Betriebshandbuch ergänzt. Elementor 1.0.0.3, Posts Sync 0.1.12, Presentations 0.1.2.
+
+- Validierung: 216 PHP-Tests (1110 Assertions), 37 Browser-/JavaScript-Prüfungen und 37 zusätzliche Multisite-Updateprüfungen bestanden. Alle vier echten Release-ZIPs mit Wegwerfschlüssel signiert und gegen Laufzeitprüfer validiert; fehlender Signierschlüssel blockiert den Signierer. Gesamt-Coverage: PHP 19,78 %, JavaScript 18,21 %; >80 % bleiben offen.
+
+## v1.4.0.5 - Einheitliche Dienste-Bezeichnungen (6. November 2026)
+
+- Sichtbare „Services“-Texte durch „Dienste“ ersetzt: Einstellungen, Übersichten, Sync-/Fehlermeldungen, Diagnose, Löschdialoge, Gutenberg und beide Elementor-Integrationen. Gruppen heißen einheitlich „Dienstgruppen“; technische API-, Shortcode- und Datenbankschlüssel bleiben kompatibel.
+- Übersetzungsvorlage und deutschen Katalog bereinigt, MO-Datei neu erstellt. Elementor-Addon auf 1.0.0.2 angehoben. Alte Backup-Dateien werden nicht mehr ausgeliefert; die Release-Prüfung weist solche Dateien zurück.
+- Regressionprüfung durchsucht Laufzeitquellen und Übersetzungskataloge; Browserprüfung sichert die sichtbaren Texte aller Backend-Seiten ab. 179 PHP-Tests und 36 Browser-/JavaScript-Prüfungen bestehen.
+
+## v1.4.0.4 - Quality Gate und Tests (5. November 2026)
+
+- Zusätzliche Integrationstests für wiederkehrende Termine, idempotente Aktualisierung, Erhalt von Kalenderauswahl/Fallback-Bildern und validierte Zugangsdaten einschließlich Tenant-Grenzen und Benutzerwechsel.
+- Validierung: 172 PHP-Tests (796 Assertions) und 35 Browser-/JavaScript-Prüfungen erfolgreich. PHP-Gesamt-Coverage steigt auf 18,11 %; die Vorgabe >80 % bleibt offen.
+- PHP- und Browser-Suiten laufen in GitHub Actions ausschließlich für Pull Requests. Push-, manuelle und wiederverwendbare Test-Trigger entfernt; der Release-Workflow ruft die Suiten nicht mehr auf. Überholte Läufe desselben PR werden abgebrochen.
+- Sonar-Funde behoben: Tabellenüberschriften und Toggle-Beschriftungen, redundante Bedingungen, Bash-Prüfungen und gepinnte CI-Actions. Chromium wird über die bereits per Lockfile installierte Playwright-CLI eingerichtet.
+- Wiederholte Unterseitenregistrierung und Modulstatus-Tabellen zusammengeführt; bestehende URLs, Reihenfolge und Sichtbarkeit bleiben erhalten. 176 PHP-Tests (831 Assertions) und 36 Browser-/JavaScript-Prüfungen bestehen; Build-ZIPs geprüft.
+
+## v1.4.0.3 - Übersichten und Diagnose (5. November 2026)
+
+- Vorlagenbilder, ihre Kalenderauswahl und die sechs mitgelieferten SVG-Dateien entfernt. Vorhandene Mediathek-Bilder und eigene Kalenderbilder bleiben erhalten; die Einstellungsseite importiert keine Bilder mehr.
+- Hinweise und Statusmeldungen verwenden einheitliche Flächen, Innenabstände und Farben. Icons in Sync-Buttons sind zentriert; Button-Gruppen umbrechen mit gleichmäßigen Abständen.
+- Terminfilter sind bündig ausgerichtet. Die Terminliste fasst Beschreibung/Tags beim Titel und den Typ beim Datum zusammen; sieben lesbare Spalten ersetzen elf gequetschte Spalten. Breite Termin-, Dienste- und Posts-Tabellen scrollen innerhalb ihres Bereichs. Filter verwenden den gemeinsamen Seitenrenderer per GET; ein alter AJAX-Sonderrenderer mit abweichenden Spalten entfällt aus der Oberfläche, sodass auch Zähler und aktive Filter aktuell bleiben.
+- „Posts“ wird durchgängig verwendet. Ohne aktives Posts-Sync-Addon erklärt die Einstellungsseite die Voraussetzung und verlinkt die Plugin-Verwaltung. Posts Sync 0.1.11 enthält die Layoutkorrekturen seiner Übersicht.
+- Diagnose nach Vorbild von sw-cloudcalendar: Versionen, PHP-Erweiterungen, Umgebung, Verbindungszustand und Datenbestand; Hinweise zu deaktiviertem WP-Cron und fehlendem Auto-Sync-Termin. JSON-Export enthält nur lokale Zustände und Zähler, keine Zugangsdaten oder Termin-Inhalte. Nicht benötigte Cron-Aufgaben und der deaktivierte Updater werden nicht als Fehler dargestellt.
+- Validiert mit 156 PHP-Tests und 35 Browser-/JavaScript-Prüfungen; Installationspaket auf entfernte Bilder und vollständige Diagnosequellen geprüft. Bestehende Gesamt-Coverage-Lücke siehe README.
+
+## v1.4.0.2 - Admin-Skripte und Anmeldemethode (5. November 2026)
+
+- Fehlende Frontend-Skriptabhängigkeit im Backend entfernt: WordPress lädt das Admin-Skript wieder, sodass Anmeldemethoden umschalten und „Verbindung testen“ seine AJAX-Anfrage auslöst.
+- Inaktive Zugangsfelder sind bereits beim Rendern verborgen. Ungültige Eingaben zeigen beim Verbindungstest zusätzlich eine Rückmeldung am Formular.
+- Regressionstest prüft die tatsächliche WordPress-Skriptausgabe; Browser-Fixtures verwenden jetzt dieselbe Abhängigkeitsauflösung statt manuell eingebundener Plugin-Skripte. 149 PHP-Tests (711 Assertions) und 30 Browser-/JavaScript-Prüfungen bestehen.
+
+## v1.4.0.1 - Formulare und Verbindungstest (5. November 2026)
+
+- Die Kopfleiste zeigt nur die Breadcrumbs; die Seitenüberschrift bleibt für Screenreader erhalten.
+- Einstellungskarten und Formulare nutzen die verfügbare Breite. Der alte äußere Tab-Rahmen und feste Kartenbreiten entfallen; Feldgruppen, Hilfetexte und Aktionsabstände sind auch mobil vereinheitlicht.
+- „Verbindung testen“ sendet die aktuellen Formularwerte. Die Vorschau verändert weder gespeicherte Zugangsdaten noch die aktive Sitzung. Alte AJAX-Aufrufe ohne Formularwerte prüfen weiterhin die gespeicherte Konfiguration.
+- Fortschritt, Timeout und Fehler erscheinen direkt am Formular. Passwort-/Token-Felder bleiben leer; bestehende Geheimnisse können für denselben Account weiterverwendet werden und werden nie in das HTML übernommen.
+- Fehlende Feldbeschriftungen in Kalendern, Diensten, Filtern und Presets ergänzt. Preset-Parametergruppen lassen sich per Tastatur öffnen und bleiben nach dem Einklappen erreichbar.
+- Posts Sync 0.1.10 enthält die Beschriftungskorrekturen für seine Einstellungen.
+- 147 PHP-Tests und 30 Browser-/JavaScript-Prüfungen; darunter echte WordPress-AJAX-Aufrufe mit simuliertem ChurchTools-Login/Whoami und eine Formularprüfung aller Screens.
+
+## v1.4.0.0 - Backend-UI (4. November 2026)
+
+### Änderungen
+- Der Backend-Bereich folgt dem Design der SW-Plugins (Design-Tokens, Karten, Chips, Status-Kacheln, Light/Dark).
+- Navigation durch eine linke Rail; Tab-Leiste, Sub-Tabs und das jQuery-Flyout im Admin-Menü entfallen.
+- Screens, Gruppen und Menueinträge stammen aus einer Registry (`ChurchTools_Suite_Admin_Screen`); URLs bleiben kompatibel (`?page=churchtools-suite&tab=&subtab=`).
+- Seitenstruktur: Dashboard | Einstellungen | Synchronisation | Übersichten (Termine, Importierte Dienste, Shortcode-Vorlagen, Posts) | Addons | Erweiterte Diagnose.
+- Verknüpfte Seiten (z. B. „Übersicht Posts“ des Posts-Sync-Addons) liegen jetzt im Plugin-Bereich; der Debug-Bereich heißt „Erweiterte Diagnose“ und bleibt über den Schalter in den Einstellungen sichtbar.
+- Emoji als Icons durch Dashicons ersetzt; globale Sync-Aktion und Verbindungsstatus sitzen in der Kopfleiste.
+- Verwaiste Views (`admin-page.php`, `tab-data.php`) entfernt; geteilte Connection-Logik in `includes/functions/connection-state.php`.
+
+### Tests
+- Eigenständige WordPress-Integrationstestumgebung unter `tests/wp` (private MariaDB): 137 Tests für Rendering, Routing, Rechte/Nonces, Einstellungen und Posts-Integration.
+- 16 Chromium-Tests prüfen alle Screens bei 390/1440 Pixeln, Farbschemata, einzelne AJAX-Aufrufe, Fehlerfälle und Löschbestätigungen. Keine echten ChurchTools-Aufrufe.
+- Rekursive Diagnose-Startseite, doppelte Sync-/Keepalive-/Update-Handler, ungültiges Kalender-Script und verschachtelte Layout-Wrapper behoben. Alte Admin-URLs bleiben registriert; Untermenüs haben eigene Ziele.
+- Mobile Navigation einklappbar; Kartenüberschriften nutzen auch bei geladenem Frontend-CSS die Designfarben.
+- Posts Sync 0.1.9 rendert seine Übersicht in der gemeinsamen Shell und lädt die zugehörigen Assets.
+- Tests schließen keine fremden Ausgabepuffer und booten WordPress-Hooks nur einmal; PHPUnit scheitert bei riskanten Tests.
+- PHP-/JS-Gesamtabdeckung wird ohne Dateiausschlüsse gemessen; >80 % sind im Altbestand noch nicht erreicht (Details: README).
+- Release-ZIP enthält keine Tests oder Coverage-Artefakte. Der Build lehnt Pakete mit fehlenden neuen UI-Quelldateien ab.
+- Branch-/PR-Checks und Release verwenden dieselben PHP-/Browserprüfungen mit eigenem MySQL-Dienst.
+
 ## v1.3.0.11 - Admin-Bootstrap-Fix (28. August 2026)
 
 ### Fixes
