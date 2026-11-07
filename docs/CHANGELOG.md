@@ -1,5 +1,11 @@
 # Integration Suite - Changelog
 
+## v1.4.0.7 - Terminfilter ab heute und Schlüsselbefehle (7. November 2026)
+
+- Terminübersicht startet standardmäßig ab dem heutigen lokalen Datum. Bewusst leeres Startdatum zeigt auch vergangene Termine; explizite Datumsfilter bleiben erhalten. Beide Tagesgrenzen werden für die UTC-Datenbank aus der WordPress-Zeitzone umgerechnet.
+- Betriebsanleitung um kopierbare Befehle mit dem lokalen Pluginpfad ergänzt: Ed25519-Schlüssel außerhalb des Webroots erzeugen, ausschließlich öffentliche Schlüssel zusammenführen und GitHub-Secret/Key-ID einrichten. Kein Überschreiben vorhandener Schlüssel bei erneuter Generierung.
+- Regressionen prüfen lokale Mitternachtsgrenzen, Tagesende, leere und historische Filter sowie den sichtbaren Standardwert im Browser. Schlüsselbefehle isoliert mit Wegwerfschlüsseln auf Rechte, Wiederholungsschutz, Signaturen und Schlüsselkonflikte geprüft.
+
 ## v1.4.0.6 - Verifizierte manuelle GitHub-Updates (6. November 2026)
 
 - Alte Haupt-/Addon-Updater, eigene ZIP-Kopierinstaller und ungeprüfte Addon-Downloadpfade stillgelegt. Auto-Update-Stufen und Intervalle entfernt; Migration räumt alte Optionen/Cronjobs backendseitig auf.

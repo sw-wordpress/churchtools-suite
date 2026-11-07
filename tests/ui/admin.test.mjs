@@ -512,7 +512,10 @@ test('diagnostics exports the displayed local report as JSON', async () => {
 
 
 test('event filters navigate with all criteria and retain the shared table layout', async () => {
+  const todayBefore = new Date().toISOString().slice(0, 10);
   const page = await open('data','events');
+  const todayAfter = new Date().toISOString().slice(0, 10);
+  assert.ok([todayBefore, todayAfter].includes(await page.locator('#cts-events-from').inputValue()));
   const ajax = [];
   page.on('request', request => { if (request.url().includes('admin-ajax.php')) ajax.push(request.url()); });
   await page.locator('#cts-events-from').fill('2030-06-01');

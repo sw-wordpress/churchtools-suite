@@ -29,7 +29,7 @@ if ( 'data' !== ChurchTools_Suite_Admin_Screen::requested_section() ) {
 $cts_self_url = ChurchTools_Suite_Admin_Screen::url( 'data/events' );
 
 // Filter-Parameter.
-/* phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only navigation, display filters, or status messages; no state is changed by these query arguments. */ $from            = isset( $_GET['from'] ) ? sanitize_text_field( wp_unslash( $_GET['from'] ) ) : '';
+/* phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only navigation, display filters, or status messages; no state is changed by these query arguments. */ $from            = isset( $_GET['from'] ) ? sanitize_text_field( wp_unslash( $_GET['from'] ) ) : wp_date( 'Y-m-d' );
 /* phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only navigation, display filters, or status messages; no state is changed by these query arguments. */ $to              = isset( $_GET['to'] ) ? sanitize_text_field( wp_unslash( $_GET['to'] ) ) : '';
 /* phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only navigation, display filters, or status messages; no state is changed by these query arguments. */ $calendar_filter = isset( $_GET['calendar_id'] ) ? sanitize_text_field( wp_unslash( $_GET['calendar_id'] ) ) : '';
 /* phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only navigation, display filters, or status messages; no state is changed by these query arguments. */ $cts_page        = max( 1, (int) ( absint( wp_unslash( $_GET['paged'] ?? 1 ) ) ) );
@@ -82,13 +82,13 @@ $where_params = array();
 if ( ! empty( $from ) ) {
 	$sql           .= ' AND start_datetime >= %s';
 	$count_sql     .= ' AND start_datetime >= %s';
-	$where_params[] = $from . ' 00:00:00';
+	$where_params[] = get_gmt_from_date( $from . ' 00:00:00' );
 }
 
 if ( ! empty( $to ) ) {
 	$sql           .= ' AND start_datetime <= %s';
 	$count_sql     .= ' AND start_datetime <= %s';
-	$where_params[] = $to . ' 23:59:59';
+	$where_params[] = get_gmt_from_date( $to . ' 23:59:59' );
 }
 
 if ( ! empty( $calendar_filter ) ) {

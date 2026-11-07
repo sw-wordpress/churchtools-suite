@@ -14,7 +14,7 @@ Wenn du das Plugin ohne die Anpassungen dieses Forks nutzen willst, schau im Ori
 
 | Paket | Typ | Version | Pfad |
 | --- | --- | --- | --- |
-| ChurchTools Integration Suite | Hauptplugin | 1.4.0.6 | `churchtools-suite.php` |
+| ChurchTools Integration Suite | Hauptplugin | 1.4.0.7 | `churchtools-suite.php` |
 | Elementor Integration | Addon | 1.0.0.3 | `addons/churchtools-suite-elementor/` |
 | Posts Sync | Addon | 0.1.12 | `addons/churchtools-suite-posts-sync/` |
 | Presentations | Addon | 0.1.2 | `addons/churchtools-suite-presentations/` |

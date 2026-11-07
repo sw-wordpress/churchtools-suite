@@ -199,6 +199,47 @@ final class AdminRegressionTest extends CTS_TestCase {
 		$this->assertStringNotContainsString( "action', value:'cts_fetch_events_list'", $html );
 	}
 
+	public function test_event_overview_defaults_to_local_today_and_allows_empty_or_historical_start(): void {
+		global $wpdb;
+		update_option( 'timezone_string', 'Pacific/Kiritimati' );
+		$today = current_datetime()->setTime( 0, 0 );
+		$dates = array(
+			'Yesterday event' => $today->modify( '-1 second' ),
+			'Early today event' => $today,
+			'Late today event' => $today->setTime( 23, 59, 59 ),
+			'Tomorrow event' => $today->modify( '+1 day' ),
+		);
+		foreach ( $dates as $title => $date ) {
+			$wpdb->insert( $wpdb->prefix . 'cts_events', array(
+				'calendar_id' => 'today-regression', 'title' => $title,
+				'start_datetime' => $date->setTimezone( new DateTimeZone( 'UTC' ) )->format( 'Y-m-d H:i:s' ),
+			) );
+		}
+		$_GET = array( 'tab' => 'data', 'subtab' => 'events', 'calendar_id' => 'today-regression' );
+		$html = $this->render_file( CHURCHTOOLS_SUITE_PATH . 'admin/views/data/events.php' );
+		$this->assertStringContainsString( 'id="cts-events-from" value="' . $today->format( 'Y-m-d' ) . '"', $html );
+		$this->assertStringNotContainsString( 'Yesterday event', $html );
+		$this->assertStringContainsString( 'Early today event', $html );
+		$this->assertStringContainsString( 'Tomorrow event', $html );
+		$this->assertStringContainsString( '3 Termine', $html );
+		$_GET['to'] = $today->format( 'Y-m-d' );
+		$html = $this->render_file( CHURCHTOOLS_SUITE_PATH . 'admin/views/data/events.php' );
+		$this->assertStringContainsString( 'Early today event', $html );
+		$this->assertStringContainsString( 'Late today event', $html );
+		$this->assertStringNotContainsString( 'Tomorrow event', $html );
+		$this->assertStringContainsString( '2 Termine', $html );
+		unset( $_GET['to'] );
+		$_GET['from'] = '';
+		$html = $this->render_file( CHURCHTOOLS_SUITE_PATH . 'admin/views/data/events.php' );
+		$this->assertStringContainsString( 'id="cts-events-from" value=""', $html );
+		$this->assertStringContainsString( 'Yesterday event', $html );
+		$this->assertStringContainsString( '4 Termine', $html );
+		$_GET['from'] = $today->modify( '-1 day' )->format( 'Y-m-d' );
+		$html = $this->render_file( CHURCHTOOLS_SUITE_PATH . 'admin/views/data/events.php' );
+		$this->assertStringContainsString( 'Yesterday event', $html );
+		$this->assertStringContainsString( '4 Termine', $html );
+	}
+
 	public function test_both_sync_pages_render_and_escape_the_same_module_status(): void {
 		add_filter( 'cts_register_sync_modules', static function ( $modules ) {
 			$modules['quality-test'] = array(

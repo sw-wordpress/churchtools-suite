@@ -12,6 +12,111 @@ Der neue Provider ist implementiert. Die bisherigen Haupt- und Addon-Updater sow
 
 Ohne Secret oder Key-ID bricht der Release-Build vor dem Upload/Publish ab. Diese Konfiguration wurde durch die Codeänderung nicht automatisch im GitHub-Konto angelegt. Ein Repository-/Workflow-Administrator mit Zugriff auf eine ungeschützte Signierumgebung könnte weiterhin bösartigen Code signieren; die geschützte Umgebung ist deshalb Teil der Betriebsanforderung.
 
+## Copy & Paste: Schlüssel für ChurchTools Suite einrichten
+
+Diese Befehle sind für Bash/Zsh auf dem lokalen Entwicklungs-/Release-Rechner mit PHP und Sodium gedacht, nicht für den produktiven WordPress-Webserver. Der Checkout liegt hier unter `/var/www/html/wordpress_dev/wp-content/plugins/churchtools-suite`. Private Dateien landen ausschließlich unter `$HOME/.local/share/churchtools-suite-release-keys`, außerhalb dieses Checkouts und Webroots. Diesen Ordner separat verschlüsselt sichern; er gehört nicht in Git, Release-ZIPs oder öffentlich synchronisierte Ordner. Die Befehle wurden mit Wegwerfschlüsseln geprüft; produktive Schlüssel werden nicht durch die Dokumentation angelegt.
+
+**1. Einmalig Schlüssel erzeugen.** Der Block verweigert einen bereits vorhandenen Schlüsselordner, damit ein erneutes Einfügen keinen bestehenden Schlüssel ersetzt. Die Key-ID ist eine öffentliche Kennung; beim späteren Schlüsselwechsel eine neue Kennung und einen neuen Ordner verwenden.
+
+```bash
+(
+  set -eu
+  umask 077
+  export CTS_RELEASE_KEYS_DIR="$HOME/.local/share/churchtools-suite-release-keys"
+  php <<'PHP'
+<?php
+declare(strict_types=1);
+if (!function_exists('sodium_crypto_sign_keypair')) {
+    throw new RuntimeException('PHP-Sodium fehlt.');
+}
+$dir = getenv('CTS_RELEASE_KEYS_DIR');
+if (!$dir || file_exists($dir) || is_link($dir)) {
+    throw new RuntimeException('Schlüsselordner existiert bereits oder Pfad fehlt. Keine Dateien verändert.');
+}
+if (!mkdir($dir, 0700, true)) {
+    throw new RuntimeException('Schlüsselordner konnte nicht angelegt werden.');
+}
+$id = 'churchtools-suite-2026-11';
+$pair = sodium_crypto_sign_keypair();
+$secret = sodium_crypto_sign_secretkey($pair);
+$public = sodium_crypto_sign_publickey($pair);
+$files = [
+    'signing-key.base64' => base64_encode($secret) . "\n",
+    'public-keys.php' => "<?php\nreturn " . var_export([$id => base64_encode($public)], true) . ";\n",
+    'key-id.txt' => $id . "\n",
+];
+foreach ($files as $name => $contents) {
+    $handle = fopen($dir . '/' . $name, 'x');
+    if (!$handle || fwrite($handle, $contents) !== strlen($contents)) {
+        throw new RuntimeException('Schlüsseldatei konnte nicht vollständig geschrieben werden.');
+    }
+    fclose($handle);
+}
+sodium_memzero($secret);
+sodium_memzero($pair);
+echo "Schlüsseldateien erzeugt; privater Schlüssel wurde nicht ausgegeben.\n";
+PHP
+)
+```
+
+**2. Nur den öffentlichen Schlüssel ins Plugin übernehmen.** Dieser Block erhält bereits vorhandene öffentliche Schlüssel und lehnt eine abweichende Belegung derselben Key-ID ab. Dafür werden keine privaten Schlüssel in eine Umgebungsvariable oder nach WordPress kopiert.
+
+```bash
+(
+  set -eu
+  export CTS_PLUGIN_DIR='/var/www/html/wordpress_dev/wp-content/plugins/churchtools-suite'
+  export CTS_RELEASE_KEYS_DIR="$HOME/.local/share/churchtools-suite-release-keys"
+  php <<'PHP'
+<?php
+declare(strict_types=1);
+$target = getenv('CTS_PLUGIN_DIR') . '/includes/update/trusted-keys.php';
+$existing = require $target;
+$incoming = require getenv('CTS_RELEASE_KEYS_DIR') . '/public-keys.php';
+if (!is_array($existing) || !is_array($incoming) || count($incoming) !== 1) {
+    throw new RuntimeException('Ungültiger öffentlicher Schlüsselring.');
+}
+foreach ($incoming as $id => $key) {
+    $decoded = is_string($key) ? base64_decode($key, true) : false;
+    if (!is_string($decoded) || strlen($decoded) !== 32 || (isset($existing[$id]) && $existing[$id] !== $key)) {
+        throw new RuntimeException('Ungültiger öffentlicher Schlüssel oder widersprüchliche Key-ID.');
+    }
+    $existing[$id] = $key;
+}
+$contents = "<?php\n/** Public Ed25519 verification keys. */\nreturn " . var_export($existing, true) . ";\n";
+if (file_put_contents($target, $contents, LOCK_EX) !== strlen($contents)) {
+    throw new RuntimeException('Öffentlicher Schlüsselring konnte nicht geschrieben werden.');
+}
+echo "Öffentlicher Schlüsselring aktualisiert.\n";
+PHP
+  php -l "$CTS_PLUGIN_DIR/includes/update/trusted-keys.php"
+  git -C "$CTS_PLUGIN_DIR" diff -- includes/update/trusted-keys.php
+)
+```
+
+Die angezeigte Änderung an `includes/update/trusted-keys.php` enthält ausschließlich den öffentlichen Schlüssel. Diese Datei nach Review regulär committen. Bestehende Installationen benötigen sie einmal über einen vertrauenswürdigen manuellen Upload oder eine lokale Konfiguration; erst dann können sie signierte Folgeupdates akzeptieren.
+
+**3. GitHub vorbereiten und Secret hinterlegen.** Zuerst in den [Repository-Environments](https://github.com/sw-wordpress/churchtools-suite/settings/environments) die Umgebung `plugin-releases` anlegen und Freigaben sowie erlaubte Release-Tags passend zum Workflow absichern. Erst danach folgenden Block mit einem für dieses Repository berechtigten GitHub-CLI-Konto ausführen. `gh auth status` prüft die Anmeldung; falls nötig zuvor `gh auth login` ausführen.
+
+```bash
+(
+  set -eu
+  CTS_RELEASE_KEYS_DIR="$HOME/.local/share/churchtools-suite-release-keys"
+  gh auth status
+  gh secret set SW_PLUGIN_RELEASE_SIGNING_KEY \
+    --repo sw-wordpress/churchtools-suite --env plugin-releases \
+    < "$CTS_RELEASE_KEYS_DIR/signing-key.base64"
+  gh variable set SW_PLUGIN_RELEASE_KEY_ID \
+    --repo sw-wordpress/churchtools-suite --env plugin-releases \
+    --body "$(cat "$CTS_RELEASE_KEYS_DIR/key-id.txt")"
+  gh secret list --repo sw-wordpress/churchtools-suite --env plugin-releases
+  gh variable list --repo sw-wordpress/churchtools-suite --env plugin-releases
+)
+```
+
+Der private Schlüssel wird über Standardeingabe an GitHub übergeben und erscheint weder im Befehlsargument noch in der Terminalausgabe. Die Listen zeigen Secret-Namen beziehungsweise öffentliche Variablen. Referenzen: [GitHub CLI: Secret setzen](https://cli.github.com/manual/gh_secret_set), [Variable setzen](https://cli.github.com/manual/gh_variable_set), [PHP: Ed25519-Schlüsselpaar erzeugen](https://www.php.net/manual/en/function.sodium-crypto-sign-keypair.php).
+
+Ein erneutes Setzen des Secrets ersetzt den GitHub-Wert. Deshalb vor Ausführung sicherstellen, dass dieser lokale Schlüssel zum gewünschten öffentlichen Schlüsselring passt; bei Rotation den Ablauf weiter unten verwenden. Die Befehle erzeugen keinen Release-Tag und veröffentlichen kein ZIP. Der eingerichtete Tag-Workflow übernimmt später Build, Signierung und Veröffentlichung.
+
 ## Prüfungen und Installation
 
 - Berechtigte Backend-Besuche können nach dem Seitenaufbau einen Prüflauf starten; höchstens einmal je 24 Stunden pro konfigurierter Quelle und WordPress-Netzwerk. Nach Netzwerk- und Verifikationsfehlern gilt dieselbe Sperrfrist.
