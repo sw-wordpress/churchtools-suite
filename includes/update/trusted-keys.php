@@ -1,8 +1,5 @@
 <?php
-/**
- * Public Ed25519 keys only. Populated by the protected release build.
- *
- * @package ChurchTools_Suite
- */
-
-return array();
+/** Public Ed25519 verification keys. */
+return array (
+  'churchtools-suite-2026-11' => 'iTKw5RTf/drWa+KZAPtUVaxQKQ0zfxJpHiT6BSfUiXI=',
+);
