@@ -39,9 +39,7 @@ $last_stats  = is_array( $last_result ) ? (array) ( $last_result['stats'] ?? arr
 			<?php endif; ?>
 
 			<p class="cts-posts-sync-overview-actions">
-				<?php if ( $is_local_environment ) : ?>
-					<button type="button" class="button button-primary" id="cts-posts-overview-run-sync" data-action="run-sync"><?php esc_html_e( 'Jetzt manuell synchronisieren', 'churchtools-suite-posts-sync' ); ?></button>
-				<?php endif; ?>
+				<button type="button" class="button button-primary" id="cts-posts-overview-run-sync" data-action="run-sync"><?php esc_html_e( 'Jetzt manuell synchronisieren', 'churchtools-suite-posts-sync' ); ?></button>
 				<a class="button" href="<?php echo esc_url( admin_url( 'admin.php?page=churchtools-suite&tab=settings&subtab=posts' ) ); ?>"><?php esc_html_e( 'Zu Posts-Einstellungen', 'churchtools-suite-posts-sync' ); ?></a>
 			</p>
 

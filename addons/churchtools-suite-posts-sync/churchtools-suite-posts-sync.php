@@ -275,15 +275,6 @@ class ChurchTools_Suite_Posts_Sync {
 	}
 
 	/**
-	 * Deactivate addon outside allowed environments and show notice.
-	 *
-	 * @deprecated 0.1.6 Umgebungseinschränkung entfernt – Plugin ist jetzt für alle Umgebungen freigegeben.
-	 */
-	private static function deactivate_if_not_allowed_environment() {
-		// No longer used – kept for backward compatibility only.
-	}
-
-	/**
 	 * Show admin notice if main plugin is missing
 	 */
 	public static function admin_notice_missing_main_plugin() {

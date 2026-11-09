@@ -18,7 +18,6 @@ set_current_screen( 'dashboard' );
 ChurchTools_Suite_Roles::register_role();
 update_option( 'churchtools_suite_advanced_mode', 1 );
 update_option( 'churchtools_suite_calendars_last_sync', '2026-11-05 12:00:00' );
-add_filter( 'cts_posts_sync_is_allowed_environment', '__return_true' );
 add_filter( 'pre_http_request', static fn () => new WP_Error( 'fixture_network_disabled', 'No external services in browser fixtures.' ) );
 add_filter( 'admin_url', static fn ( $url ) => preg_replace( '~https?://[^/]+~', '', $url ) );
 
