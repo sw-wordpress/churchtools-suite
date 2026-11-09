@@ -22,6 +22,11 @@ add_filter( 'cts_posts_sync_is_allowed_environment', '__return_true' );
 add_filter( 'pre_http_request', static fn () => new WP_Error( 'fixture_network_disabled', 'No external services in browser fixtures.' ) );
 add_filter( 'admin_url', static fn ( $url ) => preg_replace( '~https?://[^/]+~', '', $url ) );
 
+// Keep ordinary interaction fixtures independent of the deployed verification keys.
+require_once CHURCHTOOLS_SUITE_PATH . 'includes/update/class-churchtools-suite-update-store.php';
+add_filter( 'cts_verified_release_public_keys', static fn () => array( 'fixture' => base64_encode( str_repeat( 'a', 32 ) ) ) );
+ChurchTools_Suite_Update_Store::write( array( 'last_attempt' => time() ) );
+
 require_once CHURCHTOOLS_SUITE_PATH . 'addons/churchtools-suite-posts-sync/churchtools-suite-posts-sync.php';
 require_once CTS_POSTS_SYNC_PATH . 'includes/class-churchtools-suite-posts-sync-service.php';
 require_once CTS_POSTS_SYNC_PATH . 'includes/class-churchtools-suite-posts-sync-admin.php';
@@ -119,7 +124,9 @@ $_GET = array( 'page' => 'churchtools-suite', 'tab' => 'settings', 'subtab' => '
 cts_export_browser_page( $output, 'settings--posts-inactive', $head, $tail );
 
 // A configured public key enables the manual-check control without contacting GitHub.
-add_filter( 'cts_verified_release_public_keys', static fn () => array( 'fixture' => base64_encode( str_repeat( 'a', 32 ) ) ) );
-ChurchTools_Suite_Update_Store::write( array( 'last_attempt' => time() ) );
 $_GET = array( 'page' => 'churchtools-suite', 'tab' => 'settings', 'subtab' => 'advanced' );
 cts_export_browser_page( $output, 'settings--verified-updates', $head, $tail );
+
+// Exercise overdue background checks separately from user-triggered AJAX actions.
+ChurchTools_Suite_Update_Store::write( array( 'last_attempt' => 0 ) );
+cts_export_browser_page( $output, 'settings--verified-updates-due', $head, $tail );

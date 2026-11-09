@@ -119,6 +119,9 @@ class ChurchTools_Suite_Posts_Sync_Service {
 				$current_hash = (string) get_post_meta( $existing_post_id, self::META_CT_POST_HASH, true );
 				$current_post = get_post( $existing_post_id );
 				if ( $current_post && $current_hash === $payload_hash && $current_post->post_type === $target_type && $current_post->post_status === $target_status ) {
+					if ( is_wp_error( $this->ensure_featured_image( $existing_post_id, $normalized ) ) ) {
+						++$stats['errors'];
+					}
 					++$stats['posts_skipped'];
 					continue;
 				}
@@ -145,6 +148,9 @@ class ChurchTools_Suite_Posts_Sync_Service {
 				update_post_meta( $existing_post_id, self::META_CT_POST_HASH, $payload_hash );
 				$this->update_ct_post_meta( $existing_post_id, $normalized );
 				$this->assign_group_category( $existing_post_id, $normalized, $target_type );
+				if ( is_wp_error( $this->ensure_featured_image( $existing_post_id, $normalized ) ) ) {
+					++$stats['errors'];
+				}
 				++$stats['posts_updated'];
 				continue;
 			}
@@ -172,6 +178,9 @@ class ChurchTools_Suite_Posts_Sync_Service {
 			update_post_meta( $new_post_id, self::META_CT_POST_HASH, $payload_hash );
 			$this->update_ct_post_meta( $new_post_id, $normalized );
 			$this->assign_group_category( $new_post_id, $normalized, $target_type );
+			if ( is_wp_error( $this->ensure_featured_image( $new_post_id, $normalized ) ) ) {
+				++$stats['errors'];
+			}
 			++$stats['posts_created'];
 		}
 
@@ -351,6 +360,7 @@ class ChurchTools_Suite_Posts_Sync_Service {
 		$images     = $this->extract_image_urls( $image_candidates );
 		$content    = $this->normalize_content_with_images( $content_raw, $images );
 		$content    = $parse_down->text( $content );
+		$images     = $this->extract_image_urls( array_merge( $images, $this->extract_content_image_urls( $parse_down->text( $content_raw ) ) ) );
 
 		$publication_date   = (string) ( $item['publicationDate'] ?? '' );
 		$expiration_date    = (string) ( $item['expirationDate'] ?? '' );
@@ -515,6 +525,49 @@ class ChurchTools_Suite_Posts_Sync_Service {
 
 		$ids = array_values( array_unique( array_filter( $ids, static fn( $value ) => $value > 0 ) ) );
 		return $ids;
+	}
+
+	/**
+	 * Collect inline images after rendering Markdown, including reference images.
+	 *
+	 * @return list<string>
+	 */
+	private function extract_content_image_urls( string $html ): array {
+		preg_match_all( '/<img\b[^>]*?\s+src\s*=\s*(?:"([^"]*)"|\'([^\']*)\'|([^\s>]+))/i', $html, $matches, PREG_SET_ORDER );
+		$urls = array();
+		foreach ( $matches as $match ) {
+			$url    = ( $match[1] ?? '' ) ?: ( ( $match[2] ?? '' ) ?: ( $match[3] ?? '' ) );
+			$urls[] = html_entity_decode( $url, ENT_QUOTES | ENT_HTML5, 'UTF-8' );
+		}
+		return $urls;
+	}
+
+	/**
+	 * Backfill missing thumbnails even when the post payload has not changed.
+	 * Existing thumbnails (including manually selected ones) are preserved.
+	 *
+	 * @param int                  $post_id    WordPress post ID.
+	 * @param array<string, mixed> $normalized Normalized post data.
+	 * @return true|WP_Error
+	 */
+	private function ensure_featured_image( int $post_id, array $normalized ) {
+		if ( has_post_thumbnail( $post_id ) || empty( $normalized['images'] ) ) {
+			return true;
+		}
+
+		require_once CHURCHTOOLS_SUITE_PATH . 'includes/class-churchtools-suite-image-importer.php';
+		$image_url     = (string) $normalized['images'][0];
+		$attachment_id = ChurchTools_Suite_Image_Importer::find_existing_image( $image_url );
+		if ( ! $attachment_id || ! wp_attachment_is_image( $attachment_id ) ) {
+			$attachment_id = ChurchTools_Suite_Image_Importer::import_image( $image_url, $normalized['title'] );
+		}
+		if ( is_wp_error( $attachment_id ) ) {
+			return $attachment_id;
+		}
+		if ( ! set_post_thumbnail( $post_id, (int) $attachment_id ) ) {
+			return new WP_Error( 'thumbnail_failed', __( 'Beitragsbild konnte nicht gesetzt werden.', 'churchtools-suite-posts-sync' ) );
+		}
+		return true;
 	}
 
 	private function extract_image_urls( array $images ): array {
