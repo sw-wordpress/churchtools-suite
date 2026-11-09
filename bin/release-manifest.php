@@ -32,8 +32,14 @@ function cts_sign_release( array $argv ): void {
 			if ( ! is_array( $keys ) ) {
 				throw new RuntimeException( 'Invalid keyring.' );
 			}
+			if ( isset( $keys[ $key_id ] ) && base64_encode( $public ) !== $keys[ $key_id ] ) {
+				throw new RuntimeException( 'Key ID is already used by a different public key.' );
+			}
 			$keys[ $key_id ] = base64_encode( $public );
-			file_put_contents( $file, "<?php\n/** Public Ed25519 verification keys. */\nreturn " . var_export( $keys, true ) . ";\n" );
+			$contents = "<?php\n/** Public Ed25519 verification keys. */\nreturn " . var_export( $keys, true ) . ";\n";
+			if ( file_put_contents( $file, $contents, LOCK_EX ) !== strlen( $contents ) ) {
+				throw new RuntimeException( 'Cannot write public keyring.' );
+			}
 			exit( 0 );
 		}
 		if ( 'sign' !== ( $argv[1] ?? '' ) || count( $argv ) !== 5 ) {

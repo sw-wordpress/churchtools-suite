@@ -48,6 +48,7 @@ package() {
 /dist
 /coverage
 /bin
+/Makefile
 /package.json
 /package-lock.json
 /tests

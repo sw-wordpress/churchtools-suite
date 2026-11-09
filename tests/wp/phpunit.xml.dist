@@ -17,6 +17,7 @@
             <file>tests/AdminDesignSystemTest.php</file>
             <file>tests/TerminologyTest.php</file>
             <file>tests/VerifiedUpdatesTest.php</file>
+            <file>tests/ReleaseToolingTest.php</file>
         </testsuite>
     </testsuites>
     <coverage>

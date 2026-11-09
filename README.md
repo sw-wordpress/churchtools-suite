@@ -118,7 +118,15 @@ Reports: `coverage/php.xml`, `coverage/ui.json`. `coverage:check` verlangt für 
 
 Das [Sicherheits- und Umsetzungskonzept](docs/GITHUB-UPDATES.md) beschreibt einen übertragbaren GitHub-Update-Provider mit signierten Manifesten, Backend-Prüfung höchstens einmal je 24 Stunden und ausschließlich manueller Installation über WordPress. Die Umsetzung und [Einrichtung der Signierschlüssel](docs/GITHUB-UPDATES-BETRIEB.md) sind dokumentiert. Die alten Updater sind stillgelegt. Ohne öffentlichen Vertrauensschlüssel bleibt die neue GitHub-Funktion gesperrt; Produktionsschlüssel werden nicht automatisch erzeugt.
 
-### Release-ZIP
+### Release
+
+```bash
+make release VERSION=1.4.0.8
+```
+
+Aktualisiert den `Version`-Header und `CHURCHTOOLS_SUITE_VERSION` in `churchtools-suite.php`, erstellt den Versionscommit und einen annotierten Tag und pusht aktuellen Branch plus Tag atomar nach `origin`. Der Tag startet den signierten GitHub-Release-Build. Drei- und vierteilige Versionsnummern sind erlaubt; Addons behalten ihre eigenen Versionen. Ein sauberer Arbeitsbaum inklusive unversionierter Dateien ist erforderlich. Bestehende Tags, Downgrades und widersprüchliche Versionsangaben werden abgelehnt. Bei fehlgeschlagenem Push bleiben Commit und Tag lokal erhalten; die Remote-Refs werden nur gemeinsam aktualisiert.
+
+Nur ZIPs lokal bauen:
 
 ```bash
 bash bin/build-zip.sh            # -> dist/*.zip (Hauptplugin und jedes Addon separat)

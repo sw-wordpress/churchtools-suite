@@ -12,6 +12,8 @@ Der neue Provider ist implementiert. Die bisherigen Haupt- und Addon-Updater sow
 
 Ohne Secret oder Key-ID bricht der Release-Build vor dem Upload/Publish ab. Diese Konfiguration wurde durch die Codeänderung nicht automatisch im GitHub-Konto angelegt. Ein Repository-/Workflow-Administrator mit Zugriff auf eine ungeschützte Signierumgebung könnte weiterhin bösartigen Code signieren; die geschützte Umgebung ist deshalb Teil der Betriebsanforderung.
 
+Releases starten mit `make release VERSION=X.Y.Z.W` (auch `X.Y.Z` möglich); Ablauf und Voraussetzungen stehen in der [README](../README.md#release). Der Workflow lädt Draft-Metadaten nach dem ZIP-Upload über die API-URL aus `gh release view`, prüft den eingebetteten öffentlichen Schlüssel und signiert die tatsächlichen Asset-IDs. Eine bereits belegte Key-ID darf keinen anderen öffentlichen Schlüssel erhalten. Veröffentlichte Releases werden nicht überschrieben. Alte Tags verwenden weiterhin ihren damaligen Workflow; Korrekturen benötigen einen neuen Tag mit dem aktuellen Code.
+
 ## Copy & Paste: Schlüssel für ChurchTools Suite einrichten
 
 Diese Befehle sind für Bash/Zsh auf dem lokalen Entwicklungs-/Release-Rechner mit PHP und Sodium gedacht, nicht für den produktiven WordPress-Webserver. Der Checkout liegt hier unter `/var/www/html/wordpress_dev/wp-content/plugins/churchtools-suite`. Private Dateien landen ausschließlich unter `$HOME/.local/share/churchtools-suite-release-keys`, außerhalb dieses Checkouts und Webroots. Diesen Ordner separat verschlüsselt sichern; er gehört nicht in Git, Release-ZIPs oder öffentlich synchronisierte Ordner. Die Befehle wurden mit Wegwerfschlüsseln geprüft; produktive Schlüssel werden nicht durch die Dokumentation angelegt.

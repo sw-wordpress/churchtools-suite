@@ -24,6 +24,10 @@ jobs:
         id: metadata
         run: |
           RAW="${GITHUB_REF_NAME}"
+          if ! printf '%s' "$RAW" | grep -Eq '^v?[0-9]+(\.[0-9]+){2,3}(-[0-9]{2})?$'; then
+            echo "Expected stable release tag [v]X.Y.Z[.W][-NN]" >&2
+            exit 1
+          fi
           VERSION="${RAW#v}"        # strip leading "v"
           VERSION="${VERSION%-*}"   # strip "-01" build suffix
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
@@ -74,6 +78,8 @@ jobs:
         run: bash bin/build-zip.sh "$RUNNER_TEMP/dist"
 
       - name: Verify ZIP contents
+        env:
+          KEY_ID: ${{ vars.SW_PLUGIN_RELEASE_KEY_ID }}
         run: |
           shopt -s nullglob
           ZIPS=("$RUNNER_TEMP"/dist/*.zip)
@@ -89,6 +95,10 @@ jobs:
             fi
             echo "OK: $zip"
           done
+          MAIN_ZIP="$RUNNER_TEMP/dist/churchtools-suite-${{ steps.metadata.outputs.version }}.zip"
+          [ -f "$MAIN_ZIP" ] || { echo "Main plugin ZIP missing" >&2; exit 1; }
+          unzip -p "$MAIN_ZIP" churchtools-suite/includes/update/trusted-keys.php > "$RUNNER_TEMP/shipped-keys.php"
+          php -r '$expected = require $argv[1]; $shipped = require $argv[2]; $id = getenv("KEY_ID"); exit(isset($expected[$id], $shipped[$id]) && $expected[$id] === $shipped[$id] ? 0 : 1);' includes/update/trusted-keys.php "$RUNNER_TEMP/shipped-keys.php"
 
       - name: Upload packages to draft release
         env:
@@ -96,12 +106,15 @@ jobs:
           RELEASE_TAG: ${{ github.ref_name }}
         run: |
           if gh release view "$RELEASE_TAG" --json isDraft > "$RUNNER_TEMP/existing-release.json" 2>/dev/null; then
-            php -r '$r=json_decode(file_get_contents($argv[1]),true); exit(empty($r["isDraft"])?1:0);' "$RUNNER_TEMP/existing-release.json"
+            php -r '$r=json_decode(file_get_contents($argv[1]),true); exit(empty($r["isDraft"])?1:0);' "$RUNNER_TEMP/existing-release.json" \
+              || { echo "Release $RELEASE_TAG is already published; refusing to modify it." >&2; exit 1; }
           else
             gh release create "$RELEASE_TAG" --draft --verify-tag --title "$RELEASE_TAG"
           fi
           gh release upload "$RELEASE_TAG" "$RUNNER_TEMP"/dist/*.zip --clobber
-          gh api "repos/$GITHUB_REPOSITORY/releases/tags/$RELEASE_TAG" > "$RUNNER_TEMP/release.json"
+          # Resolve drafts via gh release view; the tag endpoint does not resolve them.
+          RELEASE_API_URL="$(gh release view "$RELEASE_TAG" --json apiUrl --jq .apiUrl)"
+          gh api "$RELEASE_API_URL" > "$RUNNER_TEMP/release.json"
 
       - name: Sign exact uploaded packages
         env:

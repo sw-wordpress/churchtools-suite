@@ -53,3 +53,4 @@ composer.lock.bak
 /tests/wp/vendor/
 /tests/wp/.phpunit*
 /tests/wp/.phpunit.result.cache
+PROBLEMS.md
