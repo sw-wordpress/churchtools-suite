@@ -53,7 +53,7 @@ after(async () => {
     if (fixtureDir) await rm(fixtureDir, { recursive: true, force: true });
   }
 });
-async function open(section = 'dashboard', sub = '', width = 1440) {
+async function open(section = 'dashboard', sub = '', width = 1440, configure = async () => {}) {
   const page = await browser.newPage({ viewport: { width, height: 900 } });
   page.setDefaultTimeout(5000);
   if (measureCoverage) await page.coverage.startJSCoverage({ resetOnNavigation: false });
@@ -62,6 +62,7 @@ async function open(section = 'dashboard', sub = '', width = 1440) {
     if (new URL(route.request().url()).origin === origin) return route.continue();
     return route.abort();
   });
+  await configure(page);
   await page.goto(`${origin}/wp-admin/admin.php?page=churchtools-suite&tab=${section}&subtab=${sub}`);
   return page;
 }
@@ -549,6 +550,7 @@ test('diagnostic tables have headers and settings toggles expose one visible lab
 
 test('verified update checking is manual, single-flight and never installs a package', async () => {
   const page = await open('settings','verified-updates');
+  assert.equal(await page.evaluate(() => window.ctsVerifiedUpdates.due), false);
   const requests = [];
   let release;
   const pending = new Promise(resolve => {release=resolve;});
@@ -568,5 +570,22 @@ test('verified update checking is manual, single-flight and never installs a pac
   assert.equal(requests[0].manual,'1');
   assert.match(await page.locator('#cts-verified-updates-result').textContent(),/Signed metadata/);
   assert.equal(await page.locator('#cts_start_update_btn').count(),0);
+  await close(page);
+});
+
+test('overdue update checks send one background request without installing a package', async () => {
+  const requests = [];
+  const page = await open('settings', 'verified-updates-due', 1440, async page => {
+    await page.route('**/admin-ajax.php', async route => {
+      requests.push(Object.fromEntries(new URLSearchParams(route.request().postData())));
+      await route.fulfill({ json: { success: true, data: { message: 'Background metadata checked' } } });
+    });
+  });
+  assert.equal(await page.evaluate(() => window.ctsVerifiedUpdates.due), true);
+  await page.waitForFunction(() => performance.getEntriesByType('resource').some(entry => entry.name.endsWith('/admin-ajax.php')));
+  await page.waitForFunction(() => !document.getElementById('cts-verified-updates-check').disabled);
+  assert.deepEqual(requests, [{ action: 'cts_check_github_updates', nonce: await page.evaluate(() => window.ctsVerifiedUpdates.nonce), manual: '0' }]);
+  assert.equal(await page.locator('#cts-verified-updates-result').isVisible(), false);
+  assert.equal(await page.locator('#cts_start_update_btn').count(), 0);
   await close(page);
 });
