@@ -132,7 +132,6 @@ final class AdminRegressionTest extends CTS_TestCase {
 
 	public function test_posts_settings_with_addon_render_controls_and_save(): void {
 		$this->load_posts_addon();
-		add_filter( 'cts_posts_sync_is_allowed_environment', '__return_true' );
 		$html = $this->render_admin( 'settings', 'posts' );
 		$this->assertStringContainsString( 'name="ct_posts_sync_enabled"', $html );
 		$this->assertStringContainsString( 'Posts-Einstellungen speichern', $html );
@@ -144,6 +143,38 @@ final class AdminRegressionTest extends CTS_TestCase {
 		$this->assertSame( 1, get_option( 'churchtools_suite_ct_posts_sync_enabled' ) );
 		$this->assertSame( 'post', get_option( 'churchtools_suite_ct_posts_target_type' ) );
 		$this->assertSame( 25, get_option( 'churchtools_suite_ct_posts_sync_limit' ) );
+	}
+
+	public function test_posts_settings_and_manual_sync_are_available_without_an_environment_override(): void {
+		$this->load_posts_addon();
+		update_option( 'home', 'https://www.example.org' );
+		update_option( 'churchtools_suite_ct_posts_sync_enabled', 1 );
+		$html = $this->render_admin( 'settings', 'posts' );
+		$this->assertStringNotContainsString( 'nur in lokaler Umgebung', $html );
+		$this->assertSame( 0, preg_match( '/<(?:input|select|button)\b[^>]*\bdisabled\b/i', $html ) );
+		$this->assertStringContainsString( 'id="cts-posts-overview-run-sync"', $this->render_admin( 'data', 'posts' ) );
+	}
+
+	public function test_posts_sync_activation_controls_the_automatic_import(): void {
+		$this->load_posts_addon();
+		update_option( 'home', 'https://www.example.org' );
+		$client = new class {
+			public int $calls = 0;
+			public function api_request( $endpoint, $method = 'GET', $data = array() ) {
+				++$this->calls;
+				return array( 'data' => array() );
+			}
+		};
+		update_option( 'churchtools_suite_ct_posts_sync_enabled', 1 );
+		$result = array();
+		ChurchTools_Suite_Posts_Sync::handle_sync_posts( $client, $result );
+		$this->assertSame( 1, $client->calls );
+		$this->assertSame( 0, $result['ct_posts_found'] );
+		update_option( 'churchtools_suite_ct_posts_sync_enabled', 0 );
+		$result = array();
+		ChurchTools_Suite_Posts_Sync::handle_sync_posts( $client, $result );
+		$this->assertSame( 1, $client->calls );
+		$this->assertSame( array(), $result );
 	}
 
 	public function test_calendar_settings_do_not_import_bundled_images(): void {
