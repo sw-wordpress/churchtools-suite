@@ -4,7 +4,7 @@ Tags: churchtools, sync, posts, events, integration
 Requires at least: 5.0
 Requires PHP: 8.0
 Tested up to: 6.4
-Stable tag: 0.1.7
+Stable tag: 0.1.14
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
