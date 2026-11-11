@@ -20,6 +20,7 @@
 		initTabs();
 		initDataHeaderSync();
 		initForms();
+		initSyncSettings();
 		initTestConnection();
 		initCalendarSync();
 		initCalendarSelection();
@@ -118,6 +119,23 @@
 			form.addEventListener('input', event => {
 				if (event.target.validity?.valid) event.target.removeAttribute('aria-invalid');
 			});
+		});
+	}
+
+	/**
+	 * Enable dependent sync settings immediately when their toggle changes.
+	 */
+	function initSyncSettings() {
+		[
+			['auto_sync_enabled', 'auto_sync_interval'],
+			['delete_expired_events', 'expired_events_after_days']
+		].forEach(([toggleId, fieldId]) => {
+			const toggle = document.getElementById(toggleId);
+			const field = document.getElementById(fieldId);
+			if (!toggle || !field) return;
+			const refresh = () => { field.disabled = !toggle.checked; };
+			toggle.addEventListener('change', refresh);
+			refresh();
 		});
 	}
 

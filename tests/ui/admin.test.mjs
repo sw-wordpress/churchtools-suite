@@ -536,6 +536,41 @@ test('event filters navigate with all criteria and retain the shared table layou
 });
 
 
+test('sync switches respond across their surface and update dependent fields immediately', async () => {
+  const page = await open('settings', 'sync');
+  const toggle = page.locator('#auto_sync_enabled');
+  const surface = page.locator('.cts-toggle').filter({ has: toggle });
+  const interval = page.locator('#auto_sync_interval');
+  assert.equal(await toggle.isChecked(), false);
+  assert.equal(await interval.isDisabled(), true);
+  const disabledStyle = await interval.evaluate(el => {
+    const css = getComputedStyle(el);
+    return { repeat: css.backgroundRepeat, image: css.backgroundImage, color: css.color };
+  });
+  assert.equal(disabledStyle.repeat, 'no-repeat');
+  assert.notEqual(disabledStyle.image, 'none');
+  await surface.click({ position: { x: 6, y: 12 } });
+  assert.equal(await toggle.isChecked(), true);
+  assert.equal(await interval.isEnabled(), true);
+  assert.notEqual(await interval.evaluate(el => getComputedStyle(el).color), disabledStyle.color);
+  await interval.selectOption('cts_weekly');
+  await surface.click({ position: { x: 42, y: 12 } });
+  assert.equal(await toggle.isChecked(), false);
+  assert.equal(await interval.isDisabled(), true);
+  await page.locator('label[for=auto_sync_enabled]').click();
+  assert.equal(await interval.isEnabled(), true);
+  assert.equal(await interval.inputValue(), 'cts_weekly');
+  await toggle.focus();
+  await page.keyboard.press('Space');
+  assert.equal(await toggle.isChecked(), false);
+  assert.equal(await interval.isDisabled(), true);
+  const cleanup = page.locator('#delete_expired_events');
+  await cleanup.locator('..').click({ position: { x: 24, y: 12 } });
+  assert.equal(await cleanup.isChecked(), true);
+  assert.equal(await page.locator('#expired_events_after_days').isEnabled(), true);
+  await close(page);
+});
+
 test('diagnostic tables have headers and settings toggles expose one visible label', async () => {
   for (const [section, sub] of [['dashboard',''],['advanced',''],['settings','sync'],['settings','advanced']]) {
     const page = await open(section, sub);

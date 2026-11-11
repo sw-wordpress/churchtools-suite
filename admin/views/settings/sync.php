@@ -21,7 +21,7 @@ if ( isset( $_POST['cts_save_sync'] ) && check_admin_referer( 'cts_settings' ) )
 
 	$auto_sync_enabled = isset( $_POST['auto_sync_enabled'] ) ? 1 : 0;
 	update_option( 'churchtools_suite_auto_sync_enabled', $auto_sync_enabled );
-	update_option( 'churchtools_suite_auto_sync_interval', sanitize_text_field( wp_unslash( $_POST['auto_sync_interval'] ?? 'hourly' ) ) );
+	update_option( 'churchtools_suite_auto_sync_interval', sanitize_text_field( wp_unslash( $_POST['auto_sync_interval'] ?? get_option( 'churchtools_suite_auto_sync_interval', 'daily' ) ) ) );
 
 	// Allow addons to save their own sync-related settings in this existing tab.
 	do_action( 'cts_sync_settings_save', $_POST );

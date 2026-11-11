@@ -55,6 +55,19 @@ final class AdminSettingsTest extends CTS_TestCase {
 		$this->assertSame( 'hourly', wp_get_schedule( 'churchtools_suite_auto_sync' ) );
 	}
 
+	public function test_disabling_auto_sync_preserves_the_selected_interval(): void {
+		update_option( 'churchtools_suite_auto_sync_enabled', 1 );
+		update_option( 'churchtools_suite_auto_sync_interval', 'cts_weekly' );
+		$_POST = array(
+			'_wpnonce'      => wp_create_nonce( 'cts_settings' ),
+			'cts_save_sync' => '1',
+		);
+		$this->render_admin( 'settings', 'sync' );
+		$this->assertSame( 0, get_option( 'churchtools_suite_auto_sync_enabled' ) );
+		$this->assertSame( 'cts_weekly', get_option( 'churchtools_suite_auto_sync_interval' ) );
+		$this->assertFalse( wp_next_scheduled( 'churchtools_suite_auto_sync' ) );
+	}
+
 	public function test_advanced_mode_can_be_enabled_and_disabled_from_its_existing_form(): void {
 		$_POST = array( '_wpnonce' => wp_create_nonce( 'cts_settings' ), 'cts_save_advanced' => '1', 'advanced_mode' => '1' );
 		$this->render_admin( 'settings', 'advanced' );

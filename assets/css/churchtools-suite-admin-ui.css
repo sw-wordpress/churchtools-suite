@@ -779,13 +779,24 @@ body.cts-admin-page #wpfooter {
 	padding: 9px 12px;
 	border: 1px solid var(--cts-border);
 	border-radius: var(--cts-radius-sm);
-	background: var(--cts-surface);
+	background-color: var(--cts-surface);
 	color: var(--cts-text);
 	font-size: 14px;
 	line-height: 1.4;
 }
 .cts-wrap select {
 	max-width: 360px;
+	padding-right: 32px;
+	background-repeat: no-repeat;
+	background-position: right 8px center;
+	background-size: 16px 16px;
+}
+.cts-wrap .cts-form-input:disabled,
+.cts-wrap select:disabled {
+	background-color: var(--cts-surface-2);
+	color: var(--cts-muted);
+	border-color: var(--cts-border);
+	cursor: not-allowed;
 }
 .cts-wrap textarea {
 	min-height: 110px;

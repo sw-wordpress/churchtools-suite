@@ -160,7 +160,7 @@ ausschließlich manueller Installation. Führe die Umsetzung einschließlich Tes
 Release-Build und Betriebsdokumentation durch.
 
 Referenz:
-https://github.com/sw-wordpress/churchtools-suite/tree/5f81c09
+https://github.com/sw-wordpress/churchtools-suite/tree/49dc66f
 Lies dort docs/GITHUB-UPDATES.md, docs/GITHUB-UPDATES-BETRIEB.md und die unten
 genannten Quellen. Falls lokal vorhanden, kannst du dieselben Quellen aus einem
 ChurchTools-Suite-Checkout lesen. Lade keinen Code zur Laufzeit von dort nach.

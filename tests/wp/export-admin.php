@@ -53,7 +53,7 @@ foreach ( array( 'public', 'admin', 'admin-ui' ) as $name ) {
 }
 $head .= '<style>body{margin:0}#wpcontent{margin-left:160px;padding-left:20px;padding-top:20px} @media(max-width:782px){#wpcontent{margin-left:0;padding-left:10px;padding-top:10px}}</style>';
 $head .= '<script>window.ajaxurl="/wp-admin/admin-ajax.php";</script>';
-$head .= '</head><body class="wp-admin cts-admin-page"><div id="wpcontent"><div id="wpbody-content">';
+$head .= '</head><body class="wp-admin wp-core-ui cts-admin-page"><div id="wpcontent"><div id="wpbody-content">';
 $tail = '</div></div></body></html>';
 
 function cts_browser_asset_url( $src ) {
