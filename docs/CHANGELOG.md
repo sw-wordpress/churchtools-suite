@@ -1,5 +1,9 @@
 # Integration Suite - Changelog
 
+## Unveröffentlicht
+
+- Posts Sync: Beitragsbilder vom ChurchTools-Bildendpoint erhalten fehlende Größenparameter (`w=auto&h=720&fm=webp&crop=original`); explizite Parameter bleiben erhalten. Bilddownloads versuchen bei Fehlern keine parameterlose URL mehr, damit weder Bildgröße noch Dateiidentität verloren gehen. Vorhandene Beitragsbilder bleiben erhalten; zum erneuten Import eines zu kleinen Bildes dessen Beitragsbild-Zuordnung im Editor entfernen.
+
 ## v1.4.0.7 - Terminfilter ab heute und Schlüsselbefehle (7. November 2026)
 
 - Terminübersicht startet standardmäßig ab dem heutigen lokalen Datum. Bewusst leeres Startdatum zeigt auch vergangene Termine; explizite Datumsfilter bleiben erhalten. Beide Tagesgrenzen werden für die UTC-Datenbank aus der WordPress-Zeitzone umgerechnet.

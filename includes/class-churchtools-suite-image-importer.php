@@ -32,10 +32,6 @@ class ChurchTools_Suite_Image_Importer {
 			return new WP_Error( 'invalid_url', __( 'Ungültige Bild-URL', 'churchtools-suite' ) );
 		}
 
-		// ChurchTools liefert je nach Endpoint transformierte URLs mit Query-Parametern.
-		// Deshalb zuerst die Original-URL nutzen und nur bei Fehlern ohne Query versuchen.
-		$clean_url = strtok( $image_url, '?' );
-
 		// Benutze WordPress-Funktion zum Herunterladen und Speichern.
 		require_once ABSPATH . 'wp-admin/includes/media.php';
 		require_once ABSPATH . 'wp-admin/includes/file.php';
@@ -50,21 +46,10 @@ class ChurchTools_Suite_Image_Importer {
 		$fallback_base      = ! empty( $event_id ) ? 'ct-event-' . sanitize_file_name( $event_id ) : 'ct-event-' . time();
 		$filename_candidate = ! empty( $title_filename ) ? $title_filename : ( ! empty( $url_filename ) ? $url_filename : $fallback_base );
 
-		// Versuche, das Bild herunterzuladen (1) Original URL, (2) Fallback ohne Query.
+		// Preserve transformation and file-identifying parameters on every attempt.
 		$tmp_file = self::download_authenticated( $image_url );
 		if ( is_wp_error( $tmp_file ) ) {
 			$tmp_file = download_url( $image_url, 300 ); // 5 Minuten Timeout
-		}
-
-		if ( is_wp_error( $tmp_file ) && $clean_url !== $image_url ) {
-			/* phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log -- Intentional plugin diagnostics and fallback logging when the normal logger is unavailable. */ error_log(
-				sprintf(
-					'[CTS Image Import] Primary download failed, trying fallback URL without query: %s | Error: %s',
-					$image_url,
-					$tmp_file->get_error_message()
-				)
-			);
-			$tmp_file = download_url( $clean_url, 300 );
 		}
 
 		if ( is_wp_error( $tmp_file ) ) {
@@ -95,7 +80,7 @@ class ChurchTools_Suite_Image_Importer {
 
 		// Fallback 1: Für vertrauenswürdige church.tools URLs - nutze Dateiendung aus URL.
 		if ( empty( $file_type['type'] ) && strpos( $image_url, 'church.tools' ) !== false ) {
-			$parsed_url = wp_parse_url( $clean_url, PHP_URL_PATH );
+			$parsed_url = wp_parse_url( $image_url, PHP_URL_PATH );
 			$path_info  = pathinfo( $parsed_url );
 			$extension  = strtolower( $path_info['extension'] ?? '' );
 

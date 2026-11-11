@@ -556,7 +556,21 @@ class ChurchTools_Suite_Posts_Sync_Service {
 		}
 
 		require_once CHURCHTOOLS_SUITE_PATH . 'includes/class-churchtools-suite-image-importer.php';
-		$image_url     = (string) $normalized['images'][0];
+		$image_url  = (string) $normalized['images'][0];
+		$base_host  = wp_parse_url( (string) get_option( 'churchtools_suite_ct_url', '' ), PHP_URL_HOST );
+		$image_host = wp_parse_url( $image_url, PHP_URL_HOST );
+		$image_path = (string) wp_parse_url( $image_url, PHP_URL_PATH );
+		if ( $base_host && $image_host && 0 === strcasecmp( $base_host, $image_host ) && str_starts_with( $image_path, '/images/' ) ) {
+			$query = array();
+			wp_parse_str( (string) wp_parse_url( $image_url, PHP_URL_QUERY ), $query );
+			$defaults  = array(
+				'w'    => 'auto',
+				'h'    => '720',
+				'fm'   => 'webp',
+				'crop' => 'original',
+			);
+			$image_url = add_query_arg( array_diff_key( $defaults, $query ), $image_url );
+		}
 		$attachment_id = ChurchTools_Suite_Image_Importer::find_existing_image( $image_url );
 		if ( ! $attachment_id || ! wp_attachment_is_image( $attachment_id ) ) {
 			$attachment_id = ChurchTools_Suite_Image_Importer::import_image( $image_url, $normalized['title'] );

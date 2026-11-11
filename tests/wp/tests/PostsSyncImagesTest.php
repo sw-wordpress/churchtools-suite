@@ -3,6 +3,7 @@
 final class PostsSyncImagesTest extends CTS_TestCase {
 	private array $downloads = array();
 	private bool $download_fails = false;
+	private bool $first_download_fails = false;
 
 	public function set_up(): void {
 		parent::set_up();
@@ -14,7 +15,7 @@ final class PostsSyncImagesTest extends CTS_TestCase {
 		remove_all_filters( 'pre_http_request' );
 		add_filter( 'pre_http_request', function ( $pre, $args, $url ) {
 			$this->downloads[] = $url;
-			if ( $this->download_fails ) {
+			if ( $this->download_fails || ( $this->first_download_fails && 1 === count( $this->downloads ) ) ) {
 				return new WP_Error( 'test_download_failed', 'Image temporarily unavailable.' );
 			}
 			$this->assertNotEmpty( $args['stream'] );
@@ -119,5 +120,43 @@ final class PostsSyncImagesTest extends CTS_TestCase {
 		$this->assertSame( 0, $result['errors'] );
 		$this->assertFalse( has_post_thumbnail( $this->imported_post_id() ) );
 		$this->assertSame( array(), $this->downloads );
+	}
+
+	/** @dataProvider featured_image_urls */
+	public function test_featured_image_download_uses_size_parameters( string $source, string $expected ): void {
+		$result = $this->service( $this->item( array( 'imageUrl' => $source ) ) )->sync_posts();
+		$this->assertSame( 0, $result['errors'] );
+		$this->assertSame( array( $expected ), $this->downloads );
+		$image_id = get_post_thumbnail_id( $this->imported_post_id() );
+		$this->assertSame( $expected, get_post_meta( $image_id, '_cts_imported_from', true ) );
+		$this->assertSame( array( $source ), json_decode( get_post_meta( $this->imported_post_id(), '_cts_ct_images', true ), true ) );
+	}
+
+	public static function featured_image_urls(): array {
+		return array(
+			'default size' => array( 'https://example.org/images/10266/hash', 'https://example.org/images/10266/hash?w=auto&h=720&fm=webp&crop=original' ),
+			'explicit parameters' => array( 'https://example.org/images/10266/hash?w=1600&h=900&fm=jpg&crop=faces&token=abc', 'https://example.org/images/10266/hash?w=1600&h=900&fm=jpg&crop=faces&token=abc' ),
+			'partial parameters' => array( 'https://example.org/images/10266/hash?h=1080', 'https://example.org/images/10266/hash?h=1080&w=auto&fm=webp&crop=original' ),
+			'external host' => array( 'https://external.example/images/photo?h=900', 'https://external.example/images/photo?h=900' ),
+			'file download' => array( 'https://example.org/?q=public/filedownload&id=123', 'https://example.org/?q=public/filedownload&id=123' ),
+		);
+	}
+
+	public function test_anonymous_retry_keeps_all_image_parameters(): void {
+		$this->first_download_fails = true;
+		$url = 'https://example.org/files/photo.jpg?w=auto&h=720&fm=webp&crop=original';
+		$result = $this->service( $this->item( array( 'imageUrl' => $url ) ) )->sync_posts();
+		$this->assertSame( 0, $result['errors'] );
+		$this->assertSame( array( $url, $url ), $this->downloads );
+		$this->assertTrue( has_post_thumbnail( $this->imported_post_id() ) );
+	}
+
+	public function test_failed_download_never_retries_without_query_parameters(): void {
+		$this->download_fails = true;
+		$url = 'https://example.org/files/photo.jpg?w=auto&h=720&fm=webp&crop=original';
+		$result = $this->service( $this->item( array( 'imageUrl' => $url ) ) )->sync_posts();
+		$this->assertSame( 1, $result['errors'] );
+		$this->assertSame( array( $url, $url ), $this->downloads );
+		$this->assertFalse( has_post_thumbnail( $this->imported_post_id() ) );
 	}
 }
