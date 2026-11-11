@@ -39,6 +39,8 @@ $expired_events_after_days = get_option( 'churchtools_suite_expired_events_after
 $auto_sync_enabled         = get_option( 'churchtools_suite_auto_sync_enabled', 0 );
 $auto_sync_interval        = get_option( 'churchtools_suite_auto_sync_interval', 'daily' ); // Use the daily interval by default.
 $last_auto_sync            = get_option( 'churchtools_suite_last_auto_sync', '' );
+$next_auto_sync            = wp_next_scheduled( 'churchtools_suite_auto_sync' );
+$cron_date_format          = get_option( 'date_format' ) . ' ' . get_option( 'time_format' );
 
 $registered_modules = class_exists( 'ChurchTools_Suite_Sync_Modules' ) ? ChurchTools_Suite_Sync_Modules::get_registered_modules() : array();
 $module_statuses    = array();
@@ -200,35 +202,40 @@ if ( ! empty( $registered_modules ) && class_exists( 'ChurchTools_Suite_Sync_Mod
 <span class="cts-form-description"><?php esc_html_e( 'Empfohlen: Täglich oder alle 2-3 Tage für regelmäßige Termine', 'churchtools-suite' ); ?></span>
 </td>
 </tr>
-<?php if ( ! empty( $last_auto_sync ) ) : ?>
 <tr>
-<th scope="row">
-		<?php esc_html_e( 'Letzte Auto-Sync', 'churchtools-suite' ); ?>
-</th>
+<th scope="row"><?php esc_html_e( 'Nächster geplanter Auto-Sync', 'churchtools-suite' ); ?></th>
 <td>
 <span style="color:var(--cts-muted); font-weight: 500;">
-		<?php echo esc_html( date_i18n( get_option( 'date_format' ) . ' ' . get_option( 'time_format' ), strtotime( $last_auto_sync ) ) ); ?>
+	<?php echo $next_auto_sync ? esc_html( wp_date( $cron_date_format, $next_auto_sync ) ) : esc_html__( 'Nicht geplant', 'churchtools-suite' ); ?>
 </span>
-<span class="cts-form-description"><?php esc_html_e( 'Zeitpunkt der letzten automatischen Synchronisation', 'churchtools-suite' ); ?></span>
+<span class="cts-form-description"><?php esc_html_e( 'Geplanter Zeitpunkt; die Ausführung erfolgt beim nächsten Cron-Aufruf.', 'churchtools-suite' ); ?></span>
 </td>
 </tr>
-<?php endif; ?>
+<tr>
+<th scope="row"><?php esc_html_e( 'Letzter erfolgreicher Auto-Sync', 'churchtools-suite' ); ?></th>
+<td>
+<span style="color:var(--cts-muted); font-weight: 500;">
+	<?php echo $last_auto_sync ? esc_html( mysql2date( $cron_date_format, $last_auto_sync ) ) : esc_html__( 'Noch kein erfolgreicher Auto-Sync', 'churchtools-suite' ); ?>
+</span>
+<span class="cts-form-description"><?php printf( /* translators: %s: WordPress timezone. */ esc_html__( 'Zeitangaben in der WordPress-Zeitzone: %s.', 'churchtools-suite' ), esc_html( wp_timezone_string() ) ); ?></span>
+</td>
+</tr>
 </table>
 
 <?php if ( defined( 'DISABLE_WP_CRON' ) && DISABLE_WP_CRON ) : ?>
-<div class="cts-info is-warning">
+<div class="cts-info">
 <h4 style="margin: 0 0 10px; color: inherit; font-size: 14px;">
-<span class="dashicons dashicons-warning" aria-hidden="true"></span> <?php esc_html_e( 'WP-Cron ist deaktiviert', 'churchtools-suite' ); ?>
+<span class="dashicons dashicons-info" aria-hidden="true"></span> <?php esc_html_e( 'Cron-Aufruf bei Seitenbesuchen deaktiviert', 'churchtools-suite' ); ?>
 </h4>
 <p style="margin: 0; color: inherit; font-size: 13px; line-height: 1.6;">
-		<?php esc_html_e( 'Die automatische Synchronisation funktioniert nur mit einem System-Cron.', 'churchtools-suite' ); ?>
+		<?php esc_html_e( 'Der automatische Cron-Aufruf bei Seitenbesuchen ist deaktiviert. Geplante Synchronisationen werden weiterhin ausgeführt, wenn wp-cron.php regelmäßig extern aufgerufen wird, beispielsweise durch einen System-Cron mit curl.', 'churchtools-suite' ); ?>
 </p>
 </div>
 <?php else : ?>
 <div class="cts-info">
 <p style="margin: 0;">
-<strong><span class="dashicons dashicons-yes-alt" aria-hidden="true"></span> WP-Cron aktiv:</strong>
-	<?php esc_html_e( 'Die automatische Synchronisation ist einsatzbereit.', 'churchtools-suite' ); ?>
+<strong><span class="dashicons dashicons-yes-alt" aria-hidden="true"></span> Cron-Aufruf bei Seitenbesuchen aktiv:</strong>
+	<?php esc_html_e( 'Fällige Synchronisationen werden durch Seitenbesuche angestoßen. Alternativ kann wp-cron.php extern aufgerufen werden.', 'churchtools-suite' ); ?>
 </p>
 </div>
 <?php endif; ?>

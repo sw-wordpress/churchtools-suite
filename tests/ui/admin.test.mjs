@@ -69,6 +69,7 @@ async function open(section = 'dashboard', sub = '', width = 1440, configure = a
 
 test('all rendered screens initialize both admin scripts without runtime errors or nested shells', async () => {
   for (const name of await readdir(fixtureDir)) {
+    if (name.startsWith('plugins--')) continue;
     const [section, sub = ''] = name.replace('.html', '').split('--');
     const page = await open(section, sub);
     assert.equal(await page.locator('.cts-wrap').count(), 1, name);
@@ -251,7 +252,6 @@ async function reportCoverage() {
 for (const [section, sub, selector, action] of [
   ['advanced', 'manuelle-trigger', '#cts-trigger-manual-sync', 'cts_sync_events'],
   ['advanced', 'manuelle-trigger', '#cts-trigger-keepalive', 'cts_keepalive_ping'],
-  ['advanced', 'manuelle-trigger', '#cts-manual-update', 'cts_manual_update'],
   ['settings', 'calendars', '#cts-sync-calendars-btn', 'cts_sync_calendars'],
   ['data', 'posts', '#cts-posts-overview-run-sync', 'cts_posts_sync_run_now'],
 ]) {
@@ -584,7 +584,7 @@ test('diagnostic tables have headers and settings toggles expose one visible lab
 
 
 test('verified update checking is manual, single-flight and never installs a package', async () => {
-  const page = await open('settings','verified-updates');
+  const page = await open('plugins','verified-updates');
   assert.equal(await page.evaluate(() => window.ctsVerifiedUpdates.due), false);
   const requests = [];
   let release;
@@ -595,22 +595,26 @@ test('verified update checking is manual, single-flight and never installs a pac
     await route.fulfill({json:{success:true,data:{message:'Signed metadata checked'}}});
   });
   assert.equal(await page.locator('[name=cts_auto_update_enabled]').count(),0);
-  await page.locator('#cts-verified-updates-check').click();
-  assert.equal(await page.locator('#cts-verified-updates-check').isDisabled(),true);
-  assert.equal(await page.locator('#cts-verified-updates-result').isVisible(),true);
+  await page.locator('[data-cts-update-check]').first().click();
+  assert.equal(await page.locator('[data-cts-update-check]').first().isDisabled(),true);
+  assert.equal(await page.locator('[data-cts-update-result]').first().isVisible(),true);
+  assert.equal(await page.locator('[data-cts-update-check]:disabled').count(), 4);
+  await page.locator('[data-cts-update-check]').nth(1).dispatchEvent('click');
   release();
-  await page.waitForFunction(() => !document.getElementById('cts-verified-updates-check').disabled);
+  await page.waitForFunction(() => !document.querySelector('[data-cts-update-check]').disabled);
+  assert.equal(await page.locator('[data-cts-update-check]').count(), 4);
+  assert.equal(await page.locator('[data-cts-update-reload]:visible').count(), 4);
   assert.equal(requests.length,1);
   assert.equal(requests[0].action,'cts_check_github_updates');
   assert.equal(requests[0].manual,'1');
-  assert.match(await page.locator('#cts-verified-updates-result').textContent(),/Signed metadata/);
+  assert.match(await page.locator('[data-cts-update-result]').first().textContent(),/Signed metadata/);
   assert.equal(await page.locator('#cts_start_update_btn').count(),0);
   await close(page);
 });
 
 test('overdue update checks send one background request without installing a package', async () => {
   const requests = [];
-  const page = await open('settings', 'verified-updates-due', 1440, async page => {
+  const page = await open('plugins', 'verified-updates-due', 1440, async page => {
     await page.route('**/admin-ajax.php', async route => {
       requests.push(Object.fromEntries(new URLSearchParams(route.request().postData())));
       await route.fulfill({ json: { success: true, data: { message: 'Background metadata checked' } } });
@@ -618,9 +622,51 @@ test('overdue update checks send one background request without installing a pac
   });
   assert.equal(await page.evaluate(() => window.ctsVerifiedUpdates.due), true);
   await page.waitForFunction(() => performance.getEntriesByType('resource').some(entry => entry.name.endsWith('/admin-ajax.php')));
-  await page.waitForFunction(() => !document.getElementById('cts-verified-updates-check').disabled);
+  await page.waitForFunction(() => !document.querySelector('[data-cts-update-check]').disabled);
   assert.deepEqual(requests, [{ action: 'cts_check_github_updates', nonce: await page.evaluate(() => window.ctsVerifiedUpdates.nonce), manual: '0' }]);
-  assert.equal(await page.locator('#cts-verified-updates-result').isVisible(), false);
+  assert.equal(await page.locator('[data-cts-update-result]').first().isVisible(), false);
   assert.equal(await page.locator('#cts_start_update_btn').count(), 0);
   await close(page);
+});
+
+test('update check errors explain expired sessions and never offer a successful reload', async () => {
+  const page = await open('plugins', 'verified-updates');
+  await page.route('**/admin-ajax.php', route => route.fulfill({ status: 403, json: { success: false, data: { message: 'Sicherheitsprüfung abgelaufen. Plugin-Liste neu laden.' } } }));
+  await page.locator('[data-cts-update-check]').nth(1).click();
+  await page.waitForFunction(() => !document.querySelector('[data-cts-update-check]').disabled);
+  assert.match(await page.locator('[data-cts-update-result]').first().textContent(), /Sicherheitsprüfung abgelaufen/);
+  assert.equal(await page.locator('[data-cts-update-reload]:visible').count(), 0);
+  await page.route('**/admin-ajax.php', route => route.fulfill({ status: 403, body: '-1' }));
+  await page.locator('[data-cts-update-check]').first().click();
+  await page.waitForFunction(() => !document.querySelector('[data-cts-update-check]').disabled);
+  assert.match(await page.locator('[data-cts-update-result]').first().textContent(), /HTTP 403/);
+  assert.equal(await page.locator('[data-cts-update-reload]:visible').count(), 0);
+  await page.route('**/admin-ajax.php', route => route.fulfill({ json: { success: false, data: { message: 'GitHub-Antwort: HTTP 403' } } }));
+  await page.locator('[data-cts-update-check]').first().click();
+  await page.waitForFunction(() => !document.querySelector('[data-cts-update-check]').disabled);
+  assert.match(await page.locator('[data-cts-update-result]').first().textContent(), /GitHub-Antwort: HTTP 403/);
+  assert.equal(await page.locator('[data-cts-update-reload]:visible').count(), 0);
+  await close(page);
+});
+
+test('app settings and diagnostics defer update checks to the plugin list', async () => {
+  for (const [section, sub] of [['settings', 'advanced'], ['advanced', 'manuelle-trigger']]) {
+    const page = await open(section, sub);
+    assert.equal(await page.locator('[data-cts-update-check], #cts-verified-updates-check, #cts-manual-update').count(), 0);
+    await close(page);
+  }
+});
+
+test('external cron guidance keeps automatic sync available and displays its times', async () => {
+  for (const [section, sub] of [['dashboard', ''], ['settings', 'sync']]) {
+    const page = await open(section, sub);
+    const content = await page.locator('.cts-wrap').innerText();
+    assert.match(content, /Cron-Aufruf bei Seitenbesuchen deaktiviert/);
+    assert.match(content, /wp-cron\.php regelmäßig extern aufgerufen/);
+    assert.match(content, /System-Cron mit curl/);
+    assert.match(content, /Letzter erfolgreicher Auto-Sync/);
+    assert.doesNotMatch(content, /Synchronisation ist nicht aktiv, da WP-Cron/);
+    if (section === 'settings') assert.match(content, /Nächster geplanter Auto-Sync/);
+    await close(page);
+  }
 });

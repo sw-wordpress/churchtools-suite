@@ -39,6 +39,10 @@ final class ReleaseCommandTest extends CTS_Release_TestCase
         $source = rtrim(CHURCHTOOLS_SUITE_PATH, '/');
         copy($source . '/Makefile', $this->root . '/checkout/Makefile');
         copy($source . '/bin/release.sh', $this->root . '/checkout/bin/release.sh');
+        copy($source . '/bin/addon-versions.php', $this->root . '/checkout/bin/addon-versions.php');
+        file_put_contents($this->root . '/checkout/release-pending.json', "{}\n");
+        mkdir($this->root . '/checkout/addons/example', 0700, true);
+        file_put_contents($this->root . '/checkout/addons/example/example.php', "<?php\n/**\n * Version: 0.1.0\n */\ndefine( 'CTS_EXAMPLE_VERSION', '0.1.0' );\n");
         file_put_contents($this->root . '/checkout/churchtools-suite.php', "<?php\n/**\n * Version:           0.8.0\n */\ndefine( 'CHURCHTOOLS_SUITE_VERSION', '0.8.0' );\n");
         $this->runCommand(['git', 'init', '--bare', $this->root . '/origin.git']);
         $this->runCommand(['git', 'init', '-b', 'main']);
@@ -48,6 +52,7 @@ final class ReleaseCommandTest extends CTS_Release_TestCase
         $this->runCommand(['git', 'config', 'tag.gpgsign', 'false']);
         $this->runCommand(['git', 'add', '.']);
         $this->runCommand(['git', 'commit', '-m', 'Initial fixture']);
+        $this->runCommand(['git', 'tag', '0.7.0']);
         $this->runCommand(['git', 'remote', 'add', 'origin', $this->root . '/origin.git']);
         $this->runCommand(['git', 'push', 'origin', 'main']);
     }
@@ -69,7 +74,7 @@ final class ReleaseCommandTest extends CTS_Release_TestCase
     }
 
     public static function releaseVersions(): array {
-        return [['0.8.1'], ['0.8.0.1']];
+        return [['0.8.1'], ['0.9.0'], ['1.0.0']];
     }
 
     /** @dataProvider releaseVersions */
@@ -92,6 +97,7 @@ final class ReleaseCommandTest extends CTS_Release_TestCase
         return [
             'missing version' => ['missing', ''],
             'invalid version' => ['invalid', 'v0.8.1'],
+            'four-part version' => ['four-part', '0.8.0.1'],
             'downgrade' => ['downgrade', '0.7.0'],
             'dirty tree' => ['dirty', '0.8.1'],
             'staged changes' => ['staged', '0.8.1'],
@@ -134,12 +140,12 @@ final class ReleaseCommandTest extends CTS_Release_TestCase
         self::assertSame($head, $this->runCommand(['git', 'rev-parse', 'HEAD']));
     }
 
-    public function testCurrentVersionCanBeTaggedWithoutAnEmptyCommit(): void
+    public function testCurrentVersionCannotCreateAnotherRelease(): void
     {
         $head = $this->runCommand(['git', 'rev-parse', 'HEAD']);
-        $this->runCommand(['make', 'release', 'VERSION=0.8.0']);
+        $this->runCommand(['make', 'release', 'VERSION=0.8.0'], 2);
         self::assertSame($head, $this->runCommand(['git', 'rev-parse', 'HEAD']));
-        self::assertSame($head, $this->runCommand(['git', '--git-dir=' . $this->root . '/origin.git', 'rev-parse', '0.8.0^{}']));
+        self::assertSame('', $this->runCommand(['git', 'ls-remote', '--tags', 'origin', 'refs/tags/0.8.0']));
     }
 
     public function testRejectedBranchPushDoesNotPublishTheTag(): void
@@ -302,7 +308,7 @@ final class ReleaseSigningKeyTest extends CTS_Release_TestCase {
     }
 
     public static function tags(): array {
-        return ['plain' => ['1.4.0.8', 0], 'prefixed build' => ['v1.4.0.8-01', 0], 'prerelease' => ['1.4.0.8-rc1', 1], 'five parts' => ['1.4.0.8.1', 1], 'arbitrary build' => ['1.4.0.8-001', 1]];
+        return ['plain' => ['1.4.3', 0], 'prefixed' => ['v1.4.3', 0], 'four parts' => ['1.4.0.8', 1], 'prefixed build' => ['v1.4.0.8-01', 1], 'prerelease' => ['1.4.0.8-rc1', 1], 'five parts' => ['1.4.0.8.1', 1], 'arbitrary build' => ['1.4.0.8-001', 1]];
     }
 
     /** @dataProvider tags */
@@ -314,7 +320,7 @@ final class ReleaseSigningKeyTest extends CTS_Release_TestCase {
                 'PATH' => getenv('PATH'), 'GITHUB_REF_NAME' => $tag, 'GITHUB_OUTPUT' => $root . '/output',
             ]);
             self::assertSame($expected, $exit, $output);
-            if ($expected === 0) self::assertSame("version=1.4.0.8\n", file_get_contents($root . '/output'));
+            if ($expected === 0) self::assertSame("version=1.4.3\n", file_get_contents($root . '/output'));
             else self::assertFileDoesNotExist($root . '/output');
         } finally {
             $this->remove_tree($root);

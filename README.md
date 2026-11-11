@@ -42,7 +42,7 @@ Das Upstream-Projekt hat die Addons inzwischen in eigene Repositories ausgelager
 - Shortcodes und Gutenberg-Views für Liste, Grid, Kalender, Countdown und Carousel
 - Kalenderfilter über `calendar`, `calendars` und `calendar_ids`
 - Custom CSS pro Shortcode, Preset und Block-Instanz, begrenzt über eine stabile Instanz-ID
-- Automatische Synchronisation über WordPress-Cron
+- Automatische Synchronisation über WordPress-Cron, auch bei deaktiviertem Besucher-Trigger durch regelmäßigen externen Aufruf von `wp-cron.php` (z. B. per curl). Einstellungen und Dashboard zeigen den nächsten geplanten und den letzten erfolgreichen Auto-Sync an.
 - Löschen abgelaufener Termine (einstellbar) inklusive der importierten Bilder
 - Template-System mit Theme-Override unter `{theme}/churchtools-suite/`
 
@@ -115,6 +115,8 @@ composer coverage:check
 Reports: `coverage/php.xml`, `coverage/ui.json`. `coverage:check` verlangt für PHP und JavaScript jeweils **>80 %** aller produktiven Dateien. Stand dieser Überarbeitung: PHP gesamt **19,78 %**, JavaScript gesamt **18,21 %**; Screen-Registry **>96 %**, neues Shell-JavaScript **89,45 %**. Die Gesamtvorgabe ist weiterhin **nicht erfüllt**. Insbesondere echte Sync-/API-Abläufe und Frontend-Varianten benötigen weitere Tests. CI meldet diese bestehende Lücke ausdrücklich; der Coverage-Schritt ist bis dahin berichtend, die Funktionstests sind blockierend. `composer cs`/`composer stan` melden weiterhin Befunde im Altbestand.
 
 ### GitHub-Updates
+
+Unter **Plugins → Installierte Plugins** steht bei ChurchTools Suite und seinen Addons „Jetzt auf Updates prüfen“ samt letztem Prüfstatus. Ein Klick prüft das gemeinsame Release einmal; anschließend lässt sich die Plugin-Liste neu laden, um verfügbare Aktualisierungen anzuzeigen. Die Installation erfolgt über WordPress. Bei einer abgelaufenen Sicherheitsprüfung fordert die Meldung zum Neuladen auf; eine GitHub-HTTP-Fehlermeldung bleibt als solche sichtbar.
 
 Das [Sicherheits- und Umsetzungskonzept](docs/GITHUB-UPDATES.md) beschreibt einen übertragbaren GitHub-Update-Provider mit signierten Manifesten, Backend-Prüfung höchstens einmal je 24 Stunden und ausschließlich manueller Installation über WordPress. Die Umsetzung und [Einrichtung der Signierschlüssel](docs/GITHUB-UPDATES-BETRIEB.md) sind dokumentiert. Die alten Updater sind stillgelegt. Ohne öffentlichen Vertrauensschlüssel bleibt die neue GitHub-Funktion gesperrt; Produktionsschlüssel werden nicht automatisch erzeugt.
 

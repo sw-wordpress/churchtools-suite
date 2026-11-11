@@ -16,6 +16,7 @@ final class ChurchTools_Suite_Update_Provider {
 		add_filter( 'pre_set_site_transient_update_plugins', array( self::class, 'offers' ) );
 		add_filter( 'update_plugins_github.com', array( self::class, 'update_uri' ), 10, 3 );
 		add_filter( 'plugins_api', array( self::class, 'details' ), 10, 3 );
+		add_filter( 'plugin_row_meta', array( self::class, 'row_meta' ), 10, 2 );
 		add_action( 'admin_init', array( self::class, 'migrate' ) );
 		add_action( 'admin_enqueue_scripts', array( self::class, 'enqueue' ) );
 		add_action( 'wp_ajax_cts_check_github_updates', array( self::class, 'ajax_check' ) );
@@ -189,7 +190,9 @@ final class ChurchTools_Suite_Update_Provider {
 	}
 
 	public static function ajax_check(): void {
-		check_ajax_referer( 'cts_verified_updates', 'nonce' );
+		if ( false === check_ajax_referer( 'cts_verified_updates', 'nonce', false ) ) {
+			wp_send_json_error( array( 'message' => __( 'Die Sicherheitsprüfung ist abgelaufen oder ungültig. Bitte die Plugin-Liste neu laden und erneut prüfen.', 'churchtools-suite' ) ), 403 );
+		}
 		self::load();
 		$manual = isset( $_POST['manual'] ) && '1' === $_POST['manual'];
 		$result = ChurchTools_Suite_Update_Service::check( $manual );
@@ -200,20 +203,70 @@ final class ChurchTools_Suite_Update_Provider {
 		}
 	}
 
+	/**
+	 * Render update controls in each managed plugin's native metadata row.
+	 *
+	 * @param array<int|string,string> $meta Existing row links.
+	 * @param string                   $file Plugin basename.
+	 * @return array<int|string,string>
+	 */
+	public static function row_meta( array $meta, string $file ): array {
+		if ( ! is_admin() || ! isset( self::descriptors()[ $file ] ) ) {
+			return $meta;
+		}
+		self::load();
+		if ( ! ChurchTools_Suite_Update_Service::interactive() ) {
+			return $meta;
+		}
+		$ready  = (bool) ChurchTools_Suite_Update_Service::keys() && function_exists( 'sodium_crypto_sign_verify_detached' );
+		$meta[] = '<span class="cts-verified-updates">'
+			. '<button type="button" class="button-link" data-cts-update-check' . disabled( ! $ready, true, false ) . '>' . esc_html__( 'Jetzt auf Updates prüfen', 'churchtools-suite' ) . '</button>'
+			. ' <span data-cts-update-result role="status" aria-live="polite" hidden></span>'
+			. ' <a data-cts-update-reload href="' . esc_url( is_multisite() ? network_admin_url( 'plugins.php' ) : admin_url( 'plugins.php' ) ) . '" hidden>' . esc_html__( 'Plugin-Liste neu laden, um verfügbare Updates anzuzeigen', 'churchtools-suite' ) . '</a>'
+			. ' <span data-cts-update-status>' . esc_html( self::status_text() ) . '</span></span>';
+		return $meta;
+	}
+
+	/** Display only locally cached status; never start a request while rendering. */
+	public static function status_text(): string {
+		self::load();
+		if ( ! ChurchTools_Suite_Update_Service::keys() || ! function_exists( 'sodium_crypto_sign_verify_detached' ) ) {
+			return __( 'GitHub-Updates sind gesperrt: Öffentlicher Release-Schlüssel oder Sodium fehlt.', 'churchtools-suite' );
+		}
+		$state = ChurchTools_Suite_Update_Store::read();
+		if ( empty( $state['last_success'] ) ) {
+			$text = __( 'Noch keine erfolgreiche Update-Prüfung.', 'churchtools-suite' );
+		} else {
+			/* translators: %s: time span, e.g. "2 Stunden". */
+			$text = sprintf( __( 'Letzte erfolgreiche Prüfung: vor %s.', 'churchtools-suite' ), human_time_diff( (int) $state['last_success'] ) );
+		}
+		if ( ! empty( $state['error'] ) && is_string( $state['error'] ) ) {
+			/* translators: %s: cached update error. */
+			$text .= ' ' . sprintf( __( 'Letzter Fehler: %s', 'churchtools-suite' ), $state['error'] );
+		}
+		return $text;
+	}
+
 	public static function enqueue(): void {
 		self::load();
 		if ( ! ChurchTools_Suite_Update_Service::interactive() ) {
 			return;
 		}
 		$state = ChurchTools_Suite_Update_Store::read();
+		$ready = (bool) ChurchTools_Suite_Update_Service::keys() && function_exists( 'sodium_crypto_sign_verify_detached' );
 		wp_enqueue_script( 'cts-verified-updates', CHURCHTOOLS_SUITE_URL . 'assets/js/churchtools-suite-updates.js', array(), CHURCHTOOLS_SUITE_VERSION, true );
 		wp_add_inline_script(
 			'cts-verified-updates',
 			'window.ctsVerifiedUpdates=' . wp_json_encode(
 				array(
-					'url'   => admin_url( 'admin-ajax.php' ),
-					'nonce' => wp_create_nonce( 'cts_verified_updates' ),
-					'due'   => (bool) ChurchTools_Suite_Update_Service::keys() && time() - ( $state['last_attempt'] ?? 0 ) >= DAY_IN_SECONDS,
+					'url'       => admin_url( 'admin-ajax.php' ),
+					'nonce'     => wp_create_nonce( 'cts_verified_updates' ),
+					'due'       => $ready && time() - ( $state['last_attempt'] ?? 0 ) >= DAY_IN_SECONDS,
+					'ready'     => $ready,
+					'checking'  => __( 'Signierte Releases werden geprüft …', 'churchtools-suite' ),
+					'completed' => __( 'Prüfung abgeschlossen.', 'churchtools-suite' ),
+					'failed'    => __( 'Update-Prüfung fehlgeschlagen. Bitte später erneut prüfen.', 'churchtools-suite' ),
+					'forbidden' => __( 'Update-Prüfung verweigert (HTTP 403). Bitte die Plugin-Liste neu laden und die Anmeldung prüfen.', 'churchtools-suite' ),
 				)
 			) . ';',
 			'before'

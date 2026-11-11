@@ -127,6 +127,7 @@ $tables_missing = ( '' !== $wpdb->last_error );
 <!-- Automatischer Sync -->
 <?php
 		$auto_sync_enabled    = get_option( 'churchtools_suite_auto_sync_enabled', 0 );
+		$last_auto_sync       = get_option( 'churchtools_suite_last_auto_sync', '' );
 		$last_sync_status     = get_option( 'churchtools_suite_last_sync_status', '' );
 		$last_sync_error      = get_option( 'churchtools_suite_last_sync_error', '' );
 		$last_sync_error_time = get_option( 'churchtools_suite_last_sync_error_time', '' );
@@ -212,7 +213,7 @@ if ( is_array( $cron ) ) {
 <div style="font-size:13px; margin-bottom:6px;">
 <strong><?php esc_html_e( 'Nächste Ausführung:', 'churchtools-suite' ); ?></strong> <span class="cts-cronjob-next<?php echo $overdue ? ' is-overdue' : ''; ?>">
 			<?php if ( $next > 0 ) : ?>
-				<?php echo esc_html( date_i18n( get_option( 'date_format' ) . ' ' . get_option( 'time_format' ), $next ) ); ?>
+				<?php echo esc_html( wp_date( get_option( 'date_format' ) . ' ' . get_option( 'time_format' ), $next ) ); ?>
 				<?php
 				if ( $overdue ) :
 					?>
@@ -222,6 +223,12 @@ if ( is_array( $cron ) ) {
 <?php endif; ?>
 </span>
 </div>
+		<?php if ( 'churchtools_suite_auto_sync' === $hook_name ) : ?>
+<div class="cts-cronjob-last">
+<strong><?php esc_html_e( 'Letzter erfolgreicher Auto-Sync:', 'churchtools-suite' ); ?></strong>
+			<?php echo $last_auto_sync ? esc_html( mysql2date( get_option( 'date_format' ) . ' ' . get_option( 'time_format' ), $last_auto_sync ) ) : esc_html__( 'Noch kein erfolgreicher Auto-Sync', 'churchtools-suite' ); ?>
+</div>
+		<?php endif; ?>
 <div class="cts-cronjob-count">
 			<?php echo esc_html( sprintf( /* translators: %d: Number of scheduled runs. */ _n( '%d Termin geplant', '%d Termine geplant', $count, 'churchtools-suite' ), $count ) ); ?>
 </div>
@@ -248,7 +255,7 @@ if ( $debug_tab_has_trigger ) {
 </p>
 </div>
 <div class="cts-card-footer">
-<a href="?page=churchtools-suite&tab=settings#auto-sync" class="cts-button cts-button-secondary">
+<a href="<?php echo esc_url( admin_url( 'admin.php?page=churchtools-suite&tab=settings&subtab=sync#auto-sync' ) ); ?>" class="cts-button cts-button-secondary">
 <span class="dashicons dashicons-admin-generic" aria-hidden="true"></span> <?php esc_html_e( 'Konfigurieren', 'churchtools-suite' ); ?>
 </a>
 </div>
@@ -309,17 +316,17 @@ if ( $debug_tab_has_trigger ) {
 </div>
 	</div>
 
-	<!-- WP-Cron Warnung -->
+	<!-- Externer Cron-Aufruf -->
 	<?php if ( defined( 'DISABLE_WP_CRON' ) && DISABLE_WP_CRON ) : ?>
-	<div class="cts-callout is-warning" style="display:block; margin-top:20px;">
+	<div class="cts-callout is-info" style="display:block; margin-top:20px;">
 <h4 style="margin: 0 0 10px; color: inherit; font-size: 15px;">
-<span class="dashicons dashicons-warning" aria-hidden="true"></span> <?php esc_html_e( 'WP-Cron ist deaktiviert', 'churchtools-suite' ); ?>
+<span class="dashicons dashicons-info" aria-hidden="true"></span> <?php esc_html_e( 'Cron-Aufruf bei Seitenbesuchen deaktiviert', 'churchtools-suite' ); ?>
 </h4>
 <p style="margin: 0 0 10px; color: inherit; font-size: 13px; line-height: 1.6;">
-		<?php esc_html_e( 'Die automatische Synchronisation ist nicht aktiv, da WP-Cron in Ihrer Konfiguration deaktiviert wurde. Bitte richten Sie einen System-Cron ein oder aktivieren Sie WP-Cron.', 'churchtools-suite' ); ?>
+		<?php esc_html_e( 'Der automatische Cron-Aufruf bei Seitenbesuchen ist deaktiviert. Geplante Synchronisationen werden weiterhin ausgeführt, wenn wp-cron.php regelmäßig extern aufgerufen wird, beispielsweise durch einen System-Cron mit curl.', 'churchtools-suite' ); ?>
 </p>
-<a href="?page=churchtools-suite&tab=settings#auto-sync" class="cts-button cts-button-secondary" style="margin-top: 8px;">
-		<?php esc_html_e( 'System-Cron Anleitung anzeigen', 'churchtools-suite' ); ?>
+<a href="<?php echo esc_url( admin_url( 'admin.php?page=churchtools-suite&tab=settings&subtab=sync#auto-sync' ) ); ?>" class="cts-button cts-button-secondary" style="margin-top: 8px;">
+		<?php esc_html_e( 'Synchronisationseinstellungen öffnen', 'churchtools-suite' ); ?>
 </a>
 	</div>
 	<?php endif; ?>

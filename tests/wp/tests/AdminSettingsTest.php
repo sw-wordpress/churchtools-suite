@@ -5,6 +5,34 @@
  * @package ChurchTools_Suite
  */
 final class AdminSettingsTest extends CTS_TestCase {
+	public function test_auto_sync_times_use_wordpress_timezone_without_changing_the_schedule(): void {
+		update_option( 'timezone_string', 'Europe/Berlin' );
+		update_option( 'date_format', 'd.m.Y' );
+		update_option( 'time_format', 'H:i' );
+		update_option( 'churchtools_suite_auto_sync_enabled', 1 );
+		update_option( 'churchtools_suite_last_auto_sync', '2026-11-11 19:23:00' );
+		wp_clear_scheduled_hook( 'churchtools_suite_auto_sync' );
+		$next = strtotime( '2026-11-12 08:15:00 UTC' );
+		wp_schedule_single_event( $next, 'churchtools_suite_auto_sync' );
+		foreach ( array( array( 'settings', 'sync' ), array( 'dashboard', '' ) ) as [$section, $sub] ) {
+			$html = $this->render_admin( $section, $sub );
+			$this->assertStringContainsString( '12.11.2026 09:15', $html );
+			$this->assertStringContainsString( '11.11.2026 19:23', $html );
+			$this->assertStringContainsString( 'Letzter erfolgreicher Auto-Sync', $html );
+		}
+		$this->assertSame( $next, wp_next_scheduled( 'churchtools_suite_auto_sync' ) );
+	}
+
+	public function test_auto_sync_times_explain_missing_schedule_and_success(): void {
+		wp_clear_scheduled_hook( 'churchtools_suite_auto_sync' );
+		delete_option( 'churchtools_suite_last_auto_sync' );
+		foreach ( array( array( 'settings', 'sync' ), array( 'dashboard', '' ) ) as [$section, $sub] ) {
+			$html = $this->render_admin( $section, $sub );
+			$this->assertStringContainsString( 'Nicht geplant', $html );
+			$this->assertStringContainsString( 'Noch kein erfolgreicher Auto-Sync', $html );
+		}
+	}
+
 	public function test_api_form_saves_the_existing_option_names_and_normalizes_authentication(): void {
 		$_POST = array(
 			'_wpnonce'       => wp_create_nonce( 'cts_settings' ),

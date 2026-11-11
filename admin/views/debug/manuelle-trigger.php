@@ -11,7 +11,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 ?>
 <div class="cts-debug-subtab-content">
 	<h3><?php esc_html_e( 'Manuelle Trigger', 'churchtools-suite' ); ?></h3>
-	<p>Führen Sie manuelle Aktionen wie Sync, Keepalive oder Update-Checks aus.</p>
+	<p>Führen Sie manuelle Aktionen wie Sync oder Keepalive aus.</p>
 	<div class="cts-card">
 <h3><span class="dashicons dashicons-update" aria-hidden="true"></span> Event-Sync & Session</h3>
 <div style="display: flex; gap: 12px; flex-wrap: wrap;">
@@ -26,16 +26,13 @@ Session Keepalive
 	</div>
 	<div class="cts-card" style="margin-top:24px;">
 
-<h3><span class="dashicons dashicons-tools" aria-hidden="true"></span> Update & Log</h3>
+<h3><span class="dashicons dashicons-tools" aria-hidden="true"></span> Log</h3>
 <div style="display: flex; gap: 12px; flex-wrap: wrap;">
-<button type="button" id="cts-manual-update" class="cts-button">
-Manuelles Update prüfen
-</button>
 <button type="button" id="cts-clear-logs" class="cts-button cts-button-danger">
 Log löschen
 </button>
 </div>
-<div id="cts-update-result" style="margin-top: 16px;"></div>
+
 	</div>
 	
 	<div class="cts-card" style="margin-top:24px;">
@@ -149,15 +146,6 @@ jQuery(function($) {
 		});
 	});
 	
-	// Manual check; installation is performed by WordPress, never by this view.
-	$('#cts-manual-update').on('click', function() {
-		var $btn = $(this), $result = $('#cts-update-result');
-		$btn.prop('disabled', true);
-		$.post(ajaxurl, {action:'cts_manual_update', nonce:'<?php echo esc_js( wp_create_nonce( 'churchtools_suite_admin' ) ); ?>'})
-			.done(function(response) { $result.text(response.data && response.data.message ? response.data.message : 'Prüfung abgeschlossen.'); })
-			.fail(function() { $result.text('Update-Prüfung fehlgeschlagen.'); })
-			.always(function() { $btn.prop('disabled', false); });
-	});
 
 	// Clear Logs
 	$('#cts-clear-logs').on('click', function() {
