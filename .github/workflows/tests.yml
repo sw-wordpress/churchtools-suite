@@ -33,12 +33,18 @@ jobs:
           --health-interval=10s --health-timeout=5s --health-retries=10
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          fetch-depth: 0
       - uses: shivammathur/setup-php@d52fc211a0436f8839a587b3b5b8efddab4744ea # v2
         with:
           php-version: '8.2'
           extensions: mysqli, mbstring, fileinfo, openssl, dom, sodium, zip
           tools: composer:v2
           coverage: xdebug
+      - name: Check pending addon releases
+        run: make release-check
+      - name: Test release tooling
+        run: python3 tests/release_test.py
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: '22'

@@ -4,8 +4,8 @@ set -euo pipefail
 
 cd "$(dirname "$0")/.."
 version="${CTS_RELEASE_VERSION:-}"
-if [[ ! "$version" =~ ^[0-9]+(\.[0-9]+){2,3}$ ]]; then
-  echo 'Usage: make release VERSION=X.Y.Z (optionally X.Y.Z.W)' >&2
+if [[ ! "$version" =~ ^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$ ]]; then
+  echo 'Usage: make release VERSION=X.Y.Z' >&2
   exit 1
 fi
 branch="$(git symbolic-ref --quiet --short HEAD)" || { echo 'A checked-out branch is required.' >&2; exit 1; }
@@ -28,6 +28,8 @@ else
   fi
 fi
 
+php bin/addon-versions.php check
+
 php <<'PHP'
 <?php
 declare(strict_types=1);
@@ -39,8 +41,8 @@ $header = '/^( \* Version:\s+)([0-9]+(?:\.[0-9]+){2,3})(\s*)$/m';
 // Keep the expected declaration strict so unexpected source changes abort the release.
 $constant = "/^(define\( 'CHURCHTOOLS_SUITE_VERSION', ')([0-9]+(?:\.[0-9]+){2,3})(' \);)$/m";
 if (preg_match_all($header, $source, $headers) !== 1 || preg_match_all($constant, $source, $constants) !== 1
-    || $headers[2][0] !== $constants[2][0] || version_compare($version, $headers[2][0], '<')) {
-    fwrite(STDERR, "Invalid or inconsistent plugin version, or requested downgrade.\n");
+    || $headers[2][0] !== $constants[2][0] || version_compare($version, $headers[2][0], '<=')) {
+    fwrite(STDERR, "Invalid or inconsistent plugin version, or requested version is not higher.\n");
     exit(1);
 }
 foreach ([$header, $constant] as $pattern) {
@@ -52,8 +54,10 @@ if (file_put_contents($file, $source) !== strlen($source)) {
 }
 PHP
 
-if ! git diff --quiet -- churchtools-suite.php; then
-  git add -- churchtools-suite.php
+php bin/addon-versions.php apply
+
+if ! git diff --quiet; then
+  git add -- churchtools-suite.php addons release-pending.json
   git commit -m "Release $version"
 fi
 git tag -a "$version" -m "Release $version"

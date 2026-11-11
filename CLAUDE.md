@@ -2,6 +2,8 @@
 
 Guidance for Claude Code (claude.ai/code) when working in this repository.
 
+Read [AGENTS.md](AGENTS.md) first: its three-part versioning and pending-addon release rules are binding.
+
 ## Project Overview
 
 WordPress plugin that integrates ChurchTools (church management SaaS) with WordPress. It syncs calendars, events and services from the ChurchTools API into custom DB tables and renders them in the frontend (shortcodes, Gutenberg blocks, Elementor).
@@ -182,9 +184,7 @@ Logs: `wp-content/debug.log` and Admin → Erweiterte Diagnose → Logs (sync st
 
 Releases run on GitHub Actions (set up after the `sw-*` plugins; the old PowerShell scripts are gone).
 
-1. Raise the version in the plugin header **and** `CHURCHTOOLS_SUITE_VERSION` (addons: their own header/constant), commit, push.
-2. Tag and push: `git tag 1.3.0.15 && git push origin 1.3.0.15` (also `v1.3.0.15` or `1.3.0.15-01` work; the `-NN` suffix is stripped).
-3. `.github/workflows/tests.yml` runs PHP/browser tests only for pull requests, cancelling superseded runs. Release tags do not invoke this suite. `.github/workflows/main.yml` checks that tag = plugin header = `CHURCHTOOLS_SUITE_VERSION`, runs `composer validate`, `composer cs` and `composer stan` (report only, `continue-on-error`, make them blocking once the baseline is clean), builds the ZIPs with `bin/build-zip.sh`, verifies their contents and attaches them to a GitHub release.
+Follow [AGENTS.md](AGENTS.md) and README → Release. During development, record addon changes in `release-pending.json`; do not increment versions per edit. Run `make release-check` to validate the plan. Only when the user requests a release, run `make release VERSION=X.Y.Z`: this applies one bump per pending addon, synchronizes version metadata, clears the pending object, commits, tags and atomically pushes. New versions have exactly three components. GitHub Actions validates addon versions before building and publishing signed release packages.
 
 `bin/build-zip.sh [output-dir]` can be run locally (needs php, rsync, zip). It produces `churchtools-suite-<version>.zip` (without `addons/`) and one ZIP per addon (`churchtools-suite-elementor-<version>.zip`, ...). Untracked files are never shipped. The ZIP root folder is the plugin slug.
 

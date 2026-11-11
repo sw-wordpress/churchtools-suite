@@ -121,10 +121,15 @@ Das [Sicherheits- und Umsetzungskonzept](docs/GITHUB-UPDATES.md) beschreibt eine
 ### Release
 
 ```bash
-make release VERSION=1.4.0.8
+make release-check
+make release VERSION=1.4.3
 ```
 
-Aktualisiert den `Version`-Header und `CHURCHTOOLS_SUITE_VERSION` in `churchtools-suite.php`, erstellt den Versionscommit und einen annotierten Tag und pusht aktuellen Branch plus Tag atomar nach `origin`. Der Tag startet den signierten GitHub-Release-Build. Drei- und vierteilige Versionsnummern sind erlaubt; Addons behalten ihre eigenen Versionen. Ein sauberer Arbeitsbaum inklusive unversionierter Dateien ist erforderlich. Bestehende Tags, Downgrades und widersprüchliche Versionsangaben werden abgelehnt. Bei fehlgeschlagenem Push bleiben Commit und Tag lokal erhalten; die Remote-Refs werden nur gemeinsam aktualisiert.
+Neue Versionen verwenden ausschließlich `Major.Minor.Patch`. Die verbindlichen Regeln für alle Coding-Agenten stehen in [AGENTS.md](AGENTS.md). Änderungen an Addons werden während der Entwicklung in `release-pending.json` vorgemerkt, beispielsweise `"churchtools-suite-posts-sync": "minor"`. Pro Addon bleibt nur die höchste Stufe (`major > minor > patch`) stehen. `make release-check` prüft gegen den letzten erreichbaren Release-Tag, ob alle geänderten Addons einen Eintrag besitzen.
+
+`make release` aktualisiert Hauptplugin-Header und Versionskonstante sowie die vorgemerkten Addon-Versionen (Header, Konstante und vorhandener `Stable tag`). Jedes Addon wird genau einmal erhöht; anschließend wird die Vormerkdatei auf `{}` zurückgesetzt. Die dauerhafte `AGENTS.md` bleibt erhalten. Die initialen Einträge migrieren Elementor von `1.0.0.3` nach `1.0.1` und vereinheitlichen Posts Sync auf `0.1.14`.
+
+Der Befehl erstellt den Versionscommit und einen annotierten Tag und pusht aktuellen Branch plus Tag atomar nach `origin`. Der Tag startet den signierten GitHub-Release-Build, der höhere Versionen geänderter Addons und eine leere Vormerkdatei nochmals prüft. Ein sauberer Arbeitsbaum inklusive unversionierter Dateien ist erforderlich. Bestehende Tags, nicht erhöhte Hauptplugin-Versionen und widersprüchliche Hauptplugin-Versionsangaben werden abgelehnt. Bei fehlgeschlagenem Push bleiben Release-Commit und Tag lokal erhalten; nach Beheben der Ursache denselben Branch und Tag atomar pushen, statt die Versionen erneut zu erhöhen.
 
 Nur ZIPs lokal bauen:
 

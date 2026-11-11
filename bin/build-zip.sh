@@ -60,6 +60,8 @@ package() {
 /phpcs*.xml.dist
 /phpstan.neon*
 /CLAUDE.md
+/AGENTS.md
+/release-pending.json
 /ROADMAP.md
 EXCLUDES
 
