@@ -2,13 +2,13 @@
 /**
  * Plugin Name:       ChurchTools Integration Suite
  * Update URI: https://github.com/sw-wordpress/churchtools-suite
- * Plugin URI:        https://github.com/feg-aschaffenburg/churchtools-suite
+ * Plugin URI:        https://github.com/sw-wordpress/churchtools-suite
  * Description:       Professionelle WordPress-Integration für externe Kalender-, Event- und Dienstsysteme. Synchronisiert Events, Termine und Dienste aus dem angebundenen System. Repository Factory für erweiterbare Architektur (Multi-User, Caching, Add-Ons).
  * Version: 1.4.2
  * Requires at least: 6.0
  * Requires PHP:      8.2
- * Author:            FEG Aschaffenburg
- * Author URI:        https://github.com/feg-aschaffenburg
+ * Author:            FEG Aschaffenburg & Stefan Warnat
+ * Author URI:        https://github.com/sw-wordpress
  * License:           GPL v2 or later
  * License URI:       https://www.gnu.org/licenses/gpl-2.0.html
  * Text Domain:       churchtools-suite

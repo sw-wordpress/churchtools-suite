@@ -1,6 +1,6 @@
 <?php
 /**
- * Advanced settings and manual, verified GitHub update status.
+ * Advanced plugin settings.
  *
  * @package ChurchTools_Suite
  */
@@ -30,29 +30,3 @@ $advanced_mode = get_option( 'churchtools_suite_advanced_mode', 0 );
 		<div class="cts-card-footer"><button type="submit" name="cts_save_advanced" value="1" class="cts-button cts-button-primary"><?php esc_html_e( 'Speichern', 'churchtools-suite' ); ?></button></div>
 	</section>
 </form>
-<?php if ( current_user_can( 'update_plugins' ) ) : ?>
-	<?php
-	require_once CHURCHTOOLS_SUITE_PATH . 'includes/update/class-churchtools-suite-update-service.php';
-	$update_state = ChurchTools_Suite_Update_Store::read();
-	$update_ready = (bool) ChurchTools_Suite_Update_Service::keys() && function_exists( 'sodium_crypto_sign_verify_detached' );
-	?>
-	<section class="cts-card">
-		<div class="cts-card-header"><h2><?php esc_html_e( 'GitHub-Updates', 'churchtools-suite' ); ?></h2></div>
-		<div class="cts-card-body">
-			<p><?php esc_html_e( 'Prüfung nur im Backend, höchstens einmal je 24 Stunden oder ausdrücklich manuell. Installation ausschließlich über die WordPress-Plugin-Verwaltung. Signatur und SHA-256 werden vor dem Entpacken geprüft.', 'churchtools-suite' ); ?></p>
-			<?php if ( ! $update_ready ) : ?>
-				<div class="cts-callout is-warning"><p><?php esc_html_e( 'GitHub-Updates sind gesperrt: Ein vertrauenswürdiger öffentlicher Release-Schlüssel und Sodium müssen eingerichtet sein.', 'churchtools-suite' ); ?></p></div>
-			<?php endif; ?>
-			<p><?php esc_html_e( 'Letzte erfolgreiche Prüfung:', 'churchtools-suite' ); ?> <?php echo ! empty( $update_state['last_success'] ) ? esc_html( wp_date( 'd.m.Y H:i', $update_state['last_success'] ) ) : esc_html__( 'Noch keine', 'churchtools-suite' ); ?></p>
-			<?php
-			if ( ! empty( $update_state['error'] ) ) :
-				?>
-				<p role="status"><?php echo esc_html( $update_state['error'] ); ?></p><?php endif; ?>
-			<div id="cts-verified-updates-result" class="cts-info" role="status" aria-live="polite" hidden></div>
-		</div>
-		<div class="cts-card-footer cts-form-actions">
-			<button type="button" id="cts-verified-updates-check" class="cts-btn" <?php disabled( ! $update_ready ); ?>><?php esc_html_e( 'Jetzt auf Updates prüfen', 'churchtools-suite' ); ?></button>
-			<a class="cts-btn" href="<?php echo esc_url( admin_url( 'plugins.php' ) ); ?>"><?php esc_html_e( 'Plugin-Verwaltung öffnen', 'churchtools-suite' ); ?></a>
-		</div>
-	</section>
-<?php endif; ?>

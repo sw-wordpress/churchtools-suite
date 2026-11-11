@@ -11,6 +11,8 @@ if ( ! is_dir( $output ) || ! str_starts_with( realpath( $output ) . '/', sys_ge
 	fwrite( STDERR, "An existing temporary output directory is required.\n" );
 	exit( 1 );
 }
+// Static fixtures must not rely on visitor-triggered cron execution.
+define( 'DISABLE_WP_CRON', true );
 require __DIR__ . '/vendor/autoload.php';
 require __DIR__ . '/bootstrap.php';
 wp_set_current_user( 1 );
@@ -81,7 +83,17 @@ function cts_export_browser_page( string $output, string $name, string $head, st
 	}
 	$header_scripts = ob_get_clean();
 	ob_start();
-	ChurchTools_Suite_Admin_Screen::render_page();
+	if ( str_starts_with( $name, 'plugins--' ) ) {
+		echo '<h1>Plugins</h1><table class="wp-list-table"><tbody>';
+		foreach ( ChurchTools_Suite_Update_Provider::descriptors() as $file => $descriptor ) {
+			echo '<tr><td>' . esc_html( $descriptor['slug'] ) . '<div class="plugin-version-author-uri">';
+			echo implode( ' | ', apply_filters( 'plugin_row_meta', array( 'Version ' . esc_html( $descriptor['version'] ) ), $file ) );
+			echo '</div></td></tr>';
+		}
+		echo '</tbody></table>';
+	} else {
+		ChurchTools_Suite_Admin_Screen::render_page();
+	}
 	$html = ob_get_clean();
 	ob_start();
 	// Resolve the plugin's actual dependency trees; editor queues need a full WP editor shell.
@@ -122,10 +134,11 @@ remove_all_actions( 'cts_posts_settings_render' );
 $_GET = array( 'page' => 'churchtools-suite', 'tab' => 'settings', 'subtab' => 'posts' );
 cts_export_browser_page( $output, 'settings--posts-inactive', $head, $tail );
 
-// A configured public key enables the manual-check control without contacting GitHub.
-$_GET = array( 'page' => 'churchtools-suite', 'tab' => 'settings', 'subtab' => 'advanced' );
-cts_export_browser_page( $output, 'settings--verified-updates', $head, $tail );
+// Native plugin metadata, including multiple managed addons, without contacting GitHub.
+$_GET = array();
+set_current_screen( 'plugins' );
+cts_export_browser_page( $output, 'plugins--verified-updates', $head, $tail );
 
 // Exercise overdue background checks separately from user-triggered AJAX actions.
 ChurchTools_Suite_Update_Store::write( array( 'last_attempt' => 0 ) );
-cts_export_browser_page( $output, 'settings--verified-updates-due', $head, $tail );
+cts_export_browser_page( $output, 'plugins--verified-updates-due', $head, $tail );

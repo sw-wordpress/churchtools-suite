@@ -42,7 +42,7 @@ Das Upstream-Projekt hat die Addons inzwischen in eigene Repositories ausgelager
 - Shortcodes und Gutenberg-Views für Liste, Grid, Kalender, Countdown und Carousel
 - Kalenderfilter über `calendar`, `calendars` und `calendar_ids`
 - Custom CSS pro Shortcode, Preset und Block-Instanz, begrenzt über eine stabile Instanz-ID
-- Automatische Synchronisation über WordPress-Cron
+- Automatische Synchronisation über WordPress-Cron, auch bei deaktiviertem Besucher-Trigger durch regelmäßigen externen Aufruf von `wp-cron.php` (z. B. per curl). Einstellungen und Dashboard zeigen den nächsten geplanten und den letzten erfolgreichen Auto-Sync an.
 - Löschen abgelaufener Termine (einstellbar) inklusive der importierten Bilder
 - Template-System mit Theme-Override unter `{theme}/churchtools-suite/`
 
@@ -116,15 +116,22 @@ Reports: `coverage/php.xml`, `coverage/ui.json`. `coverage:check` verlangt für 
 
 ### GitHub-Updates
 
+Unter **Plugins → Installierte Plugins** steht bei ChurchTools Suite und seinen Addons „Jetzt auf Updates prüfen“ samt letztem Prüfstatus. Ein Klick prüft das gemeinsame Release einmal; anschließend lässt sich die Plugin-Liste neu laden, um verfügbare Aktualisierungen anzuzeigen. Die Installation erfolgt über WordPress. Bei einer abgelaufenen Sicherheitsprüfung fordert die Meldung zum Neuladen auf; eine GitHub-HTTP-Fehlermeldung bleibt als solche sichtbar.
+
 Das [Sicherheits- und Umsetzungskonzept](docs/GITHUB-UPDATES.md) beschreibt einen übertragbaren GitHub-Update-Provider mit signierten Manifesten, Backend-Prüfung höchstens einmal je 24 Stunden und ausschließlich manueller Installation über WordPress. Die Umsetzung und [Einrichtung der Signierschlüssel](docs/GITHUB-UPDATES-BETRIEB.md) sind dokumentiert. Die alten Updater sind stillgelegt. Ohne öffentlichen Vertrauensschlüssel bleibt die neue GitHub-Funktion gesperrt; Produktionsschlüssel werden nicht automatisch erzeugt.
 
 ### Release
 
 ```bash
-make release VERSION=1.4.0.8
+make release-check
+make release VERSION=1.4.3
 ```
 
-Aktualisiert den `Version`-Header und `CHURCHTOOLS_SUITE_VERSION` in `churchtools-suite.php`, erstellt den Versionscommit und einen annotierten Tag und pusht aktuellen Branch plus Tag atomar nach `origin`. Der Tag startet den signierten GitHub-Release-Build. Drei- und vierteilige Versionsnummern sind erlaubt; Addons behalten ihre eigenen Versionen. Ein sauberer Arbeitsbaum inklusive unversionierter Dateien ist erforderlich. Bestehende Tags, Downgrades und widersprüchliche Versionsangaben werden abgelehnt. Bei fehlgeschlagenem Push bleiben Commit und Tag lokal erhalten; die Remote-Refs werden nur gemeinsam aktualisiert.
+Neue Versionen verwenden ausschließlich `Major.Minor.Patch`. Die verbindlichen Regeln für alle Coding-Agenten stehen in [AGENTS.md](AGENTS.md). Änderungen an Addons werden während der Entwicklung in `release-pending.json` vorgemerkt, beispielsweise `"churchtools-suite-posts-sync": "minor"`. Pro Addon bleibt nur die höchste Stufe (`major > minor > patch`) stehen. `make release-check` prüft gegen den letzten erreichbaren Release-Tag, ob alle geänderten Addons einen Eintrag besitzen.
+
+`make release` aktualisiert Hauptplugin-Header und Versionskonstante sowie die vorgemerkten Addon-Versionen (Header, Konstante und vorhandener `Stable tag`). Jedes Addon wird genau einmal erhöht; anschließend wird die Vormerkdatei auf `{}` zurückgesetzt. Die dauerhafte `AGENTS.md` bleibt erhalten. Die initialen Einträge migrieren Elementor von `1.0.0.3` nach `1.0.1` und vereinheitlichen Posts Sync auf `0.1.14`.
+
+Der Befehl erstellt den Versionscommit und einen annotierten Tag und pusht aktuellen Branch plus Tag atomar nach `origin`. Der Tag startet den signierten GitHub-Release-Build, der höhere Versionen geänderter Addons und eine leere Vormerkdatei nochmals prüft. Ein sauberer Arbeitsbaum inklusive unversionierter Dateien ist erforderlich. Bestehende Tags, nicht erhöhte Hauptplugin-Versionen und widersprüchliche Hauptplugin-Versionsangaben werden abgelehnt. Bei fehlgeschlagenem Push bleiben Release-Commit und Tag lokal erhalten; nach Beheben der Ursache denselben Branch und Tag atomar pushen, statt die Versionen erneut zu erhöhen.
 
 Nur ZIPs lokal bauen:
 

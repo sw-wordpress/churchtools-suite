@@ -112,10 +112,11 @@ $posts_sync_installed   = isset( $all_plugins[ $posts_sync_plugin_file ] );
 					);
 		?>
 </p>
-<button type="button" class="button cts-check-addon-updates" style="margin-left: 10px;">
-<span class="dashicons dashicons-update"></span>
-		<?php esc_html_e( 'Nach Updates suchen', 'churchtools-suite' ); ?>
-</button>
+<?php if ( current_user_can( 'update_plugins' ) ) : ?>
+<a class="button" href="<?php echo esc_url( is_multisite() ? network_admin_url( 'plugins.php' ) : admin_url( 'plugins.php' ) ); ?>">
+	<?php esc_html_e( 'Updates in der Plugin-Verwaltung prüfen', 'churchtools-suite' ); ?>
+</a>
+<?php endif; ?>
 </div>
 
 <table class="wp-list-table widefat fixed striped">
@@ -239,58 +240,9 @@ $posts_sync_installed   = isset( $all_plugins[ $posts_sync_plugin_file ] );
 
 </div>
 
-<script>
-jQuery(document).ready(function($) {
-	// Install addon handler
-	// Check for updates handler
-	$('.cts-check-addon-updates').on('click', function(e) {
-		e.preventDefault();
-
-		const $btn = $(this);
-		const originalHtml = $btn.html();
-
-		// Show loading
-		$btn.prop('disabled', true).html('<span class="dashicons dashicons-update spin"></span> <?php esc_html_e( 'Prüfe...', 'churchtools-suite' ); ?>');
-
-		// Clear transient cache and reload
-		$.ajax({
-			url: ajaxurl,
-			type: 'POST',
-			data: {
-				action: 'cts_clear_addon_update_cache',
-				nonce: '<?php echo esc_js( wp_create_nonce( 'churchtools_suite_admin' ) ); ?>'
-			},
-			success: function(response) {
-				if (response && response.success) {
-					location.reload();
-					return;
-				}
-
-				const msg = (response && response.data && response.data.message)
-					? response.data.message
-					: '<?php esc_html_e( 'Fehler beim Prüfen der Updates', 'churchtools-suite' ); ?>';
-				$btn.prop('disabled', false).html(originalHtml);
-				alert(msg);
-			},
-			error: function(xhr) {
-				let msg = '<?php esc_html_e( 'Fehler beim Prüfen der Updates', 'churchtools-suite' ); ?>';
-				if (xhr && xhr.responseJSON && xhr.responseJSON.data && xhr.responseJSON.data.message) {
-					msg = xhr.responseJSON.data.message;
-				}
-				$btn.prop('disabled', false).html(originalHtml);
-				alert(msg);
-			}
-		});
-	});
-
-	// Update addon handler
-
-});
-</script>
 
 <style>
 .cts-install-addon .dashicons.spin,
-.cts-check-addon-updates .dashicons.spin,
 .cts-update-cell .dashicons.spin {
 	animation: rotation 1s infinite linear;
 }
@@ -336,14 +288,4 @@ jQuery(document).ready(function($) {
 	line-height: 1.5;
 }
 
-.cts-check-addon-updates {
-	vertical-align: middle;
-}
-
-.cts-check-addon-updates .dashicons {
-	font-size: 16px;
-	width: 16px;
-	height: 16px;
-	vertical-align: text-top;
-}
 </style>

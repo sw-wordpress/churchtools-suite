@@ -179,7 +179,9 @@ final class VerifiedUpdatesTest extends CTS_TestCase {
 		$this->keys = array();
 		$html = $this->render_admin( 'settings', 'advanced' );
 		$this->assertStringNotContainsString( 'cts_auto_update_enabled', $html );
-		$this->assertStringContainsString( 'GitHub-Updates sind gesperrt', $html );
+		$this->assertStringNotContainsString( 'cts-verified-updates-check', $html );
+		$meta = ChurchTools_Suite_Update_Provider::row_meta( array(), array_key_first( ChurchTools_Suite_Update_Provider::descriptors() ) );
+		$this->assertStringContainsString( 'GitHub-Updates sind gesperrt', $meta[0] );
 		update_option( 'churchtools_suite_auto_update_enabled', 1 );
 		delete_site_option( 'cts_verified_updates_migrated' );
 		wp_schedule_single_event( time() + 120, 'churchtools_suite_check_updates' );
@@ -319,7 +321,88 @@ final class VerifiedUpdatesTest extends CTS_TestCase {
 	}
 
 	public function test_check_ajax_rejects_invalid_nonce_before_http(): void {
-		$this->assertSame( -1, $this->ajax( 'invalid' ) );
+		$response = $this->ajax( 'invalid' );
+		$this->assertFalse( $response['success'] );
+		$this->assertStringContainsString( 'Plugin-Liste neu laden', $response['data']['message'] );
+		$this->assertCount( 0, $this->requests );
+	}
+
+	public function test_plugin_rows_offer_shared_checks_without_duplicate_ids_or_http(): void {
+		$original = array( 'Version 1.0' );
+		$this->assertSame( $original, apply_filters( 'plugin_row_meta', $original, 'foreign/plugin.php' ) );
+		foreach ( array_keys( ChurchTools_Suite_Update_Provider::descriptors() ) as $file ) {
+			$meta = apply_filters( 'plugin_row_meta', $original, $file );
+			$this->assertSame( $original[0], $meta[0] );
+			$this->assertStringContainsString( 'Jetzt auf Updates prüfen', $meta[1] );
+			$this->assertStringContainsString( 'Noch keine erfolgreiche', $meta[1] );
+			$this->assertStringContainsString( 'data-cts-update-check', $meta[1] );
+			$this->assertStringNotContainsString( ' id=', $meta[1] );
+			$this->assertStringContainsString( esc_url( is_multisite() ? network_admin_url( 'plugins.php' ) : admin_url( 'plugins.php' ) ), $meta[1] );
+		}
+		$this->assertCount( 0, $this->requests );
+		$this->assertIsArray( ChurchTools_Suite_Update_Service::check() );
+		$this->assertStringContainsString( 'Letzte erfolgreiche Prüfung', ChurchTools_Suite_Update_Provider::status_text() );
+		$this->assertCount( 3, $this->requests );
+	}
+
+	public function test_row_status_explains_errors_and_missing_keys_without_http(): void {
+		ChurchTools_Suite_Update_Store::write( array( 'error' => '<b>GitHub-Antwort: HTTP 403</b>' ) );
+		$file = array_key_first( ChurchTools_Suite_Update_Provider::descriptors() );
+		$meta = ChurchTools_Suite_Update_Provider::row_meta( array(), $file );
+		$this->assertStringContainsString( 'GitHub-Antwort: HTTP 403', $meta[0] );
+		$this->assertStringNotContainsString( '<b>', $meta[0] );
+		$this->keys = array();
+		$meta = ChurchTools_Suite_Update_Provider::row_meta( array(), $file );
+		$this->assertStringContainsString( 'disabled=', $meta[0] );
+		$this->assertStringContainsString( 'GitHub-Updates sind gesperrt', $meta[0] );
+		$this->assertCount( 0, $this->requests );
+	}
+
+	public function test_plugin_rows_do_not_expose_controls_to_unauthorized_contexts(): void {
+		$original = array( 'Version 1.0' );
+		$file = array_key_first( ChurchTools_Suite_Update_Provider::descriptors() );
+		set_current_screen( 'front' );
+		$this->assertSame( $original, ChurchTools_Suite_Update_Provider::row_meta( $original, $file ) );
+		set_current_screen( is_multisite() ? 'plugins-network' : 'plugins' );
+		wp_set_current_user( self::factory()->user->create( array( 'role' => 'subscriber' ) ) );
+		$this->assertSame( $original, ChurchTools_Suite_Update_Provider::row_meta( $original, $file ) );
+		$this->assertCount( 0, $this->requests );
+	}
+
+	public function test_app_settings_and_diagnostics_have_no_update_check_controls(): void {
+		$this->assertStringNotContainsString( 'data-cts-update-check', $this->render_file( CHURCHTOOLS_SUITE_PATH . 'admin/views/settings/advanced.php' ) );
+		$this->assertStringNotContainsString( 'cts-manual-update', $this->render_file( CHURCHTOOLS_SUITE_PATH . 'admin/views/debug/manuelle-trigger.php' ) );
+		$html = $this->render_file( CHURCHTOOLS_SUITE_PATH . 'admin/views/addons-page.php' );
+		$this->assertStringNotContainsString( 'cts-check-addon-updates', $html );
+	}
+
+	public function test_deferred_script_has_a_valid_nonce_and_respects_cached_daily_interval(): void {
+		foreach ( array( array( true, 0, true ), array( true, time(), false ), array( false, 0, false ) ) as [$configured, $attempt, $due] ) {
+			$GLOBALS['wp_scripts'] = new WP_Scripts();
+			ChurchTools_Suite_Update_Store::write( array( 'last_attempt' => $attempt ) );
+			if ( ! $configured ) $this->keys = array();
+			ChurchTools_Suite_Update_Provider::enqueue();
+			$this->assertTrue( wp_script_is( 'cts-verified-updates', 'enqueued' ) );
+			$inline = wp_scripts()->get_data( 'cts-verified-updates', 'before' );
+			$this->assertIsArray( $inline );
+			preg_match( '/window\.ctsVerifiedUpdates=(.+);/', implode( '', $inline ), $matches );
+			$config = json_decode( $matches[1], true, 32, JSON_THROW_ON_ERROR );
+			$this->assertSame( $due, $config['due'] );
+			$this->assertSame( $configured, $config['ready'] );
+			$this->assertNotFalse( wp_verify_nonce( $config['nonce'], 'cts_verified_updates' ) );
+			$this->assertSame( admin_url( 'admin-ajax.php' ), $config['url'] );
+		}
+		$this->assertCount( 0, $this->requests );
+	}
+
+	public function test_deferred_script_does_not_load_in_unauthorized_contexts(): void {
+		set_current_screen( 'front' );
+		ChurchTools_Suite_Update_Provider::enqueue();
+		$this->assertFalse( wp_script_is( 'cts-verified-updates', 'enqueued' ) );
+		set_current_screen( is_multisite() ? 'plugins-network' : 'plugins' );
+		wp_set_current_user( self::factory()->user->create( array( 'role' => 'subscriber' ) ) );
+		ChurchTools_Suite_Update_Provider::enqueue();
+		$this->assertFalse( wp_script_is( 'cts-verified-updates', 'enqueued' ) );
 		$this->assertCount( 0, $this->requests );
 	}
 
