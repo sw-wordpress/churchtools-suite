@@ -45,6 +45,8 @@ package() {
 /.github
 /vendor
 /node_modules
+/pages
+.vitepress
 /dist
 /coverage
 /bin

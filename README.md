@@ -36,6 +36,12 @@ Das Upstream-Projekt hat die Addons inzwischen in eigene Repositories ausgelager
 - Posts-Sync-Addon: ChurchTools Integration Suite, PHP >= 8.0
 - Presentations-Addon: ChurchTools Integration Suite, PHP >= 8.0
 
+## Nutzerdokumentation
+
+Die [Nutzerdokumentation](https://sw-wordpress.github.io/churchtools-suite/) beschreibt Installation, Verbindung, Kalender-/Diensteauswahl, Synchronisation, Terminansichten, Addons und Fehlerbehebung. Sie wird nach Merge auf `main` über GitHub Actions veröffentlicht; falls die Seite noch nicht erreichbar ist, stehen die [Quellen unter `pages/`](pages/index.md) bereit. Änderungen: [Changelog](pages/Changelog.md).
+
+Die [Maintainer-Anleitung](pages/README.md) erklärt den isolierten Produktionsbuild ohne zusätzliche Projekt-Abhängigkeiten und die einmalige Pages-Einrichtung (**Settings → Pages → Source → GitHub Actions**).
+
 ## Funktionen
 
 - Kalender-, Termin-, Dienst-, Gruppen- und Gruppenpost-Synchronisation
