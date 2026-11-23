@@ -33,7 +33,9 @@ jobs:
         run: |
           mkdir -p "$DOCS_BUILD"
           cp -R pages "$DOCS_BUILD/pages"
-          npm install --prefix "$DOCS_BUILD" --no-save --package-lock=false --ignore-scripts --no-audit --no-fund vitepress@1.6.4
+          # Resolve metadata without executing/installing packages; keep the lock only in runner.temp.
+          npm install --prefix "$DOCS_BUILD" --package-lock-only --save-exact --ignore-scripts --no-audit --no-fund vitepress@1.6.4
+          npm ci --prefix "$DOCS_BUILD" --ignore-scripts --no-audit --no-fund
           "$DOCS_BUILD/node_modules/.bin/vitepress" build "$DOCS_BUILD/pages"
       - name: Upload Pages artifact
         if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'

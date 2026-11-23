@@ -31,10 +31,10 @@ Die IDs `2,5` sind Beispiele. Verwende die **ChurchTools-ID** aus deiner Kalende
 ### Kalender, Details und Klickverhalten
 
 ```text
-[cts_list calendar_ids="2,5" limit="20" show_location="true" show_services="true" show_appointment_description="true" show_event_description="true" event_action="modal"]
+[cts_list calendars="2,5" limit="20" show_location="true" show_services="true" show_appointment_description="true" show_event_description="true" event_action="modal"]
 ```
 
-- `calendar`, `calendars` und `calendar_ids` erlauben kommagetrennte Kalender-IDs. Ohne Filter gilt die Auswahl in der Administration.
+- `calendar` und `calendars` erlauben bei `cts_list` kommagetrennte Kalender-IDs. `calendar_ids` wird von `cts_calendar` unterstützt, nicht von `cts_list`; bei der Liste wird dieses unbekannte Attribut ignoriert. Ohne unterstützten Filter gilt die Auswahl in der Administration.
 - `limit` begrenzt die Ausgabe; es erweitert nicht den synchronisierten Zeitraum.
 - `show_services`, `show_location` und die Beschreibungsparameter steuern Inhalte, soweit die jeweilige View sie unterstützt.
 - `event_action="modal"` öffnet ein Overlay, `"page"` eine Einzelseite, `"none"` verhindert diese Detailaktion. `cts_next_event` hat anders als viele andere Ansichten standardmäßig keine Klickaktion.
@@ -52,13 +52,14 @@ Alle Parameter, View-Namen und abweichenden Standardwerte stehen in der bestehen
 
 Shortcode-Bezeichnungen und Block-Einstellungen sind nicht überall dieselben technischen Attributnamen. Verwende im Block die angebotenen Steuerelemente, statt Shortcode-Attribute in Block-HTML zu übertragen.
 
-## Wiederverwendbare Shortcode-Vorlagen
+## Shortcode-Vorlagen und aktuelle Preset-Grenze
 
-1. **Übersichten → Shortcode-Vorlagen** öffnen.
-2. Unter **Standard-Shortcodes** die passende Vorlage auswählen und **Als Preset** verwenden oder **Neues Preset erstellen** öffnen.
-3. **Preset-Name**, **Shortcode-Typ** und Parameter festlegen, optional **Eigenes CSS** ergänzen und **Preset speichern**.
-4. Unter **Meine Presets** den erzeugten Shortcode mit **Kopieren** übernehmen.
+Unter **Übersichten → Shortcode-Vorlagen** lassen sich Standardbeispiele ansehen und eigene Presets mit Namen, Shortcode-Typ und Parametern speichern. Die Oberfläche bietet dafür **Als Preset**, **Neues Preset erstellen**, **Preset speichern** und **Kopieren** an.
 
-Bei `cts_list`, `cts_grid` und `cts_calendar` kann ein gespeicherter Preset-Slug als `view` geladen werden. **Gespeicherte Preset-Parameter überschreiben gleichnamige Angaben im Shortcode.** Ändere bei unerwarteter Ausgabe daher die gespeicherte Vorlage, nicht nur den eingefügten Text.
+::: warning Eigene Preset-Slugs werden derzeit nicht geladen
+Die Frontend-Handler von `cts_list`, `cts_grid` und `cts_calendar` lösen gespeicherte Preset-Slugs derzeit nicht auf. Ein erzeugter Shortcode mit einem eigenen Slug in `view` kann deshalb **View nicht verfügbar** melden; die gespeicherten Parameter werden nicht angewendet. Das Bearbeiten des Presets behebt diese Grenze nicht.
+:::
 
-Eigenes CSS wird auf die jeweilige Instanz bzw. das Preset beschränkt. Änderungen weiterhin mit mehreren Ansichten auf derselben Seite prüfen. Entwickler können Templates im Theme unter `churchtools-suite/` überschreiben; die Architektur ist in [CLAUDE.md](https://github.com/sw-wordpress/churchtools-suite/blob/main/CLAUDE.md#frontend-display) beschrieben. Für normale Einrichtung sind keine PHP-Änderungen nötig.
+Verwende bis zur Umsetzung dieser Funktion eine unterstützte View und gib die benötigten Parameter direkt im Shortcode an, wie in den Beispielen oben. Prüfe die veröffentlichte Ausgabe, statt aus einem erfolgreich gespeicherten Preset auf funktionierende Frontend-Einbindung zu schließen.
+
+Entwickler können Templates im Theme unter `churchtools-suite/` überschreiben; die Architektur ist in [CLAUDE.md](https://github.com/sw-wordpress/churchtools-suite/blob/main/CLAUDE.md#frontend-display) beschrieben. Für normale Einrichtung sind keine PHP-Änderungen nötig.

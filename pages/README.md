@@ -28,7 +28,8 @@ Voraussetzung: Node.js 22 und npm. Im Repository-Root ausführen:
 ```sh
 DOCS_BUILD="$(mktemp -d "${TMPDIR:-/tmp}/cts-docs.XXXXXX")"
 cp -R pages "$DOCS_BUILD/pages"
-npm install --prefix "$DOCS_BUILD" --no-save --package-lock=false --ignore-scripts --no-audit --no-fund vitepress@1.6.4
+npm install --prefix "$DOCS_BUILD" --package-lock-only --save-exact --ignore-scripts --no-audit --no-fund vitepress@1.6.4
+npm ci --prefix "$DOCS_BUILD" --ignore-scripts --no-audit --no-fund
 "$DOCS_BUILD/node_modules/.bin/vitepress" build "$DOCS_BUILD/pages"
 # Optional ansehen:
 "$DOCS_BUILD/node_modules/.bin/vitepress" preview "$DOCS_BUILD/pages" --host 127.0.0.1
@@ -36,7 +37,7 @@ npm install --prefix "$DOCS_BUILD" --no-save --package-lock=false --ignore-scrip
 rm -rf "$DOCS_BUILD"
 ```
 
-Es entstehen weder zusätzliche package.json-/Lockdateien noch Abhängigkeiten im Checkout. Die feste VitePress-Version sperrt nicht sämtliche transitiven Abhängigkeiten. Ausgabe und Cache liegen ausschließlich in der temporären Kopie. `README.md` ist über `srcExclude` vom Website-Build ausgeschlossen; VitePress prüft interne Links ohne Ausnahmeregel.
+Im Checkout entstehen weder zusätzliche package.json-/Lockdateien noch Abhängigkeiten. Zuerst werden ausschließlich im temporären Build-Verzeichnis ein Manifest und eine Lockdatei aufgelöst; `npm ci` installiert anschließend exakt diesen Baum mit Integritätsprüfung und deaktivierten Lifecycle-Skripten. Die feste VitePress-Version und die pro Lauf erzeugte Lockdatei sperren transitive Versionen nicht über verschiedene Läufe hinweg. Ausgabe und Cache liegen ausschließlich in der temporären Kopie. `README.md` ist über `srcExclude` vom Website-Build ausgeschlossen; VitePress prüft interne Links ohne Ausnahmeregel.
 
 Der exakte gemeinsame Footer wird über den `layout-bottom`-Slot des kleinen Custom-Themes gerendert. Nicht auf `themeConfig.footer` zurückbauen: Der Standard-Footer ist auf Seiten mit Sidebar verborgen. Das Custom-Theme erzeugt auf Start- und Inhaltsseiten genau einen sichtbaren gemeinsamen Footer.
 

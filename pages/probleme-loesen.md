@@ -16,7 +16,7 @@ Zuerst die konkrete Rückmeldung lesen und mit einem einzelnen überschaubaren I
 2. Prüfen, ob der betreffende Termin im Importzeitraum liegt (Vorgabe: 7 Tage zurück und 90 Tage voraus).
 3. **Synchronisation** ausführen und die Rückmeldung prüfen. Eine Kalender-Synchronisation allein lädt keine Termine.
 4. Unter **Übersichten → Termine** Datumsfilter kontrollieren: standardmäßig ab heute. Für alte Termine das Startdatum leeren oder ändern.
-5. Im Shortcode korrekte ChurchTools-Kalender-IDs und bei Presets deren gespeicherte Filter prüfen. Preset-Werte überschreiben gleichnamige Shortcode-Angaben.
+5. Im Shortcode korrekte ChurchTools-Kalender-IDs und die für den konkreten Shortcode unterstützten Filter prüfen. Bei `cts_list` etwa `calendars="2,5"` verwenden, nicht `calendar_ids`. Benutzerdefinierte Preset-Slugs werden derzeit nicht als `view` aufgelöst; stattdessen eine unterstützte View und die Filter direkt als Attribute angeben.
 6. Erst wenn Auswahl/Rechte/Zeitraum stimmen, bei Bedarf **Vollständigen Sync erzwingen** nutzen.
 
 ## Manueller Sync deaktiviert oder automatische Daten veraltet

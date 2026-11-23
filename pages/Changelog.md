@@ -10,6 +10,8 @@ Nutzerbezogene Auswahl der vorhandenen [ausführlichen Release Notes](https://gi
 
 ### Other topics
 
+- Die Dokumentations-Toolchain installiert den vorab im temporären Runner-Verzeichnis aufgelösten Abhängigkeitsbaum mit `npm ci`; Manifest und Lockdatei bleiben außerhalb des Repositories.
+- Shortcode-Beispiele auf unterstützte Kalenderfilter begrenzt und die derzeit fehlende Auflösung eigener Preset-Slugs ausdrücklich dokumentiert.
 - Deutsche Nutzerdokumentation mit Einrichtung, Einstellungen, Synchronisation, Terminansichten, Erweiterungen, Fehlerbehebung und Changelog sowie echten bereinigten Demoaufnahmen ergänzt; Veröffentlichung über GitHub Pages vorbereitet.
 
 ## 1.4.0.7 – 7. November 2026
