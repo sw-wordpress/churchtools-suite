@@ -1,0 +1,18 @@
+/* A single visible footer for home, documentation and not-found layouts. */
+.cts-docs-footer {
+  position: relative;
+  z-index: 20;
+  border-top: 1px solid var(--vp-c-divider);
+  padding: 24px 32px;
+  background: var(--vp-c-bg);
+  color: var(--vp-c-text-2);
+  font-size: 14px;
+  line-height: 1.6;
+  text-align: center;
+}
+
+@media (min-width: 960px) {
+  .VPContent.has-sidebar ~ .cts-docs-footer {
+    padding-left: calc(var(--vp-sidebar-width) + 32px);
+  }
+}

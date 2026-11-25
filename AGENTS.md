@@ -34,3 +34,7 @@ below take precedence over older versioning instructions in other documents.
 
 The initial pending entries migrate Elementor's legacy version and reconcile the
 inconsistent Posts Sync header, constant and readme on the next release.
+
+## Dokumentations-Changelog
+
+Bei jeder Änderung muss `pages/Changelog.md` im selben Arbeitsschritt aktualisiert werden. Noch nicht veröffentlichte Änderungen werden unter `Unreleased` in der passenden Kategorie `Feature`, `Bugs` oder `Other topics` eingetragen. Beschreibe die Änderung knapp und sachlich; fasse zusammengehörige Änderungen zusammen und vermeide doppelte Einträge. Kategorien und Versionsabschnitte dürfen nur erscheinen, wenn sie Einträge enthalten. Bei einer Veröffentlichung werden die zugehörigen Unreleased-Einträge der tatsächlichen Version mit Veröffentlichungsdatum zugeordnet.
